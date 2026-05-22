@@ -7,17 +7,28 @@ import assert from "node:assert/strict";
 
 const cliScript = resolve("src/goal-diffusion.ts");
 
-function makePack({ receipts = "" } = {}) {
+function makePack({ contract = contractYaml, state = stateYaml, receipts = "" } = {}) {
   const root = mkdtempSync(join(tmpdir(), "goal-pack-cli-test-"));
+  return writePack(root, { contract, state, receipts });
+}
+
+function makeProjectPack(goalId = "cli-test-goal", options = {}) {
+  const project = mkdtempSync(join(tmpdir(), "goal-pack-project-test-"));
+  const root = join(project, "docs", "goal-diffusion", "goals", goalId);
+  writePack(root, options);
+  return { project, root };
+}
+
+function writePack(root, { contract = contractYaml, state = stateYaml, receipts = "" } = {}) {
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "contract.yaml"), contractYaml.trimStart());
-  writeFileSync(join(root, "state.yaml"), stateYaml.trimStart());
+  writeFileSync(join(root, "contract.yaml"), contract.trimStart());
+  writeFileSync(join(root, "state.yaml"), state.trimStart());
   writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
   return root;
 }
 
-function run(script, args) {
-  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8" });
+function run(script, args, options: { cwd?: string } = {}) {
+  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8", cwd: options.cwd });
 }
 
 function readReceipts(root) {
@@ -74,6 +85,61 @@ last_verification:
 next_decision: continue
 `;
 
+const blockScalarContractYaml = `
+id: block-scalar-goal
+status: running
+objective: >
+  Build source connection UI
+  from a real Goal Pack.
+authority_refs:
+  - "docs/authority.md"
+architecture_standard:
+  - "Stay bounded."
+completion_oracle:
+  signal:
+    - "Route opens"
+    - "List renders"
+  final_proof:
+    - "Checks pass"
+claim_boundary: >
+  Claims UI route only.
+`;
+
+const blockScalarStateYaml = `
+version: 1
+goal_id: block-scalar-goal
+status: running
+current_edge:
+  from: >
+    No product route
+  target_delta: >
+    Product route usable
+  harnessed_path:
+    - "Create route"
+  verify:
+    - "bun test packages/cli/test/goal-pack-cli.test.ts"
+  failure_inspection:
+    - "packages/cli/src/"
+active_task: T001
+tasks:
+  - id: T001
+    type: worker
+    status: active
+    objective: >
+      Implement product route
+    allowed_scope:
+      - "packages/cli/**"
+    verify:
+      - "bun test packages/cli/test/goal-pack-cli.test.ts"
+    stop_if:
+      - "Need authority change."
+blockers: []
+last_verification:
+  result: unknown
+  commands: []
+next_decision: continue
+`;
+
 test("inspect --json returns compact agent-readable state", () => {
   const root = makePack({
     receipts: `{"task_id":"T000","type":"pm","result":"done","summary":"DO_NOT_DUMP_FULL_RECEIPTS","evidence":["seed"],"next_decision":"continue"}\n`,
@@ -92,6 +158,46 @@ test("inspect --json returns compact agent-readable state", () => {
     assert.equal(JSON.stringify(payload).includes("DO_NOT_DUMP_FULL_RECEIPTS"), false);
   } finally {
     rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("inspect --json parses YAML block scalars and nested lists", () => {
+  const root = makePack({
+    contract: blockScalarContractYaml,
+    state: blockScalarStateYaml,
+  });
+  try {
+    const result = run(cliScript, ["inspect", root, "--json"]);
+    assert.equal(result.status, 0, result.stderr);
+    const payload = JSON.parse(result.stdout);
+    assert.equal(payload.objective, "Build source connection UI from a real Goal Pack.");
+    assert.deepEqual(payload.oracle.signal, ["Route opens", "List renders"]);
+    assert.deepEqual(payload.oracle.final_proof, ["Checks pass"]);
+    assert.equal(payload.claim_boundary, "Claims UI route only.");
+    assert.equal(payload.current_edge.from, "No product route");
+    assert.equal(payload.current_edge.target_delta, "Product route usable");
+    assert.equal(payload.active_task.objective, "Implement product route");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("commands resolve bare goal id under docs/goal-diffusion/goals from project subdirectories", () => {
+  const { project } = makeProjectPack();
+  const nested = join(project, "apps", "web-start", "src");
+  mkdirSync(nested, { recursive: true });
+  try {
+    const inspect = run(cliScript, ["inspect", "cli-test-goal", "--json"], { cwd: nested });
+    assert.equal(inspect.status, 0, inspect.stderr);
+    const payload = JSON.parse(inspect.stdout);
+    assert.equal(payload.goal_id, "cli-test-goal");
+    assert.equal(payload.active_task.id, "T001");
+
+    const check = run(cliScript, ["check", "cli-test-goal"], { cwd: project });
+    assert.equal(check.status, 0, check.stderr);
+    assert.equal(JSON.parse(check.stdout).goal_pack, "cli-test-goal");
+  } finally {
+    rmSync(project, { recursive: true, force: true });
   }
 });
 
@@ -116,13 +222,17 @@ test("dispatch renders a paste-ready goal handoff without mutating state", () =>
   const root = makePack();
   try {
     const before = readFileSync(join(root, "state.yaml"), "utf8");
-    const result = run(cliScript, ["dispatch", root, "--task", "T001"]);
+    const result = run(cliScript, ["dispatch", root]);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /^\/goal 实施这个 Goal Pack task。/);
     assert.match(result.stdout, /goal-diffusion brief .* --task T001/);
     assert.match(result.stdout, /goal-diffusion activate .* --task T001/);
     assert.match(result.stdout, /Goal Pack Task Brief/);
     assert.equal(readFileSync(join(root, "state.yaml"), "utf8"), before);
+
+    const explicit = run(cliScript, ["dispatch", root, "--task", "T001"]);
+    assert.equal(explicit.status, 0, explicit.stderr);
+    assert.match(explicit.stdout, /goal-diffusion brief .* --task T001/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

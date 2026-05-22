@@ -1,22 +1,22 @@
 import { renderPrompt } from "./lib/goal-pack.ts";
 import { renderBriefText } from "./render-goal-task-brief.ts";
 
-export function runDispatch(goalRoot, { taskId }) {
-  if (!taskId) throw new Error("dispatch requires --task T###");
+export function runDispatch(goalRoot, { taskId = null } = {}) {
   const brief = renderPrompt(goalRoot, { taskId });
+  const selectedTaskId = brief.task.id;
   const lines = [];
   lines.push("/goal 实施这个 Goal Pack task。");
   lines.push("");
   lines.push("先运行并阅读最新任务包：");
   lines.push("");
   lines.push("```bash");
-  lines.push(`goal-diffusion brief ${goalRoot} --task ${taskId}`);
+  lines.push(`goal-diffusion brief ${goalRoot} --task ${selectedTaskId}`);
   lines.push("```");
   lines.push("");
   lines.push("然后激活 task：");
   lines.push("");
   lines.push("```bash");
-  lines.push(`goal-diffusion activate ${goalRoot} --task ${taskId}`);
+  lines.push(`goal-diffusion activate ${goalRoot} --task ${selectedTaskId}`);
   lines.push("```");
   lines.push("");
   lines.push("执行规则：");

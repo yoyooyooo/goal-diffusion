@@ -42,6 +42,51 @@ The controller skill is stored at `skills/goal-diffusion/`. Phase skills are
 flat under `skills/` so skill loaders can discover them directly. The CLI
 package is published as `goal-diffusion`.
 
+## Skill Source Of Truth
+
+For Goal Diffusion skill content, this repository is the development source of
+truth. Edit these directories here first:
+
+```text
+skills/goal-diffusion/
+skills/goal-plans/
+skills/finding-harnessed-path/
+skills/diffusion-implementation/
+skills/write-implementation-plans/
+```
+
+`~/Documents/code/personal/personal-skills` remains the machine-wide
+skillshare source of truth for distribution to runtime targets such as
+`~/.agents/skills` and `~/.claude/skills`.
+
+Sync direction:
+
+```text
+goal-diffusion repo skills/* -> personal-skills root skill dirs -> skillshare targets
+```
+
+Do not edit the mirrored Goal Diffusion skill dirs in `personal-skills` as the
+long-lived source. Promote changes from this repo instead, then run
+`skillshare sync -g` or `skillshare sync --force -g` from `personal-skills`.
+
+Safe manual sync from this repo:
+
+```bash
+for d in goal-diffusion goal-plans finding-harnessed-path diffusion-implementation write-implementation-plans; do
+  test -d "skills/$d" || exit 1
+  rsync -ain --delete "skills/$d/" "$HOME/Documents/code/personal/personal-skills/$d/"
+done
+
+for d in goal-diffusion goal-plans finding-harnessed-path diffusion-implementation write-implementation-plans; do
+  test -d "skills/$d" || exit 1
+  rsync -a --delete "skills/$d/" "$HOME/Documents/code/personal/personal-skills/$d/"
+done
+```
+
+After adding, removing, or renaming a skill directory, update
+`personal-skills/skill-manager/references/scene-profiles.json`, refresh the
+active scene, and sync distribution targets.
+
 ## Install
 
 ```bash
@@ -64,12 +109,24 @@ goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
-goal-diffusion dispatch <goal-pack> --task T###
+goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
 goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>')
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
+
+`<goal-pack>` may be either a Goal Pack directory or a bare goal id. Bare ids
+are resolved upward from the current directory through
+`docs/goal-diffusion/goals/<goal-id>`.
+
+Typical loop:
+
+```text
+check -> inspect -> brief -> work -> record -> advance -> check
+```
+
+Use `dispatch` only when handing the active or selected task to another agent.
 
 ## Goal Pack Shape
 
@@ -184,6 +241,13 @@ skills/diffusion-implementation/ run phase skill
 skills/write-implementation-plans/ plan-required phase skill
 ```
 
+Skill 真源口径：
+
+- 本仓是 Goal Diffusion skill 内容的开发真源。
+- `~/Documents/code/personal/personal-skills` 是本机 skillshare 分发真源。
+- 同步方向固定为：`本仓 skills/* -> personal-skills 根级 skill 目录 -> runtime targets`。
+- 不把 `personal-skills` 里的 Goal Diffusion 镜像当长期编辑源；要改先改本仓，再提升过去。
+
 安装：
 
 ```bash
@@ -205,12 +269,15 @@ goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
-goal-diffusion dispatch <goal-pack> --task T###
+goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
 goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>')
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
+
+`<goal-pack>` 可传完整目录，也可传 goal id；CLI 会从当前目录向上查
+`docs/goal-diffusion/goals/<goal-id>`。
 
 发布：
 

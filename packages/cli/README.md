@@ -13,12 +13,15 @@ goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
-goal-diffusion dispatch <goal-pack> --task T###
+goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
 goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>')
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
+
+`<goal-pack>` may be a directory or a bare goal id under
+`docs/goal-diffusion/goals/`.
 
 ## Development
 

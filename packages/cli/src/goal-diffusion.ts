@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { realpathSync } from "node:fs";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { Command, CommanderError, Option } from "commander";
 import { checkGoalPack } from "./check-goal-pack.ts";
@@ -22,6 +23,10 @@ type CliOutput = {
   outputError: (text: string, write: (text: string) => void) => void;
 };
 
+const require = createRequire(import.meta.url);
+const packageJson = require("../package.json") as { version?: string };
+const CLI_VERSION = packageJson.version ?? "0.0.0";
+
 class CliExit extends Error {
   constructor(readonly status: number) {
     super(`exit ${status}`);
@@ -35,7 +40,7 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .name("goal-diffusion")
     .description("Goal Pack command surface for long-running AI coding loops.")
-    .version("0.1.0")
+    .version(CLI_VERSION)
     .showHelpAfterError()
     .showSuggestionAfterError()
     .configureOutput(output)
@@ -44,7 +49,7 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .command("inspect")
     .description("Inspect compact Goal Pack state.")
-    .argument("<goal-pack>", "Goal Pack directory")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .option("--json", "print JSON output")
     .action((goalRoot: string, options: { json?: boolean }) => {
       emit(runInspect(goalRoot, { json: Boolean(options.json) }));
@@ -53,7 +58,7 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .command("brief")
     .description("Render a task brief for the active or selected task.")
-    .argument("<goal-pack>", "Goal Pack directory")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .option("--task <id>", "task id, for example T001")
     .option("--json", "print JSON output")
     .action((goalRoot: string, options: { task?: string; json?: boolean }) => {
@@ -63,16 +68,16 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .command("dispatch")
     .description("Render a paste-ready handoff for a specific task.")
-    .argument("<goal-pack>", "Goal Pack directory")
-    .requiredOption("--task <id>", "task id, for example T001")
-    .action((goalRoot: string, options: { task: string }) => {
-      emit(runDispatch(goalRoot, { taskId: options.task }));
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
+    .option("--task <id>", "task id, defaults to active_task")
+    .action((goalRoot: string, options: { task?: string }) => {
+      emit(runDispatch(goalRoot, { taskId: options.task ?? null }));
     });
 
   program
     .command("activate")
     .description("Move a queued task into running active state.")
-    .argument("<goal-pack>", "Goal Pack directory")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .requiredOption("--task <id>", "task id, for example T001")
     .option("--dry-run", "print the state transition without writing files")
     .action((goalRoot: string, options: { task: string; dryRun?: boolean }) => {
@@ -82,7 +87,7 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .command("record")
     .description("Append a validated receipt to receipts.jsonl.")
-    .argument("<goal-pack>", "Goal Pack directory")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .addOption(new Option("--file <path>", "receipt JSON file").conflicts("json"))
     .addOption(new Option("--json <value>", "receipt JSON string").conflicts("file"))
     .action((goalRoot: string, options: { file?: string; json?: string }) => {
@@ -96,7 +101,7 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .command("advance")
     .description("Advance deterministic state from the latest receipt.")
-    .argument("<goal-pack>", "Goal Pack directory")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .option("--dry-run", "print the state transition without writing files")
     .action((goalRoot: string, options: { dryRun?: boolean }) => {
       const result = runAdvance(goalRoot, { dryRun: Boolean(options.dryRun) });
@@ -114,7 +119,7 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
   program
     .command("check")
     .description("Validate a Goal Pack.")
-    .argument("<goal-pack>", "Goal Pack directory")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .action((goalRoot: string) => {
       const result = checkGoalPack(goalRoot);
       emit(JSON.stringify(result, null, 2));

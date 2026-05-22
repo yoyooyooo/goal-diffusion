@@ -4,7 +4,7 @@ import {
   renameSync,
   writeFileSync,
 } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 
 export const STATUS_VALUES = ["forming", "ready", "running", "blocked", "done", "retired"];
 export const TASK_TYPES = ["scout", "judge", "worker", "pm", "audit", "plan_required"];
@@ -13,7 +13,7 @@ export const NEXT_DECISIONS = ["edge", "continue", "plan_required", "blocked", "
 export const RECEIPT_RESULTS = ["done", "blocked"];
 
 export function loadGoalPack(goalRoot) {
-  const root = resolve(goalRoot);
+  const root = resolveGoalPackRoot(goalRoot);
   const files = {
     contract: join(root, "contract.yaml"),
     state: join(root, "state.yaml"),
@@ -44,6 +44,29 @@ export function loadGoalPack(goalRoot) {
     receipts,
     receiptParseErrors,
   };
+}
+
+export function resolveGoalPackRoot(goalRoot, { cwd = process.cwd() } = {}) {
+  const direct = resolve(cwd, goalRoot);
+  if (existsSync(direct) || looksLikePath(goalRoot)) return direct;
+
+  const candidate = findGoalPackById(cwd, goalRoot);
+  return candidate ?? direct;
+}
+
+function findGoalPackById(startDir, goalId) {
+  let current = resolve(startDir);
+  while (true) {
+    const candidate = join(current, "docs", "goal-diffusion", "goals", goalId);
+    if (existsSync(candidate)) return candidate;
+    const parent = dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
+function looksLikePath(value) {
+  return value.includes("/") || value.includes("\\") || value === "." || value === ".." || value.startsWith("./") || value.startsWith("../") || value.startsWith("~/");
 }
 
 export function parseContract(text) {
@@ -550,8 +573,7 @@ export function clean(value) {
 }
 
 export function topScalar(text, key) {
-  const match = text.match(new RegExp(`^${escapeRegExp(key)}:\\s*(.*?)\\s*$`, "m"));
-  return match ? clean(match[1]) : null;
+  return keyValue(text, key, 0);
 }
 
 export function pathScalar(text, path, key) {
@@ -561,18 +583,17 @@ export function pathScalar(text, path, key) {
     if (!body) return null;
   }
   const indent = path.length * 2;
-  const match = body.match(new RegExp(`^\\s{${indent}}${escapeRegExp(key)}:\\s*(.*?)\\s*$`, "m"));
-  return match ? clean(match[1]) : null;
+  return keyValue(body, key, indent);
 }
 
 export function blockText(text, key, indent) {
   const lines = text.split(/\r?\n/);
-  const start = lines.findIndex((line) => new RegExp(`^\\s{${indent}}${escapeRegExp(key)}:\\s*$`).test(line));
+  const start = lines.findIndex((line) => new RegExp(`^ {${indent}}${escapeRegExp(key)}:[ \t]*$`).test(line));
   if (start === -1) return "";
   const collected = [];
   for (let index = start + 1; index < lines.length; index += 1) {
     const line = lines[index];
-    if (line.trim() && line.match(/^ */)[0].length <= indent) break;
+    if (line.trim() && lineIndent(line) <= indent) break;
     collected.push(line);
   }
   return collected.join("\n");
@@ -580,16 +601,12 @@ export function blockText(text, key, indent) {
 
 export function listScalar(text, key, indent) {
   const lines = text.split(/\r?\n/);
-  const start = lines.findIndex((line) => new RegExp(`^\\s{${indent}}${escapeRegExp(key)}:\\s*$`).test(line));
+  const start = findKeyLine(lines, key, indent);
   if (start === -1) return [];
-  const values = [];
-  for (let index = start + 1; index < lines.length; index += 1) {
-    const line = lines[index];
-    if (line.trim() && line.match(/^ */)[0].length <= indent) break;
-    const item = line.match(new RegExp(`^\\s{${indent + 2}}-\\s*(.+?)\\s*$`));
-    if (item) values.push(clean(item[1]));
-  }
-  return values.filter((value) => value !== null);
+  const inline = keyLineValue(lines[start], key, indent);
+  if (inline.trim() === "[]") return [];
+  if (inline.trim().startsWith("[") && inline.trim().endsWith("]")) return parseInlineList(inline);
+  return listAfterKey(lines, start, indent);
 }
 
 function parseTasks(text) {
@@ -626,9 +643,7 @@ function parseTasks(text) {
 }
 
 function taskScalar(lines, key) {
-  const text = lines.join("\n");
-  const match = text.match(new RegExp(`^\\s{4}${escapeRegExp(key)}:\\s*(.*?)\\s*$`, "m"));
-  return match ? clean(match[1]) : null;
+  return keyValue(lines.join("\n"), key, 4);
 }
 
 function taskList(lines, key) {
@@ -768,6 +783,109 @@ function updateTopScalar(text, key, value) {
 
 function unique(values) {
   return [...new Set(values.filter(Boolean))];
+}
+
+function keyValue(text, key, indent) {
+  const lines = text.split(/\r?\n/);
+  const index = findKeyLine(lines, key, indent);
+  if (index === -1) return null;
+
+  const raw = keyLineValue(lines[index], key, indent);
+  const inline = raw.trim();
+  if (inline === "[]") return [];
+  if (inline.startsWith("[") && inline.endsWith("]")) return parseInlineList(inline);
+
+  const value = clean(raw);
+  if (typeof value === "string" && /^([>|])[-+]?$/.test(value)) {
+    return parseBlockScalar(lines, index, indent, value[0]);
+  }
+  if (value !== null) return value;
+
+  const nestedList = listAfterKey(lines, index, indent);
+  return nestedList.length > 0 ? nestedList : null;
+}
+
+function findKeyLine(lines, key, indent) {
+  const pattern = new RegExp(`^ {${indent}}${escapeRegExp(key)}:(?:[ \t]*(.*))?$`);
+  return lines.findIndex((line) => pattern.test(line));
+}
+
+function keyLineValue(line, key, indent) {
+  const match = line.match(new RegExp(`^ {${indent}}${escapeRegExp(key)}:(?:[ \t]*(.*))?$`));
+  return match ? match[1] ?? "" : "";
+}
+
+function listAfterKey(lines, start, indent) {
+  const values = [];
+  const itemPattern = new RegExp(`^ {${indent + 2}}-[ \t]*(.*?)[ \t]*$`);
+  for (let index = start + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.trim() && lineIndent(line) <= indent) break;
+    const item = line.match(itemPattern);
+    if (item) {
+      const value = clean(item[1]);
+      if (value !== null) values.push(value);
+    }
+  }
+  return values;
+}
+
+function parseInlineList(value) {
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(clean).filter((item) => item !== null) : [];
+  } catch {
+    return value.slice(1, -1).split(",").map(clean).filter((item) => item !== null);
+  }
+}
+
+function parseBlockScalar(lines, start, indent, style) {
+  const rawBlock = collectChildLines(lines, start, indent);
+  const block = stripBlockIndent(rawBlock);
+  while (block.length > 0 && !block[0].trim()) block.shift();
+  while (block.length > 0 && !block.at(-1).trim()) block.pop();
+  if (style === "|") return block.join("\n");
+
+  const folded = [];
+  let paragraph = [];
+  const flushParagraph = () => {
+    if (paragraph.length === 0) return;
+    folded.push(paragraph.map((line) => line.trim()).join(" "));
+    paragraph = [];
+  };
+
+  for (const line of block) {
+    if (!line.trim()) {
+      flushParagraph();
+      folded.push("");
+      continue;
+    }
+    paragraph.push(line);
+  }
+  flushParagraph();
+  return folded.join("\n").trim();
+}
+
+function collectChildLines(lines, start, indent) {
+  const collected = [];
+  for (let index = start + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.trim() && lineIndent(line) <= indent) break;
+    collected.push(line);
+  }
+  return collected;
+}
+
+function stripBlockIndent(lines) {
+  const minIndent = Math.min(
+    ...lines.filter((line) => line.trim()).map(lineIndent),
+  );
+  if (!Number.isFinite(minIndent)) return [];
+  return lines.map((line) => line.slice(Math.min(lineIndent(line), minIndent)));
+}
+
+function lineIndent(line) {
+  return line.match(/^ */)[0].length;
 }
 
 function escapeRegExp(value) {
