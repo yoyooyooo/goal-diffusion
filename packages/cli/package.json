@@ -4,6 +4,15 @@
   "description": "A Goal Pack CLI for long-running AI coding loops.",
   "type": "module",
   "license": "MIT",
+  "homepage": "https://github.com/yoyooyooo/goal-diffusion#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoyooyooo/goal-diffusion.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/yoyooyooo/goal-diffusion/issues"
+  },
   "keywords": [
     "ai",
     "agent",
@@ -25,7 +34,8 @@
     "LICENSE"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "engines": {
     "node": ">=20"
