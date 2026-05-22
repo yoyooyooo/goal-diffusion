@@ -69,6 +69,8 @@ npm install -g goal-diffusion
 goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
+goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
+goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -78,7 +80,9 @@ goal-diffusion check <goal-pack>
 ```
 
 `<goal-pack>` may be a directory or a bare goal id under
-`docs/goal-diffusion/goals/`. Work loop:
+`docs/goal-diffusion/goals/`. `summary` and `list` accept a project root or
+`docs/goal-diffusion/goals` directory. `--completion todo` means status is
+neither `done` nor `retired`; `--status` filters raw Goal Pack status. Work loop:
 
 ```text
 check -> inspect -> brief -> work -> record -> advance -> check

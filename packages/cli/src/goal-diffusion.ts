@@ -10,6 +10,7 @@ import { runAppendReceipt } from "./append-receipt.ts";
 import { runBrief } from "./render-goal-task-brief.ts";
 import { runDispatch } from "./render-goal-task-dispatch.ts";
 import { runInspect } from "./inspect-goal-pack.ts";
+import { COMPLETION_VALUES, runList, runSummary } from "./summarize-goal-packs.ts";
 
 type CliResult = {
   status: number;
@@ -53,6 +54,28 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--json", "print JSON output")
     .action((goalRoot: string, options: { json?: boolean }) => {
       emit(runInspect(goalRoot, { json: Boolean(options.json) }));
+    });
+
+  program
+    .command("summary")
+    .description("Summarize Goal Packs under a project or goals directory.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--completion <value>", `filter by completion: ${COMPLETION_VALUES.join(", ")}`, "all")
+    .option("--status <value>", "filter by Goal Pack status")
+    .option("--json", "print JSON output")
+    .action((target: string, options: { json?: boolean; completion?: string; status?: string }) => {
+      emit(runSummary(target, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null }));
+    });
+
+  program
+    .command("list")
+    .description("List Goal Packs under a project or goals directory.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--completion <value>", `filter by completion: ${COMPLETION_VALUES.join(", ")}`, "all")
+    .option("--status <value>", "filter by Goal Pack status")
+    .option("--json", "print JSON output")
+    .action((target: string, options: { json?: boolean; completion?: string; status?: string }) => {
+      emit(runList(target, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null }));
     });
 
   program

@@ -85,6 +85,47 @@ last_verification:
 next_decision: continue
 `;
 
+const doneSummaryContractYaml = `
+id: cli-done-goal
+status: done
+objective: "Exercise completed Goal Pack summary."
+authority_refs:
+  - "goal-diffusion/SKILL.md"
+architecture_standard:
+  - "Command scripts summarize deterministic state."
+completion_oracle:
+  signal: "Summary counts completed packs."
+  final_proof: "Node tests pass."
+claim_boundary: "Only proves summary command behavior."
+`;
+
+const doneSummaryStateYaml = `
+version: 1
+goal_id: cli-done-goal
+status: done
+current_edge:
+  from: "Summary missing"
+  target_delta: "Summary available"
+  harnessed_path:
+    - "Run CLI summary tests"
+  verify:
+    - "bun test packages/cli/test/goal-pack-cli.test.ts"
+  failure_inspection:
+    - "packages/cli/src/summarize-goal-packs.ts"
+active_task: null
+tasks:
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit summary command."
+blockers: []
+last_verification:
+  result: pass
+  commands:
+    - "bun test packages/cli/test/goal-pack-cli.test.ts"
+next_decision: done
+`;
+
 const blockScalarContractYaml = `
 id: block-scalar-goal
 status: running
@@ -196,6 +237,101 @@ test("commands resolve bare goal id under docs/goal-diffusion/goals from project
     const check = run(cliScript, ["check", "cli-test-goal"], { cwd: project });
     assert.equal(check.status, 0, check.stderr);
     assert.equal(JSON.parse(check.stdout).goal_pack, "cli-test-goal");
+  } finally {
+    rmSync(project, { recursive: true, force: true });
+  }
+});
+
+test("summary counts Goal Pack and task completion under a project root", () => {
+  const { project } = makeProjectPack("cli-active-goal");
+  const doneRoot = join(project, "docs", "goal-diffusion", "goals", "cli-done-goal");
+  writePack(doneRoot, {
+    contract: doneSummaryContractYaml,
+    state: doneSummaryStateYaml,
+    receipts: `{"task_id":"T999","type":"audit","result":"done","decision":"complete","oracle_satisfied":true,"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"done"}\n`,
+  });
+
+  try {
+    const json = run(cliScript, ["summary", project, "--json"]);
+    assert.equal(json.status, 0, json.stderr);
+    const payload = JSON.parse(json.stdout);
+    assert.equal(payload.goals.total, 2);
+    assert.equal(payload.goals.done, 1);
+    assert.equal(payload.goals.todo, 1);
+    assert.equal(payload.goals.by_status.running, 1);
+    assert.equal(payload.goals.by_status.done, 1);
+    assert.equal(payload.tasks.total, 3);
+    assert.equal(payload.tasks.done, 1);
+    assert.equal(payload.tasks.todo, 2);
+    assert.equal(payload.tasks.by_status.active, 1);
+    assert.equal(payload.tasks.by_status.queued, 1);
+    assert.equal(payload.problem_count, 0);
+
+    const todo = run(cliScript, ["summary", project, "--completion", "todo", "--json"]);
+    assert.equal(todo.status, 0, todo.stderr);
+    const todoPayload = JSON.parse(todo.stdout);
+    assert.equal(todoPayload.filters.completion, "todo");
+    assert.equal(todoPayload.goals.total, 1);
+    assert.equal(todoPayload.goals.done, 0);
+    assert.equal(todoPayload.goals.todo, 1);
+    assert.equal(todoPayload.items[0].goal_id, "cli-test-goal");
+
+    const done = run(cliScript, ["summary", project, "--completion", "done", "--json"]);
+    assert.equal(done.status, 0, done.stderr);
+    const donePayload = JSON.parse(done.stdout);
+    assert.equal(donePayload.goals.total, 1);
+    assert.equal(donePayload.goals.done, 1);
+    assert.equal(donePayload.items[0].goal_id, "cli-done-goal");
+
+    const ready = run(cliScript, ["summary", project, "--status", "running", "--json"]);
+    assert.equal(ready.status, 0, ready.stderr);
+    const readyPayload = JSON.parse(ready.stdout);
+    assert.equal(readyPayload.filters.status, "running");
+    assert.equal(readyPayload.goals.total, 1);
+    assert.equal(readyPayload.items[0].status, "running");
+
+    const text = run(cliScript, ["summary", join(project, "docs", "goal-diffusion", "goals")]);
+    assert.equal(text.status, 0, text.stderr);
+    assert.match(text.stdout, /goals: total=2 done=1 todo=1 retired=0/);
+    assert.match(text.stdout, /tasks: total=3 done=1 todo=2/);
+  } finally {
+    rmSync(project, { recursive: true, force: true });
+  }
+});
+
+test("list filters Goal Packs by completion and status", () => {
+  const { project } = makeProjectPack("cli-active-goal");
+  const doneRoot = join(project, "docs", "goal-diffusion", "goals", "cli-done-goal");
+  writePack(doneRoot, {
+    contract: doneSummaryContractYaml,
+    state: doneSummaryStateYaml,
+    receipts: `{"task_id":"T999","type":"audit","result":"done","decision":"complete","oracle_satisfied":true,"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"done"}\n`,
+  });
+
+  try {
+    const todo = run(cliScript, ["list", project, "--completion", "todo"]);
+    assert.equal(todo.status, 0, todo.stderr);
+    assert.match(todo.stdout, /goals: 1/);
+    assert.match(todo.stdout, /cli-test-goal  status=running/);
+    assert.doesNotMatch(todo.stdout, /cli-done-goal/);
+
+    const done = run(cliScript, ["list", project, "--completion", "done", "--json"]);
+    assert.equal(done.status, 0, done.stderr);
+    const donePayload = JSON.parse(done.stdout);
+    assert.equal(donePayload.count, 1);
+    assert.equal(donePayload.items[0].goal_id, "cli-done-goal");
+
+    const impossible = run(cliScript, ["list", project, "--completion", "todo", "--status", "done", "--json"]);
+    assert.equal(impossible.status, 0, impossible.stderr);
+    assert.equal(JSON.parse(impossible.stdout).count, 0);
+
+    const badCompletion = run(cliScript, ["list", project, "--completion", "finished"]);
+    assert.equal(badCompletion.status, 1);
+    assert.match(badCompletion.stderr, /completion must be all, todo, done/);
+
+    const badStatus = run(cliScript, ["summary", project, "--status", "todo"]);
+    assert.equal(badStatus.status, 1);
+    assert.match(badStatus.stderr, /status must be forming, ready, running, blocked, done, retired/);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
@@ -322,6 +458,8 @@ test("main CLI exposes only official command names", () => {
   try {
     const help = run(cliScript, ["help"]);
     assert.equal(help.status, 0, help.stderr);
+    assert.match(help.stdout, /summary \[options\] \[target\]/);
+    assert.match(help.stdout, /list \[options\] \[target\]/);
     assert.match(help.stdout, /brief \[options\] <goal-pack>/);
     assert.match(help.stdout, /dispatch \[options\] <goal-pack>/);
     assert.match(help.stdout, /activate \[options\] <goal-pack>/);
@@ -348,6 +486,14 @@ test("main CLI exposes structured commander help at every command layer", () => 
     {
       args: ["--help"],
       patterns: [/Usage: goal-diffusion \[options\] \[command\]/, /Options:/, /Commands:/, /inspect/, /brief/, /record/],
+    },
+    {
+      args: ["summary", "--help"],
+      patterns: [/Usage: goal-diffusion summary \[options\] \[target\]/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
+    },
+    {
+      args: ["list", "--help"],
+      patterns: [/Usage: goal-diffusion list \[options\] \[target\]/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
     },
     {
       args: ["inspect", "--help"],
