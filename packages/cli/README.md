@@ -1,10 +1,31 @@
 # goal-diffusion
 
-TypeScript CLI for Goal Diffusion Goal Packs.
+**English** | [中文](README.zh-CN.md)
+
+CLI for checking progress, reading next steps, and recording evidence for Goal
+Diffusion work.
+
+Use it inside any project that stores Goal Diffusion goal folders under
+`docs/goal-diffusion/goals/<goal-id>`. It answers the operational questions
+first: which goals exist, which are done, which are still todo, what next step is
+active, and whether the files are consistent.
 
 ```bash
 npm install -g goal-diffusion
 ```
+
+## Common Flow
+
+```bash
+goal-diffusion summary .
+goal-diffusion list . --completion todo
+goal-diffusion inspect <goal-id>
+goal-diffusion brief <goal-id>
+goal-diffusion check <goal-id>
+```
+
+Use `summary` and `list` at project level. Use `inspect`, `brief`, `record`,
+`advance`, and `check` on a single goal folder.
 
 ## Commands
 
@@ -12,6 +33,8 @@ npm install -g goal-diffusion
 goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
+goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
+goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -22,14 +45,15 @@ goal-diffusion check <goal-pack>
 
 `<goal-pack>` may be a directory or a bare goal id under
 `docs/goal-diffusion/goals/`.
+`summary` accepts a project root or `docs/goal-diffusion/goals` directory, and
+defaults upward from the current directory.
+`--completion todo` means status is neither `done` nor `retired`; `--status`
+filters the raw goal status.
 
-## Development
+Typical execution loop:
 
-```bash
-bun install
-bun run --filter goal-diffusion build
-bun run --filter goal-diffusion typecheck
-bun run --filter goal-diffusion test
+```text
+check -> inspect -> brief -> work -> record -> advance -> check
 ```
 
 ## Release
@@ -48,30 +72,11 @@ bun run release 0.2.0
 that commit, and pushes only the tag. GitHub Actions publishes through npm
 Trusted Publishing.
 
-## 中文
-
-`goal-diffusion` 是 Goal Pack 的 TypeScript CLI。
-
-安装：
+## Development
 
 ```bash
-npm install -g goal-diffusion
+bun install
+bun run --filter goal-diffusion build
+bun run --filter goal-diffusion typecheck
+bun run --filter goal-diffusion test
 ```
-
-发布前验证：
-
-```bash
-bun run check
-bun run pack:dry
-```
-
-发布从仓库根目录执行：
-
-```bash
-bun run release:check patch
-bun run release patch
-```
-
-`bun run release:check` 只做发布前 git 预检测，不改文件。
-`bun run release` 在临时本地 release 分支写版本、提交并打 tag，只 push tag。
-GitHub Actions 通过 npm Trusted Publishing 发布。

@@ -1,106 +1,226 @@
 # Goal Diffusion
 
-Goal Diffusion is a Goal Pack operating loop for long-running AI coding work.
+**English** | [中文](README.zh-CN.md)
 
-It keeps the original goal visible, finds the first falsifiable path, runs a
-useful verified slice, records evidence, and continues only while the next step
-stays inside the human-owned contract.
+Goal Diffusion is a goal-driven method for long-running agent work.
 
-```text
-human target + authority -> contract -> harnessed edge -> state -> receipt -> next edge | audit
-```
+It applies to any project type: 0-to-1 MVPs, new features, migrations,
+refactors, debugging campaigns, audits, research, documentation governance, or
+tooling. The difference is not whether it applies, but which boundaries,
+validation methods, and stop conditions each project needs.
 
-## Why It Exists
+It solves a specific problem: when an agent needs to keep working for a long
+time, how do you make the goal clearer, the path more verifiable, and the
+execution less dependent on an over-specified implementation plan written too
+early?
 
-Large agentic coding work often fails in two ways: a speculative task tree is
-written before the system has evidence, or the agent stops after tiny helper
-slices that do not move the owner outcome.
+## Diffusion Analogy
 
-Goal Diffusion separates the two decisions:
+The name borrows from diffusion models: low precision becomes high precision.
 
-```text
-Find path small.
-Execute slice useful.
-```
-
-The path must be falsifiable. The slice must move the outcome: a working screen,
-API path, data path, real bug fix, migration slice, milestone review, or harness
-that proves the current edge.
-
-## Repository Layout
+At the start, you may only have a few coarse goal nodes. As work progresses,
+smaller and clearer goal nodes are inserted between distant ones. The goal graph
+becomes denser and more precise.
 
 ```text
-packages/cli/                   TypeScript CLI, built with Bun
-skills/goal-diffusion/          Controller skill
-skills/goal-plans/              Contract phase skill
-skills/finding-harnessed-path/  Edge phase skill
-skills/diffusion-implementation/ Run phase skill
-skills/write-implementation-plans/ Plan-required phase skill
+coarse goal -> intermediate goal -> smaller goal -> verifiable goal
 ```
 
-The controller skill is stored at `skills/goal-diffusion/`. Phase skills are
-flat under `skills/` so skill loaders can discover them directly. The CLI
-package is published as `goal-diffusion`.
+The links between those nodes are Harness Paths: verifiable paths from the
+current goal to the next goal. Every Harness Path needs a validation method:
+test scripts, build commands, screenshots, human acceptance checklists, log
+collection, data comparison, or any other evidence that proves the path holds.
 
-## Skill Source Of Truth
+## Goal-Driven, Not Implementation-Driven
 
-For Goal Diffusion skill content, this repository is the development source of
-truth. Edit these directories here first:
+Traditional spec-driven AI coding often aligns with the agent on "how to build"
+too early. That can work, but it can also spend too much effort constraining
+implementation details before the system has enough evidence.
+
+Goal Diffusion shifts the center of gravity to these questions:
+
+- What goal should be reached?
+- What are the boundaries?
+- How will we verify the goal is reached?
+- When should the agent stop, advance, or return to the human?
+
+This does not remove planning. It avoids wasting strong model capability on an
+over-detailed implementation plan when clear goals, boundaries, validation, and
+stop conditions are enough for the agent to choose a path and keep calibrating
+with evidence.
+
+## Core Objects
+
+| Term | Plain meaning |
+| --- | --- |
+| Goal Node | A describable and acceptable target point |
+| Goal Plan | The goal-contract generation or repair phase, mainly producing `contract.yaml` |
+| Harness Path | A verifiable path between two goal nodes |
+| Validation | A test, check, collection method, or acceptance method that proves a path |
+| Receipt | Evidence recorded after one verified step |
+| Goal Pack | Project folder for one long-running goal |
+| `contract.yaml` | Target, scope, constraints, and acceptance |
+| `state.yaml` | Current progress and the next allowed piece of work |
+| `receipts.jsonl` | Append-only evidence from completed work |
+| `implementation-plan.md` | Execution plan for high-risk work only |
+
+## How It Works
+
+Goal Diffusion asks one question per pass: what is the smallest verifiable next
+step that still moves the goal forward?
 
 ```text
-skills/goal-diffusion/
-skills/goal-plans/
-skills/finding-harnessed-path/
-skills/diffusion-implementation/
-skills/write-implementation-plans/
+goal and boundaries -> contract -> Harness Path -> state -> validation -> receipt -> next goal | audit
 ```
 
-`~/Documents/code/personal/personal-skills` remains the machine-wide
-skillshare source of truth for distribution to runtime targets such as
-`~/.agents/skills` and `~/.claude/skills`.
-
-Sync direction:
-
-```text
-goal-diffusion repo skills/* -> personal-skills root skill dirs -> skillshare targets
-```
-
-Do not edit the mirrored Goal Diffusion skill dirs in `personal-skills` as the
-long-lived source. Promote changes from this repo instead, then run
-`skillshare sync -g` or `skillshare sync --force -g` from `personal-skills`.
-
-Safe manual sync from this repo:
-
-```bash
-for d in goal-diffusion goal-plans finding-harnessed-path diffusion-implementation write-implementation-plans; do
-  test -d "skills/$d" || exit 1
-  rsync -ain --delete "skills/$d/" "$HOME/Documents/code/personal/personal-skills/$d/"
-done
-
-for d in goal-diffusion goal-plans finding-harnessed-path diffusion-implementation write-implementation-plans; do
-  test -d "skills/$d" || exit 1
-  rsync -a --delete "skills/$d/" "$HOME/Documents/code/personal/personal-skills/$d/"
-done
-```
-
-After adding, removing, or renaming a skill directory, update
-`personal-skills/skill-manager/references/scene-profiles.json`, refresh the
-active scene, and sync distribution targets.
+The loop is deliberately narrow. It does not require a full task tree up front.
+It locks the goal and boundaries, finds one verifiable path, does useful work,
+records evidence, and then continues sharpening the goal graph.
 
 ## Install
 
+Install the CLI first. The CLI inspects goal status, lists todo and done work,
+generates briefs, records evidence, advances state, and checks consistency.
+
 ```bash
 npm install -g goal-diffusion
+goal-diffusion --help
 ```
 
-For local development:
+Then install the Agent Skill. The skill gives the method to the agent: create or
+update goal folders, find Harness Paths, validate, record receipts, and decide
+the next step.
+
+Recommended full install:
 
 ```bash
-bun install
-bun run check
-bun run --filter goal-diffusion build
-bun run install:local
+npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent '*' --skill '*' --full-depth -y
 ```
+
+Codex-only install:
+
+```bash
+npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent codex --skill '*' --full-depth -y
+```
+
+## How To Use
+
+After installation, you do not need to manually create a Goal Pack or maintain
+`contract.yaml` / `state.yaml`. Give the target to the agent and explicitly ask
+it to use `$goal-diffusion`.
+
+For a new long-running goal, this is enough:
+
+```text
+Use $goal-diffusion:
+Goal: the result I want is ...
+Context: the current project state is ...
+Boundaries: do not change ..., must preserve ...
+Acceptance: done means ...
+Stop conditions: come back to me if ...
+```
+
+The agent will create or update `docs/goal-diffusion/goals/<goal-id>` and use
+the CLI for status checks, briefs, receipts, and advancement.
+
+## Aligning With The Agent
+
+The human owns the goal, boundaries, acceptance, and stop conditions. The agent
+compiles those inputs into a Goal Plan and writes them into the Goal Pack.
+
+A Goal Plan is not a detailed implementation checklist. It is a goal contract:
+what should be achieved, where the scope ends, how it will be verified, and when
+the agent should stop. Its main artifact is `contract.yaml`.
+
+After alignment, the agent finds the first Harness Path and writes it into
+`state.yaml`. If the goal is still too vague, the agent should ask questions. If
+boundaries and acceptance are clear enough, the agent should begin finding a
+verifiable path.
+
+## Rolling Execution
+
+Long-running agent work cannot rely on "just keep going." If the goal is too
+near, the agent will cautiously do a little and ask again. If the goal is too
+far, execution becomes hard to control.
+
+Goal Diffusion gives the agent a far enough goal for direction, while
+continually adding smaller and clearer goal nodes to the graph. The agent moves
+one verifiable Harness Path at a time.
+
+```text
+brief -> work -> verify -> receipt -> advance -> continue or block
+```
+
+At the end of each pass, the agent must answer:
+
+- Was this step verified?
+- What is the evidence?
+- Is the next step still inside the contract?
+
+If yes, it records a receipt and continues. If it hits a boundary violation,
+missing permission, failed validation, unclear goal, or no honest verifiable
+path, it stops and reports a block.
+
+That is rolling execution: not one giant plan up front, and not asking the human
+after every tiny step, but continuous movement through goals, validation,
+evidence, and stop conditions.
+
+## Using Codex `/goal`
+
+Goal Diffusion stores long-running goal state. Codex `/goal` hands one execution
+run to the agent so it can keep working for a while.
+
+Short prompt:
+
+```text
+/goal Use $goal-diffusion: read `goal-diffusion brief <goal-id>`, complete the current active task, verify it, record a receipt, and advance; continue if still inside the contract, otherwise stop and report boundary issues, missing permission, failed validation, or unclear goals.
+```
+
+More explicit prompt:
+
+```text
+/goal Use $goal-diffusion:
+Run `goal-diffusion brief <goal-id>` to get the current brief.
+Complete the current active task from the brief.
+Run the necessary verification.
+Record a receipt and advance state.
+If the next step remains inside the contract, continue rolling execution.
+If the work crosses a boundary, lacks permission, fails validation, has an unclear goal, or has no verifiable path, stop and report a block.
+```
+
+`brief` is an execution brief for the current goal, not a full project plan.
+After Codex reads it, the agent should execute, verify, record, and advance by
+the Goal Diffusion rules.
+
+## Five Skills
+
+Most users only name `$goal-diffusion`. The other four are phase skills the
+agent uses when the state requires them. Advanced users may name a phase skill
+directly, but that is not the normal path.
+
+| Skill | When used | Role |
+| --- | --- | --- |
+| `goal-diffusion` | Normal user entry | Main router that decides the current phase |
+| `goal-plans` | No Goal Pack, or unclear contract | Create or repair `contract.yaml` |
+| `finding-harnessed-path` | No verifiable next step | Find a Harness Path and write `state.yaml.current_edge` |
+| `diffusion-implementation` | Active task exists | Execute, verify, record receipt, advance, and continue inside boundaries |
+| `write-implementation-plans` | High-risk work | Write `implementation-plan.md` before execution |
+
+High-risk work usually includes migrations, security, public API/schema/protocol
+changes, irreversible data, strict multi-agent coordination, or expensive
+rollback.
+
+## Quick Inspect
+
+```bash
+goal-diffusion summary .
+goal-diffusion list . --completion todo
+goal-diffusion inspect <goal-pack> --json
+goal-diffusion brief <goal-pack>
+```
+
+Use a bare goal id when running inside a project that has
+`docs/goal-diffusion/goals/<goal-id>`, or pass the goal folder.
 
 ## CLI
 
@@ -108,6 +228,8 @@ bun run install:local
 goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
+goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
+goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -116,9 +238,13 @@ goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
 
-`<goal-pack>` may be either a Goal Pack directory or a bare goal id. Bare ids
+`<goal-pack>` may be either a goal folder or a bare goal id. Bare ids
 are resolved upward from the current directory through
 `docs/goal-diffusion/goals/<goal-id>`.
+`summary` accepts a project root or `docs/goal-diffusion/goals` directory, and
+defaults upward from the current directory.
+`--completion todo` means status is neither `done` nor `retired`; `--status`
+filters the raw goal status.
 
 Typical loop:
 
@@ -128,7 +254,7 @@ check -> inspect -> brief -> work -> record -> advance -> check
 
 Use `dispatch` only when handing the active or selected task to another agent.
 
-## Goal Pack Shape
+## Goal Folder Files
 
 ```text
 docs/goal-diffusion/
@@ -143,43 +269,24 @@ docs/goal-diffusion/
     notes/
 ```
 
-`contract.yaml` is the human-owned goal node. `state.yaml` is the agent's
-operating memory. `receipts.jsonl` is append-only evidence. `notes/` stores
-long-form context only when needed.
-`implementation-plan.md` exists only when a selected `plan_required` slice
-needs pre-reviewed execution structure.
+`contract.yaml` defines the goal and boundaries. `state.yaml` records current
+progress and the next allowed task. `receipts.jsonl` is append-only evidence.
+`notes/` stores long-form context only when needed.
+`implementation-plan.md` exists only when a selected `plan_required` task needs
+a reviewed execution plan before work starts.
 
-## Skill
-
-Use the skill from:
+## Repository Layout
 
 ```text
-skills/goal-diffusion/SKILL.md
+packages/cli/                   TypeScript CLI, built with Bun
+skills/goal-diffusion/          Entry skill
+skills/goal-plans/              Contract writing skill
+skills/finding-harnessed-path/  Next-step selection skill
+skills/diffusion-implementation/ Work execution skill
+skills/write-implementation-plans/ Plan-required work skill
 ```
 
-Flat phase skills:
-
-- `skills/goal-plans/`: compile or repair `contract.yaml`.
-- `skills/finding-harnessed-path/`: write `state.yaml.current_edge`.
-- `skills/diffusion-implementation/`: run, verify, receipt, advance, continue.
-- `skills/write-implementation-plans/`: create an implementation plan only for
-  high-risk selected slices.
-
-The skill follows progressive disclosure: the controller stays compact, and
-details live in `skills/goal-diffusion/references/`.
-
-## Development
-
-```bash
-bun install
-bun run build
-bun run typecheck
-bun run test
-bun run check
-```
-
-The CLI source is TypeScript. `bun build` emits the npm package artifacts under
-`packages/cli/dist/`.
+The CLI package is published as `goal-diffusion`.
 
 ## Release
 
@@ -211,93 +318,21 @@ triggers GitHub Actions, which runs checks, packs the npm tarball, and publishes
 with npm Trusted Publishing.
 
 The package uses `files` allowlisting, so the npm tarball contains only
-`dist/`, `README.md`, `LICENSE`, and package metadata.
+`dist/`, `README.md`, `README.zh-CN.md`, `LICENSE`, and package metadata.
+
+## Development
+
+```bash
+bun install
+bun run build
+bun run typecheck
+bun run test
+bun run check
+```
+
+The CLI source is TypeScript. `bun build` emits the npm package artifacts under
+`packages/cli/dist/`.
 
 ## License
 
 MIT
-
----
-
-## 中文
-
-Goal Diffusion 是面向长期 AI 编码任务的 Goal Pack 运行环。
-
-它不先写完整任务树，而是保留原始目标，寻找第一个可证伪路径，执行一个有用且可验证的切片，记录证据，然后只在仍处于人类定义的合同边界内时继续。
-
-核心规则：
-
-```text
-Find path small.
-Execute slice useful.
-```
-
-仓库结构：
-
-```text
-packages/cli/                   TypeScript CLI，使用 Bun 构建
-skills/goal-diffusion/          总入口 skill
-skills/goal-plans/              contract phase skill
-skills/finding-harnessed-path/  edge phase skill
-skills/diffusion-implementation/ run phase skill
-skills/write-implementation-plans/ plan-required phase skill
-```
-
-Skill 真源口径：
-
-- 本仓是 Goal Diffusion skill 内容的开发真源。
-- `~/Documents/code/personal/personal-skills` 是本机 skillshare 分发真源。
-- 同步方向固定为：`本仓 skills/* -> personal-skills 根级 skill 目录 -> runtime targets`。
-- 不把 `personal-skills` 里的 Goal Diffusion 镜像当长期编辑源；要改先改本仓，再提升过去。
-
-安装：
-
-```bash
-npm install -g goal-diffusion
-```
-
-本地开发：
-
-```bash
-bun install
-bun run check
-bun run install:local
-```
-
-常用命令：
-
-```bash
-goal-diffusion --help
-goal-diffusion <command> --help
-goal-diffusion inspect <goal-pack> [--json]
-goal-diffusion brief <goal-pack> [--task T###] [--json]
-goal-diffusion dispatch <goal-pack> [--task T###]
-goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>')
-goal-diffusion advance <goal-pack> [--dry-run]
-goal-diffusion check <goal-pack>
-```
-
-`<goal-pack>` 可传完整目录，也可传 goal id；CLI 会从当前目录向上查
-`docs/goal-diffusion/goals/<goal-id>`。
-
-发布：
-
-```bash
-bun run release:check patch
-bun run release patch
-# 或
-bun run release 0.2.0
-```
-
-`bun run release:check` 只做发布决策预检，不改文件：工作区干净、已
-checkout 到分支、默认必须是 `main`、查询 npm 版本、查询 git tag、默认存在
-`origin`。
-
-脚本会创建临时本地 release 分支，在那里更新版本和 `bun.lock`，提交
-`chore: release vX.Y.Z`，把 `vX.Y.Z` tag 指向该提交，只 push tag，然后回到
-原分支。`main` 不产生发布版本提交。如果已有 `vX.Y.Z` tag 但 npm 没有
-`X.Y.Z`，下一次发布会复用并替换这个失败 tag。GitHub Actions 收到 tag 后跑
-检查、pack dry-run，并通过 npm Trusted Publishing 发布。npm 侧需先配置
-Trusted Publishing：workflow 用 `.github/workflows/publish.yml`，environment
-用 `npm-publish`。
