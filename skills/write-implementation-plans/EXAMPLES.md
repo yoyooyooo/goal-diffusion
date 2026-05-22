@@ -3,13 +3,14 @@
 ## Migration Slice
 
 ```markdown
-# migrate-goal-diffusion-to-goal-pack Implementation Spec
+# migrate-goal-diffusion-to-goal-pack Implementation Plan
 
 ## Goal Pack
 
 - contract: `skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack/contract.yaml`
 - state: `skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack/state.yaml`
 - task: `T002`
+- plan: `skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack/implementation-plan.md`
 
 ## Protected Boundary
 

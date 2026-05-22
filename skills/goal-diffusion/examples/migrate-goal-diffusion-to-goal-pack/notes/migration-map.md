@@ -29,5 +29,5 @@ The migration is complete only when:
 - the checker validates this Goal Pack;
 - the public skill points to Goal Pack operation;
 - phase skills no longer act as competing user workflows;
-- routing references describe inbox, sources, Goal Packs, receipts, and optional specs;
+- routing references describe inbox, sources, Goal Packs, receipts, and optional implementation plans;
 - final audit receipt sets `oracle_satisfied: true`.

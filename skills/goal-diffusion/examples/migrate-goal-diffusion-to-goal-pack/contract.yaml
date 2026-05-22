@@ -13,7 +13,7 @@ authority_refs:
 architecture_standard:
   - "Contract / Edge / State / Receipt are the minimum primitives."
   - "Nested skills are internal phases, not competing public workflows."
-  - "Old artifact folders migrate to inbox, sources, Goal Packs, receipts, and optional specs."
+  - "Old artifact folders migrate to inbox, sources, Goal Packs, receipts, and optional implementation plans."
 
 constraints:
   - "Only claim migration of the goal-diffusion skill source."

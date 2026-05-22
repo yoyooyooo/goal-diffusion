@@ -11,14 +11,19 @@ description: >-
 
 This is an internal phase module for `$goal-diffusion`.
 
-It writes an implementation spec for a selected high-risk task. It is not the
+It writes an implementation plan for a selected high-risk task. It is not the
 normal path for rolling execution.
 
 Default output:
 
 ```text
-specs/<goal-id>/implementation-spec.md
+docs/goal-diffusion/goals/<goal-id>/implementation-plan.md
 ```
+
+The plan lives inside the Goal Pack by design. It is not a product spec, schema
+authority, contract replacement, or parallel workflow. The corresponding
+`state.yaml` task should use `type: plan_required` and
+`plan: implementation-plan.md`, with the plan file in `allowed_scope`.
 
 ## Use Only When
 
@@ -43,19 +48,21 @@ authority_refs
 
 Stop if any protected contract field would need to change.
 
-## Spec Shape
+## Plan Shape
 
 ```markdown
-# <Goal ID> Implementation Spec
+# <Goal ID> Implementation Plan
 
 ## Goal Pack
-- contract:
-- state:
+- contract: `docs/goal-diffusion/goals/<goal-id>/contract.yaml`
+- state: `docs/goal-diffusion/goals/<goal-id>/state.yaml`
 - task:
+- plan: `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md`
 
 ## Protected Boundary
 - objective:
 - authority:
+- architecture_standard:
 - claim_boundary:
 - stop_if:
 
@@ -81,9 +88,11 @@ Stop if any protected contract field would need to change.
 ## Output
 
 ```text
-implementation_spec:
+implementation_plan:
+path:
 goal_pack:
 task:
 ready_for_run: true | false
 blocked_by:
+next_phase: run | blocked
 ```

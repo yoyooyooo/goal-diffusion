@@ -515,6 +515,7 @@ export function serializeState(state) {
     lines.push(`    type: ${task.type}`);
     lines.push(`    status: ${task.status}`);
     lines.push(`    objective: ${yamlScalar(task.objective)}`);
+    if (task.plan) lines.push(`    plan: ${yamlScalar(task.plan)}`);
     if (task.allowed_scope.length > 0) appendList(lines, "    allowed_scope:", task.allowed_scope, 6);
     if (task.verify.length > 0) appendList(lines, "    verify:", task.verify, 6);
     if (task.stop_if.length > 0) appendList(lines, "    stop_if:", task.stop_if, 6);
@@ -623,6 +624,7 @@ function parseTasks(text) {
       type: taskScalar(currentLines, "type"),
       status: taskScalar(currentLines, "status"),
       objective: taskScalar(currentLines, "objective"),
+      plan: taskScalar(currentLines, "plan"),
       allowed_scope: taskList(currentLines, "allowed_scope"),
       verify: taskList(currentLines, "verify"),
       stop_if: taskList(currentLines, "stop_if"),

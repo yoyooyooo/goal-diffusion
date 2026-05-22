@@ -19,7 +19,6 @@ docs/adr/
 docs/architecture/
 docs/roadmap/
 docs/goal-diffusion/
-specs/
 ```
 
 If the project already has a documented home for goal operating state, map that
@@ -56,11 +55,12 @@ docs/goal-diffusion/goals/<goal-id>/
   contract.yaml
   state.yaml
   receipts.jsonl
+  implementation-plan.md  # only when plan_required
   notes/
 ```
 
-Create `specs/<goal-id>/implementation-spec.md` only when a selected slice is
-`plan_required`.
+Create `implementation-plan.md` inside the Goal Pack only when a selected slice
+is `plan_required`.
 
 ## Minimal Index
 
@@ -77,7 +77,7 @@ Diffusion operating loop.
 | inbox | `docs/goal-diffusion/inbox/` |
 | sources | `docs/goal-diffusion/sources/` |
 | goal packs | `docs/goal-diffusion/goals/<goal-id>/` |
-| implementation specs | `specs/<goal-id>/implementation-spec.md` |
+| implementation plans | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
 ## Active Goal Packs
 
@@ -89,10 +89,11 @@ Diffusion operating loop.
 ## Minimal Goal Pack
 
 ```text
-contract.yaml   human-owned objective, authority, oracle, claim boundary
-state.yaml      current edge, active task, blockers, next decision
-receipts.jsonl  append-only task and audit receipts
-notes/          long material only
+contract.yaml                 human-owned objective, authority, oracle, claim boundary
+state.yaml                    current edge, active task, blockers, next decision
+receipts.jsonl                append-only task and audit receipts
+implementation-plan.md        optional pre-reviewed plan for one plan_required slice
+notes/                        long material only
 ```
 
 ## Guardrails
@@ -102,7 +103,7 @@ notes/          long material only
 - Inbox is not a backlog.
 - Sources are traceability, not open candidates.
 - Receipts are evidence, not diaries.
-- Implementation specs are exceptional, not the default execution path.
+- Implementation plans are exceptional, not the default execution path.
 - If authority is missing but an honest path exists inside the current claim
   boundary, create the thinnest bridge or harness and continue.
 - If product truth, SSoT, standard, ADR, public protocol/API/schema, security,

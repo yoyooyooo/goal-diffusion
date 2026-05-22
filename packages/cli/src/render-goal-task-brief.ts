@@ -34,6 +34,7 @@ export function renderBriefText(brief) {
   lines.push(`type: ${brief.task.type}`);
   lines.push(`status: ${brief.task.status}`);
   lines.push(`objective: ${brief.task.objective}`);
+  if (brief.task.plan) lines.push(`plan: ${brief.task.plan}`);
   lines.push(`allowed_scope: ${formatList(brief.task.allowed_scope)}`);
   lines.push(`verify: ${formatList(brief.task.verify)}`);
   lines.push(`stop_if: ${formatList(brief.task.stop_if)}`);

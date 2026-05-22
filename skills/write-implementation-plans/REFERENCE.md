@@ -6,19 +6,24 @@ structure.
 ## Default Path
 
 ```text
-specs/<goal-id>/implementation-spec.md
+docs/goal-diffusion/goals/<goal-id>/implementation-plan.md
 ```
 
-## Spec Template
+The plan lives inside the Goal Pack and is referenced by a `plan_required` task
+as `plan: implementation-plan.md`; that task's `allowed_scope` should include
+the plan file.
+
+## Plan Template
 
 ```markdown
-# <Goal ID> Implementation Spec
+# <Goal ID> Implementation Plan
 
 ## Goal Pack
 
 - contract: `docs/goal-diffusion/goals/<goal-id>/contract.yaml`
 - state: `docs/goal-diffusion/goals/<goal-id>/state.yaml`
 - task: `<T###>`
+- plan: `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md`
 
 ## Protected Boundary
 
@@ -55,12 +60,12 @@ specs/<goal-id>/implementation-spec.md
 ```json
 {
   "task_id": "<T###>",
-  "type": "worker",
+  "type": "plan_required",
   "result": "done",
-  "changed_files": ["<file-in-allowed-scope>"],
-  "commands": [{ "cmd": "<command>", "status": "pass" }],
-  "evidence": ["<evidence>"],
-  "claims": ["<claim>"],
+  "changed_files": ["docs/goal-diffusion/goals/<goal-id>/implementation-plan.md"],
+  "commands": [{ "cmd": "<review command or manual gate>", "status": "pass" }],
+  "evidence": ["<plan review evidence>"],
+  "claims": ["<claim limited to plan readiness>"],
   "summary": "",
   "next_decision": "continue"
 }

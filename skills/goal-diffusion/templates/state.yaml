@@ -19,6 +19,7 @@ tasks:
     type: worker # scout | judge | worker | pm | audit | plan_required
     status: queued # queued | active | blocked | done
     objective: "<one useful slice inside the current edge>"
+    # For type: plan_required, set plan: implementation-plan.md and include it in allowed_scope.
     allowed_scope:
       - "<file, directory, or authority scope>"
     verify:

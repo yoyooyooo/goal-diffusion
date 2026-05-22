@@ -265,6 +265,58 @@ test("activate moves a queued task into running active state", () => {
   }
 });
 
+test("plan_required tasks keep implementation plan reference through activate", () => {
+  const root = makePack({
+    state: `
+version: 1
+goal_id: cli-test-goal
+status: ready
+current_edge:
+  from: "High-risk slice needs review"
+  target_delta: "Reviewed implementation plan"
+  harnessed_path:
+    - "Write implementation plan"
+  verify:
+    - "Review implementation plan"
+  failure_inspection:
+    - "docs/goal-diffusion/goals/cli-test-goal/implementation-plan.md"
+active_task: null
+tasks:
+  - id: T003
+    type: plan_required
+    status: queued
+    objective: "Plan a high-risk implementation slice."
+    plan: implementation-plan.md
+    allowed_scope:
+      - "docs/goal-diffusion/goals/cli-test-goal/implementation-plan.md"
+    verify:
+      - "Review implementation plan"
+    stop_if:
+      - "Plan needs protected contract changes."
+blockers: []
+last_verification:
+  result: unknown
+  commands: []
+next_decision: plan_required
+`,
+  });
+  try {
+    const statePath = join(root, "state.yaml");
+    const result = run(cliScript, ["activate", root, "--task", "T003"]);
+    assert.equal(result.status, 0, result.stderr);
+    const payload = JSON.parse(result.stdout);
+    assert.equal(payload.active_task, "T003");
+    assert.equal(payload.next_decision, "plan_required");
+    assert.match(readFileSync(statePath, "utf8"), /plan: implementation-plan\.md/);
+
+    const brief = run(cliScript, ["brief", root, "--task", "T003", "--json"]);
+    assert.equal(brief.status, 0, brief.stderr);
+    assert.equal(JSON.parse(brief.stdout).task.plan, "implementation-plan.md");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("main CLI exposes only official command names", () => {
   const root = makePack();
   try {

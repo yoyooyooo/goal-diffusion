@@ -139,13 +139,15 @@ docs/goal-diffusion/
     contract.yaml
     state.yaml
     receipts.jsonl
+    implementation-plan.md  # only when plan_required
     notes/
-specs/<goal-id>/implementation-spec.md
 ```
 
 `contract.yaml` is the human-owned goal node. `state.yaml` is the agent's
 operating memory. `receipts.jsonl` is append-only evidence. `notes/` stores
 long-form context only when needed.
+`implementation-plan.md` exists only when a selected `plan_required` slice
+needs pre-reviewed execution structure.
 
 ## Skill
 
@@ -160,7 +162,7 @@ Flat phase skills:
 - `skills/goal-plans/`: compile or repair `contract.yaml`.
 - `skills/finding-harnessed-path/`: write `state.yaml.current_edge`.
 - `skills/diffusion-implementation/`: run, verify, receipt, advance, continue.
-- `skills/write-implementation-plans/`: create an implementation spec only for
+- `skills/write-implementation-plans/`: create an implementation plan only for
   high-risk selected slices.
 
 The skill follows progressive disclosure: the controller stays compact, and

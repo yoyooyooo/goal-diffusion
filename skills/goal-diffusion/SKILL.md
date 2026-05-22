@@ -54,8 +54,8 @@ docs/goal-diffusion/
     contract.yaml
     state.yaml
     receipts.jsonl
+    implementation-plan.md  # only when plan_required
     notes/
-specs/<goal-id>/implementation-spec.md
 ```
 
 Read [references/artifact-routing.md](references/artifact-routing.md) before
@@ -100,7 +100,7 @@ Use flat phase skills through this controller unless the user targets a phase:
 - `skills/goal-plans/`: compile or repair `contract.yaml`.
 - `skills/finding-harnessed-path/`: write `state.yaml.current_edge`.
 - `skills/diffusion-implementation/`: run, verify, receipt, advance, continue.
-- `skills/write-implementation-plans/`: write an implementation spec only for
+- `skills/write-implementation-plans/`: write an implementation plan only for
   high-risk selected slices.
 
 Completion requires a final audit receipt that maps the receipt chain to

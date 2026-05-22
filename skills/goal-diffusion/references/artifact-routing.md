@@ -17,10 +17,8 @@ docs/goal-diffusion/
       contract.yaml
       state.yaml
       receipts.jsonl
+      implementation-plan.md  # only when plan_required
       notes/
-specs/
-  <goal-id>/
-    implementation-spec.md
 ```
 
 Host project convention still wins when it has an explicit equivalent. Map the
@@ -38,7 +36,7 @@ equivalent to these roles instead of recreating this exact tree.
 | State | Agent operating memory for current edge and tasks | `docs/goal-diffusion/goals/<goal-id>/state.yaml` |
 | Receipts | Append-only evidence chain | `docs/goal-diffusion/goals/<goal-id>/receipts.jsonl` |
 | Notes | Long narrative, migration maps, final summaries, or source digests | `docs/goal-diffusion/goals/<goal-id>/notes/` |
-| Implementation spec | Detailed plan only for high-risk selected slice | `specs/<goal-id>/implementation-spec.md` |
+| Implementation plan | Detailed plan only for high-risk selected slice | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
 ## Flow
 
@@ -69,8 +67,8 @@ execution evidence
   -> notes/final-report.md only when a human-readable summary is needed
 
 implementation plan
-  -> specs/<goal-id>/implementation-spec.md
-  -> referenced by a state task with type: plan_required
+  -> goal pack implementation-plan.md
+  -> referenced by a state task with type: plan_required and plan: implementation-plan.md
 
 external docs or old decisions
   -> sources/ when consumed
@@ -89,7 +87,7 @@ Use this map for older Goal Diffusion material:
 | goal plan | `contract.yaml` |
 | run | `state.yaml` |
 | report | `receipts.jsonl`; long human summary in `notes/` |
-| implementation plan | `specs/<goal-id>/implementation-spec.md` |
+| implementation plan | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 | source | `sources/` |
 
 ## Inbox Rules
@@ -126,11 +124,17 @@ Child work is represented by a child Goal Pack only when it has its own
 contract, claim boundary, and receipt chain. A parent may point to a child in
 state or notes, but the child is not a second task list inside the parent.
 
-## Implementation Spec Rules
+## Implementation Plan Rules
 
-Create `specs/<goal-id>/implementation-spec.md` only when a selected slice needs
-pre-review before execution. Ordinary rolling execution stays in `state.yaml`
-and `receipts.jsonl`.
+Create `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` only when a
+selected slice needs pre-review before execution. Ordinary rolling execution
+stays in `state.yaml` and `receipts.jsonl`.
+
+When the plan exists, the corresponding `state.yaml` task should use
+`type: plan_required`, `plan: implementation-plan.md`, and an `allowed_scope`
+entry for the plan file. The plan is not a contract, product spec, schema
+authority, or parallel workflow; it is an execution plan for one selected
+high-risk slice inside the Goal Pack boundary.
 
 ## Index Shape
 
@@ -149,7 +153,7 @@ Goal Diffusion operating loop.
 | inbox | `docs/goal-diffusion/inbox/` |
 | sources | `docs/goal-diffusion/sources/` |
 | goal packs | `docs/goal-diffusion/goals/<goal-id>/` |
-| implementation specs | `specs/<goal-id>/implementation-spec.md` |
+| implementation plans | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
 ## Active Goal Packs
 

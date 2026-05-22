@@ -12,8 +12,8 @@ docs/goal-diffusion/
     contract.yaml
     state.yaml
     receipts.jsonl
+    implementation-plan.md  # only when plan_required
     notes/
-specs/<goal-id>/implementation-spec.md
 ```
 
 ## Old To New
@@ -26,7 +26,7 @@ specs/<goal-id>/implementation-spec.md
 | goal plan | `contract.yaml` |
 | execution run | `state.yaml` |
 | execution report | `receipts.jsonl`; long final summary in `notes/final-report.md` |
-| detailed implementation plan | `specs/<goal-id>/implementation-spec.md` |
+| detailed implementation plan | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 | converted source | `sources/` |
 
 ## Field Migration

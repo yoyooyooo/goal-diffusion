@@ -40,6 +40,8 @@ Weak oracle fields warn during active work and fail completion.
 - tasks use `T###` ids.
 - task type is one of `scout`, `judge`, `worker`, `pm`, `audit`,
   `plan_required`.
+- `plan_required` tasks may include `plan: implementation-plan.md`; include the
+  plan file in `allowed_scope` when the task writes or updates it.
 
 ## Worker Checks
 
