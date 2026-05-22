@@ -1,0 +1,53 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Validate release metadata
+        run: |
+          release_tag="${{ github.ref_name }}"
+          package_name="$(node -p "require('./packages/cli/package.json').name")"
+          package_version="$(node -p "require('./packages/cli/package.json').version")"
+          expected_tag="v${package_version}"
+          if [ "$release_tag" != "$expected_tag" ]; then
+            echo "Release tag must match package version. tag=$release_tag expected=$expected_tag" >&2
+            exit 1
+          fi
+          if npm view "${package_name}@${package_version}" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "${package_name}@${package_version} already exists on npm." >&2
+            exit 1
+          fi
+      - name: Check
+        run: bun run check
+      - name: Package dry run
+        working-directory: packages/cli
+        run: npm pack --dry-run --json
+      - name: Publish
+        working-directory: packages/cli
+        run: npm publish --access public --provenance

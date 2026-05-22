@@ -1,0 +1,42 @@
+import { renderPrompt } from "./lib/goal-pack.ts";
+import { renderBriefText } from "./render-goal-task-brief.ts";
+
+export function runDispatch(goalRoot, { taskId }) {
+  if (!taskId) throw new Error("dispatch requires --task T###");
+  const brief = renderPrompt(goalRoot, { taskId });
+  const lines = [];
+  lines.push("/goal 实施这个 Goal Pack task。");
+  lines.push("");
+  lines.push("先运行并阅读最新任务包：");
+  lines.push("");
+  lines.push("```bash");
+  lines.push(`goal-diffusion brief ${goalRoot} --task ${taskId}`);
+  lines.push("```");
+  lines.push("");
+  lines.push("然后激活 task：");
+  lines.push("");
+  lines.push("```bash");
+  lines.push(`goal-diffusion activate ${goalRoot} --task ${taskId}`);
+  lines.push("```");
+  lines.push("");
+  lines.push("执行规则：");
+  lines.push("");
+  lines.push("- 只在 allowed_scope 内修改。");
+  lines.push("- 不修改 protected fields：objective、authority_refs、architecture_standard、completion_oracle、claim_boundary。");
+  lines.push("- 使用 current_edge 作为 harnessed path；缺 harness 且不需要新 authority 决策时，创建最小可证伪 harness。");
+  lines.push("- stop_rules 触发时停止，并写 blocked receipt。");
+  lines.push("- 完成 task 后写 receipt，运行 advance 和 check。");
+  lines.push("");
+  lines.push("收口命令：");
+  lines.push("");
+  lines.push("```bash");
+  lines.push(`goal-diffusion record ${goalRoot} --file receipt.json`);
+  lines.push(`goal-diffusion advance ${goalRoot}`);
+  lines.push(`goal-diffusion check ${goalRoot}`);
+  lines.push("```");
+  lines.push("");
+  lines.push("当前任务简报如下，命令输出与文件内容冲突时，以文件和命令输出为准：");
+  lines.push("");
+  lines.push(renderBriefText(brief));
+  return lines.join("\n");
+}

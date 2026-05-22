@@ -1,0 +1,28 @@
+{
+  "defaultBranch": "main",
+  "remote": "origin",
+  "tagPrefix": "v",
+  "versionFiles": [
+    "package.json",
+    "packages/cli/package.json"
+  ],
+  "lockfiles": [
+    "bun.lock"
+  ],
+  "lockfileCommand": [
+    "bun",
+    "install",
+    "--lockfile-only"
+  ],
+  "checkCommand": [
+    "bun",
+    "run",
+    "check"
+  ],
+  "commitMessage": "chore: release {tag}",
+  "publishMode": "npm",
+  "publishPackage": "goal-diffusion",
+  "publishRegistry": "https://registry.npmjs.org",
+  "reuseFailedVersion": true,
+  "releaseBranchPrefix": "release/"
+}

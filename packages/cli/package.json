@@ -1,0 +1,45 @@
+{
+  "name": "goal-diffusion",
+  "version": "0.1.0",
+  "description": "A Goal Pack CLI for long-running AI coding loops.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "agent",
+    "cli",
+    "goal-pack",
+    "goal-diffusion",
+    "coding-agent"
+  ],
+  "bin": {
+    "goal-diffusion": "dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "rm -rf dist && bun build src/goal-diffusion.ts --target=node --outfile=dist/cli.js && bun build src/index.ts --target=node --outfile=dist/index.js && chmod +x dist/cli.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "bun test",
+    "check": "bun run build && bun run typecheck && bun run test",
+    "link:local": "bun link",
+    "pack:dry": "npm pack --dry-run",
+    "prepack": "bun run check"
+  },
+  "dependencies": {
+    "commander": "^14.0.3"
+  }
+}

@@ -1,0 +1,39 @@
+id: "<goal-id>"
+status: forming # forming | ready | running | blocked | done | retired
+
+objective: "<one observable owner outcome>"
+north_star: "<far target that must not be lost>"
+
+authority_refs:
+  - "<path-or-url>"
+
+architecture_standard:
+  - "<architecture or method standard this goal must obey>"
+
+constraints:
+  - "<hard constraint>"
+
+non_goals:
+  - "<explicit non-goal>"
+
+completion_oracle:
+  signal: "<observable signal proving the original outcome is true>"
+  final_proof: "<receipt-backed proof required before completion>"
+
+claim_boundary: "<what this goal may and may not claim>"
+
+stop_rules:
+  - "<when the agent must stop for human or higher-authority decision>"
+
+autonomy_policy:
+  continue_by_default: true
+  protected_fields:
+    - objective
+    - authority_refs
+    - architecture_standard
+    - claim_boundary
+  agent_may_revise:
+    - next_slice
+    - task_order
+    - harness_strength
+    - implementation_shape

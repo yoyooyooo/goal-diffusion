@@ -1,0 +1,68 @@
+# Edge Phase Details
+
+## Route Archetypes
+
+Prefer one route:
+
+1. `vertical-slice` - first user or operator-visible path.
+2. `seam-first` - smallest clean boundary into an existing module.
+3. `harness-first` - observability, repro, logs, scripts, or tests are too weak
+   to trust feature work.
+4. `migration-edge` - moves old material into a Goal Pack without changing the
+   protected contract.
+
+## Detailed Workflow
+
+1. Read `contract.yaml`.
+2. Extract the current value line: what visible result would prove it is worth
+   continuing?
+3. Compare 2-3 candidate edges when the route is not obvious.
+4. Choose the smallest falsifiable runnable edge.
+5. Write `state.current_edge`:
+
+```yaml
+current_edge:
+  from:
+  target_delta:
+  harnessed_path:
+    - ...
+  verify:
+    - ...
+  failure_inspection:
+    - ...
+```
+
+6. Seed or update the first task only when execution can start inside the
+   contract.
+7. Set `next_decision` to `continue`, `plan_required`, or `blocked`.
+
+## Edge Quality
+
+A good edge:
+
+- can be run, observed, or manually checked;
+- proves or falsifies a near movement toward the objective;
+- keeps the claim boundary intact;
+- avoids future-only infrastructure;
+- records where to inspect failure.
+
+A bad edge:
+
+- is a broad plan without proof;
+- creates directories or placeholders as closure;
+- hides missing authority under task language;
+- expands into a full task tree.
+
+## No Honest Path
+
+When no path exists, record the nearest blocker:
+
+```text
+missing_authority
+missing_harness
+missing_runtime_access
+missing_product_truth
+human_decision_needed
+```
+
+Do not continue execution from hope.

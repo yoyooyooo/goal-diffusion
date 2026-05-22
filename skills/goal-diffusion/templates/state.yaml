@@ -1,0 +1,35 @@
+version: 1
+goal_id: "<goal-id>"
+status: forming # forming | ready | running | blocked | done | retired
+
+current_edge:
+  from: "<current goal state>"
+  target_delta: "<what gets sharper if this edge succeeds>"
+  harnessed_path:
+    - "<run, smoke, repro, fixture, or observation step>"
+  verify:
+    - "<command or manual check>"
+  failure_inspection:
+    - "<first path, log, screen, or artifact to inspect on failure>"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker # scout | judge | worker | pm | audit | plan_required
+    status: queued # queued | active | blocked | done
+    objective: "<one useful slice inside the current edge>"
+    allowed_scope:
+      - "<file, directory, or authority scope>"
+    verify:
+      - "<command or manual check>"
+    stop_if:
+      - "<condition that requires state update or escalation>"
+
+blockers: []
+
+last_verification:
+  result: unknown # unknown | pass | fail | blocked
+  commands: []
+
+next_decision: edge # edge | continue | plan_required | blocked | audit | done | needs-human

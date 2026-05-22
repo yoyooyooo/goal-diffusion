@@ -1,0 +1,66 @@
+version: 1
+goal_id: migrate-goal-diffusion-to-goal-pack
+status: done
+
+current_edge:
+  from: "Old goal-diffusion source with standalone goal plans, briefs, plans, reports, and route labels."
+  target_delta: "Goal Pack controller, phase modules, templates, migration map, checker, and human README."
+  harnessed_path:
+    - "Rewrite the public controller around Goal Pack operation."
+    - "Rewrite phase modules as contract, edge, run, and plan_required."
+    - "Rewrite artifact routing and bootstrap references."
+    - "Add templates, migration map, checker rules, and checker script."
+    - "Create this self-migration Goal Pack."
+  verify:
+    - "bun run check"
+    - "goal-diffusion check skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack"
+    - "rg old standalone route labels and confirm only migration/context references remain."
+  failure_inspection:
+    - "skills/goal-diffusion/SKILL.md"
+    - "skills/goal-diffusion/references/artifact-routing.md"
+    - "skills/goal-diffusion/references/bootstrap.md"
+    - "skills/goal-plans/SKILL.md"
+    - "skills/finding-harnessed-path/SKILL.md"
+    - "skills/diffusion-implementation/SKILL.md"
+    - "skills/write-implementation-plans/SKILL.md"
+
+active_task: null
+
+tasks:
+  - id: T000
+    type: pm
+    status: done
+    objective: "Initialize the self-migration Goal Pack from the approved vNext design."
+  - id: T001
+    type: worker
+    status: done
+    objective: "Migrate the goal-diffusion source files to the Goal Pack model and keep the self-checking Goal Pack valid."
+    allowed_scope:
+      - "skills/goal-diffusion/**"
+      - "skills/goal-plans/**"
+      - "skills/finding-harnessed-path/**"
+      - "skills/diffusion-implementation/**"
+      - "skills/write-implementation-plans/**"
+      - "packages/cli/**"
+      - "README.md"
+    verify:
+      - "bun run check"
+      - "goal-diffusion check skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack"
+    stop_if:
+      - "Need to change ai-coding-project-governance authority."
+      - "Need to touch files outside goal-diffusion source."
+      - "No honest checker or manual evidence path can validate the migration."
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit whether the self-migration Goal Pack satisfies its completion oracle."
+
+blockers: []
+
+last_verification:
+  result: pass
+  commands:
+    - "bun run check"
+    - "goal-diffusion check skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack"
+
+next_decision: done

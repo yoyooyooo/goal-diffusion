@@ -1,0 +1,25 @@
+{
+  "name": "goal-diffusion-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Goal Diffusion monorepo: agent skill and Bun-built CLI.",
+  "type": "module",
+  "packageManager": "bun@1.2.17",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter goal-diffusion build",
+    "typecheck": "bun run --filter goal-diffusion typecheck && tsc --noEmit -p tsconfig.json",
+    "test": "bun run --filter goal-diffusion test && bun test scripts",
+    "check": "bun run build && bun run typecheck && bun run test",
+    "pack:dry": "bun run --filter goal-diffusion pack:dry",
+    "install:local": "bun run --filter goal-diffusion link:local",
+    "release:check": "bun scripts/release.ts --precheck",
+    "release": "bun scripts/release.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.17",
+    "typescript": "^5.8.3"
+  }
+}
