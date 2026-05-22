@@ -1,6 +1,7 @@
-# Goal Diffusion
-
+![](https://github.com/yoyooyooo/goal-diffusion/raw/main/assets/banner.png)
 [English](README.md) | **中文**
+
+# Goal Diffusion
 
 Goal Diffusion 是一套目标驱动的长期 agent 任务方法论。
 

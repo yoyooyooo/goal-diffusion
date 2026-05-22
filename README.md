@@ -1,6 +1,8 @@
-# Goal Diffusion
+![](https://github.com/yoyooyooo/goal-diffusion/raw/main/assets/banner.png)
 
 **English** | [中文](README.zh-CN.md)
+
+# Goal Diffusion
 
 Goal Diffusion is a goal-driven method for long-running agent work.
 
