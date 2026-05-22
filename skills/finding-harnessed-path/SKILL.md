@@ -26,7 +26,6 @@ source goal state
 - Find the first falsifiable edge, not the whole graph.
 - Find the smallest runnable path that can prove or falsify the next movement.
 - Do not write a speculative task tree.
-- Do not create a standalone brief as the main artifact.
 - Write the chosen edge into `state.yaml.current_edge`.
 
 ## Edge Owns
@@ -48,7 +47,7 @@ infrastructure is run-phase work only when it proves the current edge.
 1. Read `contract.yaml`.
 2. Read authority context relevant to the edge.
 3. Classify the distance: greenfield, existing module, stabilization before
-   feature, migration, or blocked authority.
+   feature, transition, or blocked authority.
 4. Compare 2-3 candidate edges when route choice matters.
 5. Select the smallest falsifiable runnable edge.
 6. Record `current_edge` in `state.yaml`.

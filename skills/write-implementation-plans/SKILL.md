@@ -3,7 +3,7 @@ name: write-implementation-plans
 description: >-
   Plan-required phase for Goal Diffusion. Prefer entering through
   $goal-diffusion. Use only when a selected Goal Pack task needs pre-reviewed
-  execution structure because of migration, security, public API/schema/protocol,
+  execution structure because of broad transition, security, public API/schema/protocol,
   irreversible data, strict multi-agent coordination, or expensive rollback.
 ---
 
@@ -27,7 +27,7 @@ authority, contract replacement, or parallel workflow. The corresponding
 
 ## Use Only When
 
-- migration or deletion has broad blast radius;
+- transition or deletion has broad blast radius;
 - public API, schema, protocol, or persisted contract changes;
 - irreversible data, destructive action, credentials, permissions, or security;
 - multiple agents need strict sequencing or disjoint write-scope control;

@@ -53,22 +53,22 @@ Edge phase 默认先在 4 种路线原型里做选择，而不是从零发明路
 - 写很多工具和脚本，但没有服务于近期闭环
 - 用“准备工作”逃避真正切第一刀
 
-## 4. Migration Edge
+## 4. Transition Edge
 
 适合：
-- 旧文档、旧 skill、旧架构说明要迁入新模型
-- 需要保留来源追溯，但不保留旧结构为主路径
-- 迁移本身需要可验证的中间状态
+- 文档、skill、架构说明需要进入当前 Goal Pack 角色
+- 需要保留来源追溯，但不把来源材料当作当前执行入口
+- 转换本身需要可验证的中间状态
 
 特征：
-- 先锁定旧结构到新结构的映射
-- 迁移一个可验证的 Goal Pack 或 authority slice
-- 每次迁移写 receipt，而不是写迁移日记
+- 先锁定输入材料和当前角色之间的映射
+- 转换一个可验证的 Goal Pack 或 authority slice
+- 每次转换写 receipt，而不是写过程日记
 
 常见危险：
-- 同时保留新旧两套 current home
+- 同时保留多个 current home
 - 把所有历史材料当 backlog
-- 迁移完成但没有 checker 或 audit 证据
+- 转换完成但没有 checker 或 audit 证据
 
 ## 快速判断
 
@@ -77,7 +77,7 @@ Edge phase 默认先在 4 种路线原型里做选择，而不是从零发明路
 - “先让人真的能用起来一点点” → `vertical-slice`
 - “先安全接进现有系统” → `seam-first`
 - “先让问题能复现、能验证、能定位” → `harness-first`
-- “先把旧结构迁到新 operating model” → `migration-edge`
+- “先把来源材料收进当前 Goal Pack 角色” → `transition-edge`
 
 如果三者都有，优先问：**当前最妨碍 agent 稳定推进的障碍是什么？**
 

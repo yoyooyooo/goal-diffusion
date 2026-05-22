@@ -22,7 +22,7 @@ Prefer slices that produce one of:
 - working API path;
 - working data path;
 - real bug fix;
-- migration slice;
+- transition slice;
 - milestone review;
 - harness that proves the current edge.
 

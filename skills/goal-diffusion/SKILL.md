@@ -28,7 +28,7 @@ Goals are connected by harnessed paths and evidence chains, not by speculative t
 Stay inline when one evidence path in the current turn can prove completion.
 
 Create or update a Goal Pack when completion needs multiple receipts, durable
-state, migration continuity, disjoint write scopes, or cross-session resume.
+state, transition continuity, disjoint write scopes, or cross-session resume.
 
 ## Boundary
 

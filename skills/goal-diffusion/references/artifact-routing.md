@@ -1,7 +1,6 @@
 # Goal Pack Artifact Routing
 
-Goal Diffusion uses Goal Packs. Older folder-per-artifact routing is no longer
-the current model.
+Goal Diffusion uses Goal Packs.
 
 ## Current Shape
 
@@ -35,7 +34,7 @@ equivalent to these roles instead of recreating this exact tree.
 | Contract | Human-owned goal node | `docs/goal-diffusion/goals/<goal-id>/contract.yaml` |
 | State | Agent operating memory for current edge and tasks | `docs/goal-diffusion/goals/<goal-id>/state.yaml` |
 | Receipts | Append-only evidence chain | `docs/goal-diffusion/goals/<goal-id>/receipts.jsonl` |
-| Notes | Long narrative, migration maps, final summaries, or source digests | `docs/goal-diffusion/goals/<goal-id>/notes/` |
+| Notes | Long narrative, final summaries, or source digests | `docs/goal-diffusion/goals/<goal-id>/notes/` |
 | Implementation plan | Detailed plan only for high-risk selected slice | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
 ## Flow
@@ -70,25 +69,10 @@ implementation plan
   -> goal pack implementation-plan.md
   -> referenced by a state task with type: plan_required and plan: implementation-plan.md
 
-external docs or old decisions
+external docs or decisions
   -> sources/ when consumed
   -> host authority layer when current truth
 ```
-
-## Migration Map
-
-Use this map for older Goal Diffusion material:
-
-| Old home or concept | New home |
-|---|---|
-| seed | `inbox/` with `lifecycle: weak_signal` |
-| proposal | `inbox/` with `lifecycle: open_candidate`; later `sources/` after consumed |
-| brief | `state.yaml.current_edge`; long context in `notes/` |
-| goal plan | `contract.yaml` |
-| run | `state.yaml` |
-| report | `receipts.jsonl`; long human summary in `notes/` |
-| implementation plan | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
-| source | `sources/` |
 
 ## Inbox Rules
 

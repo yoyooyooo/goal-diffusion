@@ -8,8 +8,8 @@ Prefer one route:
 2. `seam-first` - smallest clean boundary into an existing module.
 3. `harness-first` - observability, repro, logs, scripts, or tests are too weak
    to trust feature work.
-4. `migration-edge` - moves old material into a Goal Pack without changing the
-   protected contract.
+4. `transition-edge` - moves source material into current Goal Pack roles
+   without changing the protected contract.
 
 ## Detailed Workflow
 

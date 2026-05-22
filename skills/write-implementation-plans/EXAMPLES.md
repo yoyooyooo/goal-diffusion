@@ -1,36 +1,36 @@
 # Plan Required Examples
 
-## Migration Slice
+## High-Risk Slice
 
 ```markdown
-# migrate-goal-diffusion-to-goal-pack Implementation Plan
+# public-relay-deployment-readiness Implementation Plan
 
 ## Goal Pack
 
-- contract: `skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack/contract.yaml`
-- state: `skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack/state.yaml`
+- contract: `docs/goal-diffusion/goals/public-relay-deployment-readiness/contract.yaml`
+- state: `docs/goal-diffusion/goals/public-relay-deployment-readiness/state.yaml`
 - task: `T002`
-- plan: `skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack/implementation-plan.md`
+- plan: `docs/goal-diffusion/goals/public-relay-deployment-readiness/implementation-plan.md`
 
 ## Protected Boundary
 
-- objective: migrate the skill to Goal Pack model
-- claim_boundary: claim only skill migration, not migration of all historical projects
-- stop_if: needs docs-governance authority change
+- objective: prove a deployment-readiness path for the public relay
+- claim_boundary: claim only readiness evidence inside this Goal Pack
+- stop_if: needs public API, security, or deployment authority change
 
 ## Allowed Scope
 
-- Modify: `skills/goal-diffusion/**`, `skills/goal-plans/**`, `skills/finding-harnessed-path/**`, `skills/diffusion-implementation/**`, `skills/write-implementation-plans/**`, `packages/cli/**`
+- Modify: `docs/goal-diffusion/goals/public-relay-deployment-readiness/**`
 
 ## Verification
 
 - `bun run check`
-- `goal-diffusion check skills/goal-diffusion/examples/migrate-goal-diffusion-to-goal-pack`
+- `goal-diffusion check docs/goal-diffusion/goals/public-relay-deployment-readiness`
 
 ## Execution Chunks
 
-1. Rewrite public controller.
-2. Rewrite phase modules.
-3. Add templates and checker.
-4. Append receipt and audit state.
+1. Confirm authority and claim boundary.
+2. Define a runnable readiness harness.
+3. Execute the smallest readiness proof.
+4. Append receipt and advance state.
 ```

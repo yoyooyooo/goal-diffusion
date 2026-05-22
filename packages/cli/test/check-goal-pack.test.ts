@@ -30,17 +30,17 @@ function runChecker(root) {
 }
 
 const baseContract = `
-id: migrate-goal-diffusion-to-goal-pack
+id: cli-checker-goal
 status: running
-objective: "Migrate the old goal-diffusion skill to the Goal Pack model."
+objective: "Exercise the Goal Pack checker."
 authority_refs:
   - "goal-diffusion/SKILL.md"
 architecture_standard:
   - "Contract / Edge / State / Receipt are the minimum primitives."
 completion_oracle:
-  signal: "The migrated skill can drive its own migration through a goal pack."
+  signal: "The checker validates Goal Pack state, tasks, receipts, and final audits."
   final_proof: "Checker passes and final audit maps receipts to the oracle."
-claim_boundary: "Only claims goal-diffusion skill migration."
+claim_boundary: "Only claims local checker behavior."
 `;
 
 test("rejects an active worker task without verify and stop_if", () => {
@@ -50,7 +50,7 @@ test("rejects an active worker task without verify and stop_if", () => {
       contract: baseContract,
       state: `
 version: 1
-goal_id: migrate-goal-diffusion-to-goal-pack
+goal_id: cli-checker-goal
 status: running
 active_task: T001
 tasks:
@@ -79,15 +79,15 @@ test("accepts a running goal pack with one active scoped worker", () => {
       contract: baseContract,
       state: `
 version: 1
-goal_id: migrate-goal-diffusion-to-goal-pack
+goal_id: cli-checker-goal
 status: running
 current_edge:
-  from: "old structure"
-  target_delta: "new contract"
+  from: "Checker fixture"
+  target_delta: "Valid running Goal Pack"
   harnessed_path:
-    - "Rewrite controller"
+    - "Run checker"
   verify:
-    - "Search for old routes"
+    - "bun test packages/cli/test/check-goal-pack.test.ts"
   failure_inspection:
     - "goal-diffusion/SKILL.md"
 active_task: T001
@@ -95,11 +95,11 @@ tasks:
   - id: T001
     type: worker
     status: active
-    objective: "Rewrite the controller."
+    objective: "Validate a scoped worker task."
     allowed_scope:
       - "goal-diffusion/SKILL.md"
     verify:
-      - "rg old-routes goal-diffusion/SKILL.md"
+      - "bun test packages/cli/test/check-goal-pack.test.ts"
     stop_if:
       - "Need to change authority."
 blockers: []
@@ -123,7 +123,7 @@ test("rejects done goal packs without an oracle-backed final audit receipt", () 
       contract: baseContract.replace("status: running", "status: done"),
       state: `
 version: 1
-goal_id: migrate-goal-diffusion-to-goal-pack
+goal_id: cli-checker-goal
 status: done
 active_task: null
 tasks:
@@ -152,7 +152,7 @@ test("rejects receipts for unknown tasks", () => {
       contract: baseContract,
       state: `
 version: 1
-goal_id: migrate-goal-diffusion-to-goal-pack
+goal_id: cli-checker-goal
 status: running
 active_task: T001
 tasks:
@@ -187,7 +187,7 @@ test("rejects done worker receipts without passing commands inside allowed scope
       contract: baseContract,
       state: `
 version: 1
-goal_id: migrate-goal-diffusion-to-goal-pack
+goal_id: cli-checker-goal
 status: running
 active_task: T001
 tasks:
@@ -223,7 +223,7 @@ test("rejects blocked receipts without blocked_by and invalid next decisions", (
       contract: baseContract,
       state: `
 version: 1
-goal_id: migrate-goal-diffusion-to-goal-pack
+goal_id: cli-checker-goal
 status: blocked
 active_task: null
 tasks:

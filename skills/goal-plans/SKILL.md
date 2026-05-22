@@ -11,8 +11,7 @@ description: >-
 
 This is an internal phase module for `$goal-diffusion`.
 
-It no longer creates standalone goal-plan markdown. It compiles or repairs the
-human-owned goal node:
+It compiles or repairs the human-owned goal node:
 
 ```text
 docs/goal-diffusion/goals/<goal-id>/contract.yaml

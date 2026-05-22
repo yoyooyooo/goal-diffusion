@@ -34,7 +34,7 @@ The edge phase finds the smallest falsifiable runnable path. The run phase
 executes the largest safe useful slice inside that path.
 
 Useful slices move the owner outcome: working screen, API path, data path, real
-bug fix, migration slice, milestone review, or harness that proves the current
+bug fix, transition slice, milestone review, or harness that proves the current
 edge.
 
 Avoid micro-slicing into helper churn, wrapper-only work, contract-only files,
