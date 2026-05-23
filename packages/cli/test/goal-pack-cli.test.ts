@@ -337,6 +337,55 @@ test("list filters Goal Packs by completion and status", () => {
   }
 });
 
+test("tasks lists unfinished tasks by default", () => {
+  const root = makePack();
+  try {
+    const result = run(cliScript, ["tasks", root]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /goal_id: cli-test-goal/);
+    assert.match(result.stdout, /filters: completion=todo status=all/);
+    assert.match(result.stdout, /tasks: 2/);
+    assert.match(result.stdout, /T001\s+active\s+worker\s+Implement command scripts\./);
+    assert.match(result.stdout, /T002\s+queued\s+audit\s+Audit command scripts\./);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("tasks filters by completion and status with JSON output", () => {
+  const root = makePack();
+  try {
+    const queued = run(cliScript, ["tasks", root, "--status", "queued", "--json"]);
+    assert.equal(queued.status, 0, queued.stderr);
+    const queuedPayload = JSON.parse(queued.stdout);
+    assert.equal(queuedPayload.goal_id, "cli-test-goal");
+    assert.equal(queuedPayload.filters.completion, "todo");
+    assert.equal(queuedPayload.filters.status, "queued");
+    assert.equal(queuedPayload.count, 1);
+    assert.equal(queuedPayload.items[0].id, "T002");
+    assert.equal(queuedPayload.items[0].status, "queued");
+    assert.equal(queuedPayload.items[0].type, "audit");
+
+    const done = run(cliScript, ["tasks", root, "--completion", "done", "--json"]);
+    assert.equal(done.status, 0, done.stderr);
+    assert.equal(JSON.parse(done.stdout).count, 0);
+
+    const all = run(cliScript, ["tasks", root, "--completion", "all", "--json"]);
+    assert.equal(all.status, 0, all.stderr);
+    assert.equal(JSON.parse(all.stdout).count, 2);
+
+    const badCompletion = run(cliScript, ["tasks", root, "--completion", "finished"]);
+    assert.equal(badCompletion.status, 1);
+    assert.match(badCompletion.stderr, /completion must be all, todo, done/);
+
+    const badStatus = run(cliScript, ["tasks", root, "--status", "waiting"]);
+    assert.equal(badStatus.status, 1);
+    assert.match(badStatus.stderr, /status must be queued, active, blocked, done/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("brief renders active task without dumping receipt history", () => {
   const root = makePack({
     receipts: `{"task_id":"T000","type":"pm","result":"done","summary":"DO_NOT_DUMP_FULL_RECEIPTS","evidence":["seed"],"next_decision":"continue"}\n`,
@@ -460,6 +509,7 @@ test("main CLI exposes only official command names", () => {
     assert.equal(help.status, 0, help.stderr);
     assert.match(help.stdout, /summary \[options\] \[target\]/);
     assert.match(help.stdout, /list \[options\] \[target\]/);
+    assert.match(help.stdout, /tasks \[options\] <goal-pack>/);
     assert.match(help.stdout, /brief \[options\] <goal-pack>/);
     assert.match(help.stdout, /dispatch \[options\] <goal-pack>/);
     assert.match(help.stdout, /activate \[options\] <goal-pack>/);
@@ -494,6 +544,10 @@ test("main CLI exposes structured commander help at every command layer", () => 
     {
       args: ["list", "--help"],
       patterns: [/Usage: goal-diffusion list \[options\] \[target\]/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
+    },
+    {
+      args: ["tasks", "--help"],
+      patterns: [/Usage: goal-diffusion tasks \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
     },
     {
       args: ["inspect", "--help"],

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added `goal-diffusion tasks` for listing tasks inside one Goal Pack, with task completion/status filters and JSON output.
+
 ## 0.1.0
 
 - Rebuilt Goal Diffusion as a Bun monorepo.

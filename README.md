@@ -218,6 +218,7 @@ rollback.
 goal-diffusion summary .
 goal-diffusion list . --completion todo
 goal-diffusion inspect <goal-pack> --json
+goal-diffusion tasks <goal-pack>
 goal-diffusion brief <goal-pack>
 ```
 
@@ -232,6 +233,7 @@ goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
+goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -245,8 +247,10 @@ are resolved upward from the current directory through
 `docs/goal-diffusion/goals/<goal-id>`.
 `summary` accepts a project root or `docs/goal-diffusion/goals` directory, and
 defaults upward from the current directory.
-`--completion todo` means status is neither `done` nor `retired`; `--status`
-filters the raw goal status.
+For `summary` and `list`, `--completion todo` means goal status is neither
+`done` nor `retired`, and `--status` filters raw Goal Pack status.
+For `tasks`, `--completion todo` means task status is not `done`, and `--status`
+filters raw task status.
 
 Typical loop:
 

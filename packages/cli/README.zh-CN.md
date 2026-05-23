@@ -16,11 +16,12 @@ npm install -g goal-diffusion
 goal-diffusion summary .
 goal-diffusion list . --completion todo
 goal-diffusion inspect <goal-id>
+goal-diffusion tasks <goal-id>
 goal-diffusion brief <goal-id>
 goal-diffusion check <goal-id>
 ```
 
-`summary` 和 `list` 面向项目级使用。`inspect`、`brief`、`record`、`advance` 和 `check` 面向单个目标文件夹。
+`summary` 和 `list` 面向项目级使用。`inspect`、`tasks`、`brief`、`record`、`advance` 和 `check` 面向单个目标文件夹。
 
 ## 命令
 
@@ -30,6 +31,7 @@ goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
+goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -40,7 +42,8 @@ goal-diffusion check <goal-pack>
 
 `<goal-pack>` 可以是目录，也可以是 `docs/goal-diffusion/goals/` 下的裸 goal id。
 `summary` 可接收项目根目录或 `docs/goal-diffusion/goals` 目录；不传参数时从当前目录向上查找。
-`--completion todo` 表示 status 既不是 `done` 也不是 `retired`；`--status` 过滤原始目标 status。
+对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
+对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
 
 典型执行环：
 

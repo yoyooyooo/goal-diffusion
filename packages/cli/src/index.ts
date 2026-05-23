@@ -23,5 +23,6 @@ export { runAdvance } from "./advance-goal-pack.ts";
 export { runAppendReceipt } from "./append-receipt.ts";
 export { runBrief } from "./render-goal-task-brief.ts";
 export { runDispatch } from "./render-goal-task-dispatch.ts";
+export { runTasks, listGoalTasks } from "./render-goal-tasks.ts";
 export { runInspect } from "./inspect-goal-pack.ts";
 export { runList, runSummary, listGoalPacks, summarizeGoalPacks } from "./summarize-goal-packs.ts";
