@@ -103,6 +103,8 @@ goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|a
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
 goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--json]
+goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--json]
 goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
@@ -122,7 +124,10 @@ means task status is not `done`, and `--status` filters raw task status. For
 `receipts list`, filters compose with AND semantics and output compact receipt
 summaries by default; use `receipts show --index N` to expand one full receipt.
 `relations` commands inspect and verify Goal Relations across a project or
-goals directory; `--thread` filters by `goal_relations.thread_id`.
+goals directory. `relations goals` and `relations tasks` are broad discovery
+commands for thread-member candidates; `--thread` filters by
+`goal_relations.thread_id`. They do not create a queue, worklist, scheduler,
+thread lifecycle, or execution order.
 Work loop:
 
 ```text

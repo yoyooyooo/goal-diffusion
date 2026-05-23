@@ -203,13 +203,18 @@ goal-diffusion list . --completion todo
 goal-diffusion inspect <goal-pack> --json
 goal-diffusion tasks <goal-pack>
 goal-diffusion receipts list <goal-pack> --limit 5
+goal-diffusion relations goals . --thread <thread-id> --completion todo --json
+goal-diffusion relations tasks . --thread <thread-id> --completion todo --json
 goal-diffusion brief <goal-pack>
 ```
 
-Relations 命令用于检查跨 Goal Pack 连续性：
+Relations 命令用于检查跨 Goal Pack 连续性，也用于发现 thread 成员候选 goal/task。
+它不创建队列、worklist、scheduler、thread 生命周期或执行顺序。
 
 ```bash
 goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--json]
+goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--json]
 goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 ```
@@ -228,6 +233,8 @@ goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|a
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
 goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--json]
+goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--json]
 goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
@@ -243,6 +250,10 @@ goal-diffusion check <goal-pack>
 对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
 对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
 对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
+对 `relations`，`list` 显示关系元数据，`check` 校验证据，`graph` 渲染派生关系图。
+`goals` 用 goal 级过滤发现 thread 成员 Goal Pack。`tasks` 发现 thread 成员 task；`--status`
+过滤 task status，`--goal-status` 和 `--goal-completion` 过滤父 Goal Pack。
+这些命令只把 `goal_relations.thread_id` 当标签，不选择执行顺序。
 
 典型循环：
 

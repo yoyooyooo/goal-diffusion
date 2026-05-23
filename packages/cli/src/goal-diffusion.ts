@@ -10,11 +10,11 @@ import { runAppendReceipt } from "./append-receipt.ts";
 import { runBrief } from "./render-goal-task-brief.ts";
 import { runDispatch } from "./render-goal-task-dispatch.ts";
 import { runReceiptsList, runReceiptShow } from "./render-goal-receipts.ts";
-import { runRelationsCheck, runRelationsGraph, runRelationsList } from "./render-goal-relations.ts";
+import { runRelationsCheck, runRelationsGoals, runRelationsGraph, runRelationsList, runRelationsTasks } from "./render-goal-relations.ts";
 import { runTasks } from "./render-goal-tasks.ts";
 import { runInspect } from "./inspect-goal-pack.ts";
 import { COMPLETION_VALUES, runList, runSummary } from "./summarize-goal-packs.ts";
-import { NEXT_DECISIONS, RECEIPT_RESULTS, TASK_STATUSES, TASK_TYPES } from "./lib/goal-pack.ts";
+import { NEXT_DECISIONS, RECEIPT_RESULTS, STATUS_VALUES, TASK_STATUSES, TASK_TYPES } from "./lib/goal-pack.ts";
 
 type CliResult = {
   status: number;
@@ -150,6 +150,56 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--json", "print JSON output")
     .action((target: string, options: { thread?: string; json?: boolean }) => {
       emit(runRelationsList(target, { thread: options.thread ?? null, json: Boolean(options.json) }));
+    });
+
+  relations
+    .command("goals")
+    .description("Discover thread-member Goal Packs without queue semantics.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--thread <id>", "filter by goal_relations.thread_id")
+    .option("--completion <value>", `filter by Goal Pack completion: ${COMPLETION_VALUES.join(", ")}`, "all")
+    .option("--status <value>", `filter by Goal Pack status: ${STATUS_VALUES.join(", ")}`)
+    .option("--next-decision <value>", `filter by next_decision: ${NEXT_DECISIONS.join(", ")}`)
+    .option("--json", "print JSON output")
+    .action((target: string, options: { thread?: string; completion?: string; status?: string; nextDecision?: string; json?: boolean }) => {
+      emit(runRelationsGoals(target, {
+        thread: options.thread ?? null,
+        completion: options.completion,
+        status: options.status ?? null,
+        nextDecision: options.nextDecision ?? null,
+        json: Boolean(options.json),
+      }));
+    });
+
+  relations
+    .command("tasks")
+    .description("Discover thread-member tasks without queue semantics.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--thread <id>", "filter by goal_relations.thread_id")
+    .option("--completion <value>", `filter by task completion: ${COMPLETION_VALUES.join(", ")}`, "todo")
+    .option("--status <value>", `filter by task status: ${TASK_STATUSES.join(", ")}`)
+    .option("--goal-completion <value>", `filter by parent Goal Pack completion: ${COMPLETION_VALUES.join(", ")}`, "all")
+    .option("--goal-status <value>", `filter by parent Goal Pack status: ${STATUS_VALUES.join(", ")}`)
+    .option("--goal <goal-id>", "filter by parent goal_id")
+    .option("--json", "print JSON output")
+    .action((target: string, options: {
+      thread?: string;
+      completion?: string;
+      status?: string;
+      goalCompletion?: string;
+      goalStatus?: string;
+      goal?: string;
+      json?: boolean;
+    }) => {
+      emit(runRelationsTasks(target, {
+        thread: options.thread ?? null,
+        completion: options.completion,
+        status: options.status ?? null,
+        goalCompletion: options.goalCompletion,
+        goalStatus: options.goalStatus ?? null,
+        goal: options.goal ?? null,
+        json: Boolean(options.json),
+      }));
     });
 
   relations

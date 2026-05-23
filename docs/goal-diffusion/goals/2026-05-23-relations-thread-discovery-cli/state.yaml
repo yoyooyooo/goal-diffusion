@@ -1,0 +1,111 @@
+version: 1
+goal_id: 2026-05-23-relations-thread-discovery-cli
+status: done
+
+current_edge:
+  from: "relations can verify thread relation metadata, but agents cannot directly filter thread-member goals or tasks without stitching multiple commands together."
+  target_delta: "relations gains narrow discovery commands for thread-member goals and tasks while rejecting queue, worklist, and execution-order semantics."
+  harnessed_path:
+    - "Add failing CLI tests for relations goals and relations tasks over fixture Goal Packs with mixed goal and task states."
+    - "Implement thread-member goal discovery filters without changing relations list/check/graph semantics."
+    - "Implement thread-member task discovery filters with explicit task and parent-goal filter names."
+    - "Update root docs, package docs, and the goal-diffusion skill to state that relations is broad discovery, not execution ordering."
+    - "Validate the command surface against this repository and use /Users/yoyo/Documents/code/personal/fermi.worktrees/planning as a read-only external target."
+  verify:
+    - "bun run check"
+    - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-relations-thread-discovery-cli"
+    - "goal-diffusion relations goals docs/goal-diffusion/goals --thread goal-relations --completion todo --json"
+    - "goal-diffusion relations tasks docs/goal-diffusion/goals --thread goal-relations --completion todo --json"
+    - "goal-diffusion relations check docs/goal-diffusion/goals --thread goal-relations --json"
+    - "goal-diffusion relations goals /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json"
+    - "goal-diffusion relations tasks /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json"
+  failure_inspection:
+    - packages/cli/src/goal-diffusion.ts
+    - packages/cli/src/render-goal-relations.ts
+    - packages/cli/src/summarize-goal-packs.ts
+    - packages/cli/src/render-goal-tasks.ts
+    - packages/cli/test/goal-relations-cli.test.ts
+    - packages/cli/test/goal-pack-cli.test.ts
+    - README.md
+    - README.zh-CN.md
+    - packages/cli/README.md
+    - packages/cli/README.zh-CN.md
+    - skills/goal-diffusion/SKILL.md
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker
+    status: done
+    objective: "Implement relations goals as a narrow thread-member Goal Pack discovery command with goal-level filters."
+    allowed_scope:
+      - packages/cli/src/goal-diffusion.ts
+      - packages/cli/src/render-goal-relations.ts
+      - packages/cli/src/summarize-goal-packs.ts
+      - packages/cli/test/goal-relations-cli.test.ts
+    verify:
+      - "bun test packages/cli/test/goal-relations-cli.test.ts"
+    stop_if:
+      - "The command needs queue, worklist, priority, or ordering semantics."
+      - "The command needs to include non-member linked targets."
+  - id: T002
+    type: worker
+    status: done
+    objective: "Implement relations tasks as a narrow thread-member task discovery command with task-level and parent-goal filters."
+    allowed_scope:
+      - packages/cli/src/goal-diffusion.ts
+      - packages/cli/src/render-goal-relations.ts
+      - packages/cli/src/render-goal-tasks.ts
+      - packages/cli/test/goal-relations-cli.test.ts
+    verify:
+      - "bun test packages/cli/test/goal-relations-cli.test.ts"
+    stop_if:
+      - "The command needs to infer which task should execute first."
+      - "--status cannot remain strictly task-status while parent-goal status uses --goal-status."
+  - id: T003
+    type: worker
+    status: done
+    objective: "Converge docs and help text around relations as broad candidate discovery, not execution ordering."
+    allowed_scope:
+      - README.md
+      - README.zh-CN.md
+      - packages/cli/README.md
+      - packages/cli/README.zh-CN.md
+      - skills/goal-diffusion/SKILL.md
+      - packages/cli/src/goal-diffusion.ts
+      - packages/cli/test/goal-pack-cli.test.ts
+    verify:
+      - "bun test packages/cli/test/goal-pack-cli.test.ts"
+    stop_if:
+      - "Docs or help text imply queue, worklist, priority, or execution order."
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit the thread discovery CLI against the frozen command-surface principles and record final proof."
+    allowed_scope:
+      - docs/goal-diffusion/goals/2026-05-23-relations-thread-discovery-cli/**
+    verify:
+      - "bun run check"
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-relations-thread-discovery-cli"
+      - "goal-diffusion relations check docs/goal-diffusion/goals --thread goal-relations --json"
+    stop_if:
+      - "Any oracle field lacks receipt-backed evidence."
+      - "Completion depends on inferred execution ordering."
+
+blockers:
+
+last_verification:
+  result: pass
+  commands:
+    - "bun run check [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-23-relations-thread-discovery-cli [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts relations goals docs/goal-diffusion/goals --thread goal-relations --completion todo --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts relations tasks docs/goal-diffusion/goals --thread goal-relations --completion todo --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts relations check docs/goal-diffusion/goals --thread goal-relations --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts relations goals /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts relations tasks /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json [pass]"
+    - "node packages/cli/dist/cli.js relations goals docs/goal-diffusion/goals --thread goal-relations --completion todo --json [pass]"
+    - "node packages/cli/dist/cli.js relations tasks docs/goal-diffusion/goals --thread goal-relations --completion todo --json [pass]"
+
+next_decision: done

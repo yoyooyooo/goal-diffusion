@@ -1,5 +1,5 @@
-import { loadGoalPack, GOAL_RELATION_TYPES } from "./lib/goal-pack.ts";
-import { listGoalPackRoots, resolveGoalsRoot } from "./summarize-goal-packs.ts";
+import { loadGoalPack, GOAL_RELATION_TYPES, NEXT_DECISIONS, STATUS_VALUES, TASK_STATUSES } from "./lib/goal-pack.ts";
+import { COMPLETION_VALUES, listGoalPackRoots, resolveGoalsRoot } from "./summarize-goal-packs.ts";
 
 const HARD_RELATIONS = ["successor_of", "depends_on", "supersedes"];
 
@@ -23,6 +23,26 @@ export function runRelationsGraph(target = ".", { json = false, thread = null } 
   return renderRelationsGraphText(graph);
 }
 
+export function runRelationsGoals(target = ".", { json = false, thread = null, completion = "all", status = null, nextDecision = null } = {}) {
+  const model = collectGoalRelationGoals(target, { thread, completion, status, nextDecision });
+  if (json) return JSON.stringify(model, null, 2);
+  return renderRelationsGoalsText(model);
+}
+
+export function runRelationsTasks(target = ".", {
+  json = false,
+  thread = null,
+  completion = "todo",
+  status = null,
+  goalCompletion = "all",
+  goalStatus = null,
+  goal = null,
+} = {}) {
+  const model = collectGoalRelationTasks(target, { thread, completion, status, goalCompletion, goalStatus, goal });
+  if (json) return JSON.stringify(model, null, 2);
+  return renderRelationsTasksText(model);
+}
+
 export function collectGoalRelations(target = ".", { thread = null } = {}) {
   const goalsRoot = resolveGoalsRoot(target);
   const packs = listGoalPackRoots(goalsRoot).map((root) => loadGoalPack(root));
@@ -39,6 +59,49 @@ export function collectGoalRelations(target = ".", { thread = null } = {}) {
     },
     goal_count: items.length,
     relation_count: items.reduce((sum, item) => sum + item.links.length, 0),
+    items,
+  };
+}
+
+export function collectGoalRelationGoals(target = ".", filterOptions = {}) {
+  const goalsRoot = resolveGoalsRoot(target);
+  const filters = normalizeRelationGoalFilters(filterOptions);
+  const items = listGoalPackRoots(goalsRoot)
+    .map((root) => relationGoalItem(loadGoalPack(root)))
+    .filter((item) => item.thread_id)
+    .filter((item) => matchesRelationGoalFilters(item, filters))
+    .sort((a, b) => a.goal_id.localeCompare(b.goal_id));
+
+  return {
+    goals_root: goalsRoot,
+    filters,
+    count: items.length,
+    items,
+  };
+}
+
+export function collectGoalRelationTasks(target = ".", filterOptions = {}) {
+  const goalsRoot = resolveGoalsRoot(target);
+  const filters = normalizeRelationTaskFilters(filterOptions);
+  const items = [];
+
+  for (const root of listGoalPackRoots(goalsRoot)) {
+    const pack = loadGoalPack(root);
+    const goal = relationGoalItem(pack);
+    if (!goal.thread_id || !matchesRelationTaskGoalFilters(goal, filters)) continue;
+    for (const task of pack.state.tasks) {
+      if (!matchesRelationTaskFilters(task, filters)) continue;
+      items.push(relationTaskItem(goal, task));
+    }
+  }
+
+  items.sort((a, b) => `${a.goal_id}:${a.task.id}`.localeCompare(`${b.goal_id}:${b.task.id}`));
+
+  return {
+    goals_root: goalsRoot,
+    filters,
+    goal_count: new Set(items.map((item) => item.goal_id)).size,
+    task_count: items.length,
     items,
   };
 }
@@ -110,6 +173,41 @@ export function renderGoalRelationsGraph(target = ".", { thread = null } = {}) {
   };
 }
 
+function relationTaskItem(goal, task) {
+  return {
+    goal_id: goal.goal_id,
+    path: goal.path,
+    thread_id: goal.thread_id,
+    goal_status: goal.status,
+    goal_next_decision: goal.next_decision,
+    task: {
+      id: task.id,
+      type: task.type,
+      status: task.status,
+      objective: task.objective || null,
+    },
+  };
+}
+
+function relationGoalItem(pack) {
+  const item = relationItem(pack);
+  const taskCounts = taskStatusCounts(pack.state.tasks);
+  const totalTasks = pack.state.tasks.length;
+
+  return {
+    ...item,
+    next_decision: pack.state.next_decision || null,
+    active_task: pack.state.active_task || null,
+    tasks: {
+      total: totalTasks,
+      done: taskCounts.done || 0,
+      todo: Math.max(0, totalTasks - (taskCounts.done || 0)),
+      by_status: taskCounts,
+    },
+    receipt_count: pack.receipts.length,
+  };
+}
+
 function relationItem(pack) {
   const relations = pack.contract.goal_relations || { thread_id: null, links: [] };
   return {
@@ -124,6 +222,94 @@ function relationItem(pack) {
       evidence: Array.isArray(link.evidence) ? link.evidence : [],
     })),
   };
+}
+
+function normalizeRelationTaskFilters({
+  thread = null,
+  completion = "todo",
+  status = null,
+  goalCompletion = "all",
+  goalStatus = null,
+  goal = null,
+} = {}) {
+  if (!COMPLETION_VALUES.includes(completion)) {
+    throw new Error(`completion must be ${COMPLETION_VALUES.join(", ")}; got ${completion || "<missing>"}`);
+  }
+  if (status !== null && status !== "all" && !TASK_STATUSES.includes(status)) {
+    throw new Error(`status must be ${TASK_STATUSES.join(", ")}; got ${status}`);
+  }
+  if (!COMPLETION_VALUES.includes(goalCompletion)) {
+    throw new Error(`goal_completion must be ${COMPLETION_VALUES.join(", ")}; got ${goalCompletion || "<missing>"}`);
+  }
+  if (goalStatus !== null && goalStatus !== "all" && !STATUS_VALUES.includes(goalStatus)) {
+    throw new Error(`goal_status must be ${STATUS_VALUES.join(", ")}; got ${goalStatus}`);
+  }
+  return {
+    thread: thread || "all",
+    completion,
+    status: status || "all",
+    goal_completion: goalCompletion,
+    goal_status: goalStatus || "all",
+    goal: goal || "all",
+  };
+}
+
+function normalizeRelationGoalFilters({ thread = null, completion = "all", status = null, nextDecision = null } = {}) {
+  if (!COMPLETION_VALUES.includes(completion)) {
+    throw new Error(`completion must be ${COMPLETION_VALUES.join(", ")}; got ${completion || "<missing>"}`);
+  }
+  if (status !== null && status !== "all" && !STATUS_VALUES.includes(status)) {
+    throw new Error(`status must be ${STATUS_VALUES.join(", ")}; got ${status}`);
+  }
+  if (nextDecision !== null && nextDecision !== "all" && !NEXT_DECISIONS.includes(nextDecision)) {
+    throw new Error(`next_decision must be ${NEXT_DECISIONS.join(", ")}; got ${nextDecision}`);
+  }
+  return {
+    thread: thread || "all",
+    completion,
+    status: status || "all",
+    next_decision: nextDecision || "all",
+  };
+}
+
+function matchesRelationTaskGoalFilters(goal, filters) {
+  return (filters.thread === "all" || goal.thread_id === filters.thread)
+    && (filters.goal === "all" || goal.goal_id === filters.goal)
+    && matchesGoalCompletion(goal, filters.goal_completion)
+    && (filters.goal_status === "all" || goal.status === filters.goal_status);
+}
+
+function matchesRelationTaskFilters(task, filters) {
+  return matchesTaskCompletion(task, filters.completion)
+    && (filters.status === "all" || task.status === filters.status);
+}
+
+function matchesRelationGoalFilters(item, filters) {
+  return (filters.thread === "all" || item.thread_id === filters.thread)
+    && matchesGoalCompletion(item, filters.completion)
+    && (filters.status === "all" || item.status === filters.status)
+    && (filters.next_decision === "all" || item.next_decision === filters.next_decision);
+}
+
+function matchesGoalCompletion(item, completion) {
+  if (completion === "all") return true;
+  if (completion === "done") return item.status === "done";
+  return item.status !== "done" && item.status !== "retired";
+}
+
+function matchesTaskCompletion(task, completion) {
+  if (completion === "all") return true;
+  if (completion === "done") return task.status === "done";
+  return task.status !== "done";
+}
+
+function taskStatusCounts(tasks) {
+  const counts = Object.fromEntries([...TASK_STATUSES, "unknown"].map((status) => [status, 0]));
+  for (const task of tasks) {
+    const status = TASK_STATUSES.includes(task.status) ? task.status : "unknown";
+    counts[status] = (counts[status] || 0) + 1;
+  }
+  return counts;
 }
 
 function validateRelationLink({ item, link, itemByGoalId, packByGoalId, errors, warnings }) {
@@ -205,6 +391,31 @@ function renderRelationsListText(model) {
     for (const link of item.links) {
       lines.push(`  ${link.relation || "<missing>"} ${link.goal_id || "<missing>"} receipt=${link.receipt_ref || "null"} evidence=${link.evidence.length}`);
     }
+  }
+  return lines.join("\n");
+}
+
+function renderRelationsGoalsText(model) {
+  const lines = [
+    `goals_root: ${model.goals_root}`,
+    `filters: thread=${model.filters.thread} completion=${model.filters.completion} status=${model.filters.status} next_decision=${model.filters.next_decision}`,
+    `goals: ${model.count}`,
+  ];
+  for (const item of model.items) {
+    lines.push(`${item.goal_id}  thread=${item.thread_id} status=${item.status || "unknown"} next_decision=${item.next_decision || "unknown"} active_task=${item.active_task || "null"} tasks=${item.tasks.total} done=${item.tasks.done} todo=${item.tasks.todo} receipts=${item.receipt_count}`);
+  }
+  return lines.join("\n");
+}
+
+function renderRelationsTasksText(model) {
+  const lines = [
+    `goals_root: ${model.goals_root}`,
+    `filters: thread=${model.filters.thread} completion=${model.filters.completion} status=${model.filters.status} goal_completion=${model.filters.goal_completion} goal_status=${model.filters.goal_status} goal=${model.filters.goal}`,
+    `goals: ${model.goal_count}`,
+    `tasks: ${model.task_count}`,
+  ];
+  for (const item of model.items) {
+    lines.push(`${item.goal_id} ${item.task.id}  task_status=${item.task.status} task_type=${item.task.type} goal_status=${item.goal_status || "unknown"} goal_next_decision=${item.goal_next_decision || "unknown"} ${item.task.objective || ""}`);
   }
   return lines.join("\n");
 }

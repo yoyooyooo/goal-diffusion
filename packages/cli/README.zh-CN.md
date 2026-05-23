@@ -18,13 +18,15 @@ goal-diffusion list . --completion todo
 goal-diffusion inspect <goal-id>
 goal-diffusion tasks <goal-id>
 goal-diffusion receipts list <goal-id> --limit 5
+goal-diffusion relations goals . --thread <thread-id> --completion todo --json
+goal-diffusion relations tasks . --thread <thread-id> --completion todo --json
 goal-diffusion relations check . --thread <thread-id>
 goal-diffusion brief <goal-id>
 goal-diffusion check <goal-id>
 ```
 
 `summary` 和 `list` 面向项目级使用。`inspect`、`tasks`、`receipts`、`brief`、`record`、`advance` 和 `check` 面向单个目标文件夹。
-`relations` 面向项目或 goals 目录使用，用来检查跨 Goal Pack 连续性元数据。
+`relations` 面向项目或 goals 目录使用，用来检查连续性元数据，并发现 thread 成员 goal/task 候选。它不创建队列、worklist、scheduler、thread 生命周期或执行顺序。
 
 ## 命令
 
@@ -38,6 +40,8 @@ goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|a
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
 goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--json]
+goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--json]
 goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
@@ -53,7 +57,10 @@ goal-diffusion check <goal-pack>
 对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
 对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
 对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
-对 `relations`，`list` 显示关系元数据，`check` 校验硬关系证据，`graph` 渲染派生视图。`--thread` 按 `goal_relations.thread_id` 过滤；这些命令不会创建 thread 文件或 graph 状态。
+对 `relations`，`list` 显示关系元数据，`check` 校验硬关系证据，`graph` 渲染派生视图。
+`goals` 发现 thread 成员 Goal Pack。`tasks` 发现 thread 成员 task；`--status`
+过滤 task status，`--goal-status` 和 `--goal-completion` 过滤父 Goal Pack。
+`--thread` 按 `goal_relations.thread_id` 过滤；这些命令不会创建 thread 文件、graph 状态或执行顺序。
 
 典型执行环：
 

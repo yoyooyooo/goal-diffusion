@@ -1,11 +1,14 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 
-const cliScript = resolve("src/goal-diffusion.ts");
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = resolve(packageRoot, "../..");
+const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
 
 function makePack({ contract = contractYaml, state = stateYaml, receipts = "" } = {}) {
   const root = mkdtempSync(join(tmpdir(), "goal-pack-cli-test-"));
@@ -707,11 +710,19 @@ test("main CLI exposes structured commander help at every command layer", () => 
     },
     {
       args: ["relations", "--help"],
-      patterns: [/Usage: goal-diffusion relations \[options\] \[command\]/, /Commands:/, /list/, /check/, /graph/],
+      patterns: [/Usage: goal-diffusion relations \[options\] \[command\]/, /Commands:/, /list/, /goals/, /tasks/, /check/, /graph/],
     },
     {
       args: ["relations", "list", "--help"],
       patterns: [/Usage: goal-diffusion relations list \[options\] \[target\]/, /--thread <id>/, /--json/],
+    },
+    {
+      args: ["relations", "goals", "--help"],
+      patterns: [/Usage: goal-diffusion relations goals \[options\] \[target\]/, /--thread <id>/, /--completion <value>/, /--status <value>/, /--next-decision <value>/, /--json/],
+    },
+    {
+      args: ["relations", "tasks", "--help"],
+      patterns: [/Usage: goal-diffusion relations tasks \[options\] \[target\]/, /--thread <id>/, /--completion <value>/, /--status <value>/, /--goal-completion <value>/, /--goal-status <value>/, /--goal <goal-id>/, /--json/],
     },
     {
       args: ["relations", "check", "--help"],
@@ -759,6 +770,27 @@ test("main CLI exposes structured commander help at every command layer", () => 
       assert.match(result.stdout, pattern, `${helpCase.args.join(" ")} missing ${pattern}`);
     }
   }
+});
+
+test("relations discovery command surface is documented without queue commands", () => {
+  const docs = [
+    readFileSync(join(repoRoot, "README.md"), "utf8"),
+    readFileSync(join(repoRoot, "README.zh-CN.md"), "utf8"),
+    readFileSync(join(packageRoot, "README.md"), "utf8"),
+    readFileSync(join(packageRoot, "README.zh-CN.md"), "utf8"),
+    readFileSync(join(repoRoot, "skills/goal-diffusion/SKILL.md"), "utf8"),
+  ].join("\n");
+
+  assert.match(docs, /goal-diffusion relations list/);
+  assert.match(docs, /goal-diffusion relations goals/);
+  assert.match(docs, /goal-diffusion relations tasks/);
+  assert.match(docs, /goal-diffusion relations check/);
+  assert.match(docs, /goal-diffusion relations graph/);
+  assert.match(docs, /goal_relations\.thread_id/);
+  assert.doesNotMatch(docs, /goal-diffusion relations queue/);
+  assert.doesNotMatch(docs, /goal-diffusion relations worklist/);
+  assert.doesNotMatch(docs, /goal-diffusion threads?\b/);
+  assert.doesNotMatch(docs, /execution_order|queue_position|order_confidence/);
 });
 
 test("receipt rejects out-of-scope changes and appends valid JSONL atomically", () => {
