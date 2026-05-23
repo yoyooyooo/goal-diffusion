@@ -257,12 +257,14 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .command("record")
     .description("Append a validated receipt to receipts.jsonl.")
     .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
-    .addOption(new Option("--file <path>", "receipt JSON file").conflicts("json"))
-    .addOption(new Option("--json <value>", "receipt JSON string").conflicts("file"))
-    .action((goalRoot: string, options: { file?: string; json?: string }) => {
+    .addOption(new Option("--file <path>", "receipt JSON file").conflicts(["json", "stdin"]))
+    .addOption(new Option("--json <value>", "receipt JSON string").conflicts(["file", "stdin"]))
+    .addOption(new Option("--stdin", "read receipt JSON from stdin").conflicts(["file", "json"]))
+    .action((goalRoot: string, options: { file?: string; json?: string; stdin?: boolean }) => {
       const result = runAppendReceipt(goalRoot, {
         file: options.file ?? null,
         json: options.json ?? null,
+        stdin: Boolean(options.stdin),
       });
       emit(JSON.stringify({ ok: result.ok, task_id: result.receipt.task_id, result: result.receipt.result }, null, 2));
     });

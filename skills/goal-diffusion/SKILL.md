@@ -110,7 +110,7 @@ goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>')
+goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin)
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
@@ -123,6 +123,9 @@ goal-diffusion check <goal-pack>
 means task status is not `done`, and `--status` filters raw task status. For
 `receipts list`, filters compose with AND semantics and output compact receipt
 summaries by default; use `receipts show --index N` to expand one full receipt.
+For `record`, choose exactly one input source; use `--stdin` for heredoc receipt
+JSON. `activate` and `advance` are state-transition commands, not payload input
+commands.
 `relations` commands inspect and verify Goal Relations across a project or
 goals directory. `relations goals` and `relations tasks` are broad discovery
 commands for thread-member candidates; `--thread` filters by

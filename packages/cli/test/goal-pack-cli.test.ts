@@ -30,8 +30,8 @@ function writePack(root, { contract = contractYaml, state = stateYaml, receipts 
   return root;
 }
 
-function run(script, args, options: { cwd?: string } = {}) {
-  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8", cwd: options.cwd });
+function run(script, args, options: { cwd?: string; input?: string } = {}) {
+  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8", cwd: options.cwd, input: options.input });
 }
 
 function readReceipts(root) {
@@ -750,7 +750,7 @@ test("main CLI exposes structured commander help at every command layer", () => 
     },
     {
       args: ["record", "--help"],
-      patterns: [/Usage: goal-diffusion record \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--file <path>/, /--json <value>/],
+      patterns: [/Usage: goal-diffusion record \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--file <path>/, /--json <value>/, /--stdin/],
     },
     {
       args: ["advance", "--help"],
@@ -857,6 +857,76 @@ test("main CLI record appends receipts", () => {
     assert.equal(readReceipts(root).length, 1);
 
     assert.equal(readReceipts(root).length, 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("main CLI record appends receipts from stdin", () => {
+  const root = makePack();
+  const receipt = JSON.stringify({
+    task_id: "T001",
+    type: "worker",
+    result: "done",
+    changed_files: ["packages/cli/src/goal-diffusion.ts"],
+    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    evidence: ["stdin receipt"],
+    claims: ["record accepts explicit stdin input"],
+    summary: "done from stdin",
+    next_decision: "continue",
+  });
+
+  try {
+    const record = run(cliScript, ["record", root, "--stdin"], { input: receipt });
+    assert.equal(record.status, 0, record.stderr);
+    const lines = readReceipts(root);
+    assert.equal(lines.length, 1);
+    assert.equal(JSON.parse(lines[0]).summary, "done from stdin");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("main CLI record rejects empty stdin", () => {
+  const root = makePack();
+  try {
+    const record = run(cliScript, ["record", root, "--stdin"], { input: "" });
+    assert.equal(record.status, 1);
+    assert.match(record.stderr, /--stdin requires JSON input on stdin/);
+    assert.equal(readReceipts(root).length, 0);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("main CLI record keeps file json and stdin input sources mutually exclusive", () => {
+  const root = makePack();
+  const receiptPath = join(root, "receipt.json");
+  const receipt = JSON.stringify({
+    task_id: "T001",
+    type: "worker",
+    result: "done",
+    changed_files: ["packages/cli/src/goal-diffusion.ts"],
+    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    evidence: ["test"],
+    claims: ["claim"],
+    summary: "done",
+    next_decision: "continue",
+  });
+  writeFileSync(receiptPath, receipt);
+
+  try {
+    const json = run(cliScript, ["record", root, "--json", receipt]);
+    assert.equal(json.status, 0, json.stderr);
+    assert.equal(readReceipts(root).length, 1);
+
+    const fileAndStdin = run(cliScript, ["record", root, "--file", receiptPath, "--stdin"], { input: receipt });
+    assert.equal(fileAndStdin.status, 1);
+    assert.match(fileAndStdin.stderr, /cannot be used with option/i);
+
+    const jsonAndStdin = run(cliScript, ["record", root, "--json", receipt, "--stdin"], { input: receipt });
+    assert.equal(jsonAndStdin.status, 1);
+    assert.match(jsonAndStdin.stderr, /cannot be used with option/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

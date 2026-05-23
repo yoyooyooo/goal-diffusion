@@ -30,7 +30,7 @@ export function runDispatch(goalRoot, { taskId = null } = {}) {
   lines.push("收口命令：");
   lines.push("");
   lines.push("```bash");
-  lines.push(`goal-diffusion record ${goalRoot} --file receipt.json`);
+  lines.push(`goal-diffusion record ${goalRoot} --stdin < receipt.json`);
   lines.push(`goal-diffusion advance ${goalRoot}`);
   lines.push(`goal-diffusion check ${goalRoot}`);
   lines.push("```");

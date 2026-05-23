@@ -240,7 +240,7 @@ goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>')
+goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin)
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
@@ -250,6 +250,7 @@ goal-diffusion check <goal-pack>
 对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
 对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
 对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
+对 `record`，必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个。`--stdin` 用于 heredoc receipt JSON；`activate` 和 `advance` 仍是状态转移命令，不接收 payload。
 对 `relations`，`list` 显示关系元数据，`check` 校验证据，`graph` 渲染派生关系图。
 `goals` 用 goal 级过滤发现 thread 成员 Goal Pack。`tasks` 发现 thread 成员 task；`--status`
 过滤 task status，`--goal-status` 和 `--goal-completion` 过滤父 Goal Pack。
