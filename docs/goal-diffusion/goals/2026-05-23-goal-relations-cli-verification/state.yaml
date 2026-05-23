@@ -1,0 +1,74 @@
+version: 1
+goal_id: 2026-05-23-goal-relations-cli-verification
+status: done
+
+current_edge:
+  from: "Goal Relations protocol is planned as contract metadata, but there is no CLI surface to inspect or validate cross-pack links."
+  target_delta: "The CLI can list relations, check relation evidence, and render thread-derived graph views over Goal Packs."
+  harnessed_path:
+    - "Add failing CLI tests for relation enum validation, predecessor existence, receipt_ref lookup, evidence token lookup, related_to warning behavior, thread filtering, and graph rendering."
+    - "Implement goal-diffusion relations list/check/graph over parsed Goal Packs and receipts."
+    - "Document the relations command family in root, package, and skill docs."
+    - "Dogfood relations check and graph rendering against the goal-relations thread."
+  verify:
+    - "bun run check"
+    - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-goal-relations-cli-verification"
+    - "goal-diffusion relations check docs/goal-diffusion/goals --thread goal-relations"
+    - "goal-diffusion relations graph docs/goal-diffusion/goals --thread goal-relations --json"
+  failure_inspection:
+    - packages/cli/src/goal-diffusion.ts
+    - packages/cli/src/lib/goal-pack.ts
+    - packages/cli/test/goal-pack-cli.test.ts
+    - README.md
+    - README.zh-CN.md
+    - packages/cli/README.md
+    - packages/cli/README.zh-CN.md
+    - skills/goal-diffusion/SKILL.md
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker
+    status: done
+    objective: "Implement relation parsing, validation, thread filtering, and relations list/check/graph CLI commands."
+    allowed_scope:
+      - packages/cli/src/**
+      - packages/cli/test/**
+      - README.md
+      - README.zh-CN.md
+      - packages/cli/README.md
+      - packages/cli/README.zh-CN.md
+      - skills/**
+      - docs/**
+    verify:
+      - "bun run check"
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-goal-relations-cli-verification"
+      - "goal-diffusion relations check docs/goal-diffusion/goals --thread goal-relations"
+      - "goal-diffusion relations graph docs/goal-diffusion/goals --thread goal-relations --json"
+    stop_if:
+      - "The implementation requires receipt schema changes, stored graph state, a thread registry, or automatic successor creation."
+      - "Existing CLI command behavior would need a breaking change."
+      - "Required predecessor evidence cannot be verified from receipt JSON."
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit the relations CLI verification surface against the completion oracle."
+    allowed_scope:
+      - docs/goal-diffusion/goals/2026-05-23-goal-relations-cli-verification/**
+    verify:
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-goal-relations-cli-verification"
+    stop_if:
+      - "Any oracle token lacks receipt-backed evidence."
+
+blockers:
+
+last_verification:
+  result: pass
+  commands:
+    - "bun run check [pass]"
+    - "goal-diffusion-dev check docs/goal-diffusion/goals/2026-05-23-goal-relations-cli-verification [pass]"
+    - "goal-diffusion-dev relations check docs/goal-diffusion/goals --thread goal-relations --json [pass]"
+    - "goal-diffusion-dev relations graph docs/goal-diffusion/goals --thread goal-relations --json [pass]"
+
+next_decision: done

@@ -138,7 +138,7 @@ function matchesCompletion(item, completion) {
   return item.status !== "done" && item.status !== "retired";
 }
 
-function resolveGoalsRoot(target = ".", { cwd = process.cwd() } = {}) {
+export function resolveGoalsRoot(target = ".", { cwd = process.cwd() } = {}) {
   const direct = resolve(cwd, target || ".");
   const nested = join(direct, "docs", "goal-diffusion", "goals");
   if (isGoalsDirectory(direct)) return direct;
@@ -169,7 +169,7 @@ function isGoalsDirectory(path) {
   }
 }
 
-function listGoalPackRoots(goalsRoot) {
+export function listGoalPackRoots(goalsRoot) {
   return readdirSync(goalsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => join(goalsRoot, entry.name))

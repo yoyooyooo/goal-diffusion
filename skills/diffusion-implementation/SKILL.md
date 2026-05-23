@@ -49,6 +49,10 @@ or can be built inside scope; and risk stays inside allowed blast radius.
 Stop for protected-field changes, missing honest path, repeated unrecoverable
 verification failure, or higher-authority boundaries.
 
+For related Goal Packs, keep work in the active Goal Pack. Do not reopen a done
+predecessor for normal follow-up. Record successor evidence in the current
+receipt chain and reference predecessor receipts through `goal_relations`.
+
 ## Receipt
 
 Append one JSON object per completed, blocked, or audited task to
@@ -75,6 +79,8 @@ Blocked receipt uses `result: "blocked"`, `blocked_by`, `evidence`, and
 
 Final audit requires `type: "audit"`, `decision: "complete"`,
 `oracle_satisfied: true`, and oracle evidence.
+If the Goal Pack declares hard relations, final audit evidence should include
+relation verification results or the evidence tokens required by the relation.
 
 ## State Update
 

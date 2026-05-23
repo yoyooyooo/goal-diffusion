@@ -104,9 +104,10 @@ first harnessed edge
 
 One Goal Pack owns one objective contract and one receipt chain.
 
-Child work is represented by a child Goal Pack only when it has its own
-contract, claim boundary, and receipt chain. A parent may point to a child in
-state or notes, but the child is not a second task list inside the parent.
+Follow-up work is represented by another Goal Pack only when it has its own
+contract, claim boundary, and receipt chain. A Goal Pack may reference another
+Goal Pack in state or notes, but that referenced pack is not a second task list
+inside the current pack.
 
 ## Implementation Plan Rules
 

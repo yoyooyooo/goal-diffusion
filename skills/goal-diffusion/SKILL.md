@@ -23,6 +23,34 @@ Invariant:
 Goals are connected by harnessed paths and evidence chains, not by speculative task trees.
 ```
 
+## Goal Relations
+
+Goal Packs may declare cross-pack continuity in `contract.yaml`:
+
+```yaml
+goal_relations:
+  thread_id: goal-relations
+  links:
+    - goal_id: 2026-05-23-goal-relations-protocol
+      relation: successor_of
+      receipt_ref: T999
+      evidence:
+        - goal_relations_protocol_documented=true
+```
+
+Rules:
+
+- Goal Pack remains the completion unit: one objective, one oracle, one state,
+  one append-only receipt chain.
+- Goal Thread is only a shared `thread_id` label. It owns no state, task list,
+  receipt stream, lifecycle, registry, or graph file.
+- Goal Relation is metadata on a Goal Pack. Allowed relation types are
+  `successor_of`, `depends_on`, `supersedes`, and `related_to`.
+- Graph views are derived from Goal Relations at inspection time; never store a
+  graph as planning state.
+- Done Goal Packs are append-only closed by default. Normal follow-up creates a
+  successor Goal Pack and references predecessor receipt evidence.
+
 ## Use Or Stay Inline
 
 Stay inline when one evidence path in the current turn can prove completion.
@@ -74,6 +102,9 @@ goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--sta
 goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -90,6 +121,8 @@ goal-diffusion check <goal-pack>
 means task status is not `done`, and `--status` filters raw task status. For
 `receipts list`, filters compose with AND semantics and output compact receipt
 summaries by default; use `receipts show --index N` to expand one full receipt.
+`relations` commands inspect and verify Goal Relations across a project or
+goals directory; `--thread` filters by `goal_relations.thread_id`.
 Work loop:
 
 ```text
@@ -117,3 +150,5 @@ Use flat phase skills through this controller unless the user targets a phase:
 
 Completion requires a final audit receipt that maps the receipt chain to
 `completion_oracle.final_proof` and records `oracle_satisfied: true`.
+When a Goal Pack is a successor, final audit should include relation evidence
+tokens proving predecessor receipts and required evidence were checked.

@@ -61,6 +61,9 @@ with evidence.
 | Validation | A test, check, collection method, or acceptance method that proves a path |
 | Receipt | Evidence recorded after one verified step |
 | Goal Pack | Project folder for one long-running goal |
+| Goal Thread | Shared `goal_relations.thread_id` label across related Goal Packs |
+| Goal Relation | Typed, evidence-linked metadata from one Goal Pack to another |
+| Derived Graph View | CLI-rendered view from Goal Relations, not stored planning state |
 | `contract.yaml` | Target, scope, constraints, and acceptance |
 | `state.yaml` | Current progress and the next allowed piece of work |
 | `receipts.jsonl` | Append-only evidence from completed work |
@@ -167,6 +170,36 @@ That is rolling execution: not one giant plan up front, and not asking the human
 after every tiny step, but continuous movement through goals, validation,
 evidence, and stop conditions.
 
+## Goal Relations
+
+Goal Relations connect independent Goal Packs without creating another planning
+object. A Goal Pack stays the unit of completion: one objective, one oracle, one
+state file, and one append-only receipt chain.
+
+A Goal Thread is only a shared `thread_id` label. It has no lifecycle, task
+list, state file, receipt stream, registry, or stored graph.
+
+Relations live in `contract.yaml` metadata:
+
+```yaml
+goal_relations:
+  thread_id: goal-relations
+  links:
+    - goal_id: 2026-05-23-goal-relations-protocol
+      relation: successor_of
+      receipt_ref: T999
+      evidence:
+        - goal_relations_protocol_documented=true
+```
+
+Allowed relation types are `successor_of`, `depends_on`, `supersedes`, and
+`related_to`. A successor should reference predecessor receipt evidence when
+the predecessor is done. Done Goal Packs are append-only closed by default;
+normal follow-up starts a successor Goal Pack instead of reopening the old one.
+
+The graph is derived from Goal Relations at inspection time. It is not stored in
+the repository as planning state.
+
 ## Using Codex `/goal`
 
 Goal Diffusion stores long-running goal state. Codex `/goal` hands one execution
@@ -223,6 +256,14 @@ goal-diffusion receipts list <goal-pack> --limit 5
 goal-diffusion brief <goal-pack>
 ```
 
+Relations commands inspect cross-pack continuity:
+
+```bash
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
+```
+
 Use a bare goal id when running inside a project that has
 `docs/goal-diffusion/goals/<goal-id>`, or pass the goal folder.
 
@@ -237,6 +278,9 @@ goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--sta
 goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]

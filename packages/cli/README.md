@@ -22,12 +22,15 @@ goal-diffusion list . --completion todo
 goal-diffusion inspect <goal-id>
 goal-diffusion tasks <goal-id>
 goal-diffusion receipts list <goal-id> --limit 5
+goal-diffusion relations check . --thread <thread-id>
 goal-diffusion brief <goal-id>
 goal-diffusion check <goal-id>
 ```
 
 Use `summary` and `list` at project level. Use `inspect`, `tasks`, `receipts`,
 `brief`, `record`, `advance`, and `check` on a single goal folder.
+Use `relations` at project or goals-directory level to inspect and verify
+cross-pack continuity metadata.
 
 ## Commands
 
@@ -40,6 +43,9 @@ goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--sta
 goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -59,6 +65,10 @@ filters raw task status.
 For `receipts list`, filters compose with AND semantics and output compact
 receipt summaries by default. Use `receipts show --index N` to expand one full
 receipt.
+For `relations`, `list` shows relation metadata, `check` validates hard relation
+evidence, and `graph` renders a derived view. `--thread` filters by
+`goal_relations.thread_id`; the commands do not create thread files or graph
+state.
 
 Typical execution loop:
 

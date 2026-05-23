@@ -24,6 +24,9 @@ The plan lives inside the Goal Pack by design. It is not a product spec, schema
 authority, contract replacement, or parallel workflow. The corresponding
 `state.yaml` task should use `type: plan_required` and
 `plan: implementation-plan.md`, with the plan file in `allowed_scope`.
+For related Goal Packs, the plan may cite `goal_relations` as predecessor
+evidence, but it must not create a thread-owned lifecycle, stored graph, nested
+task tree, or cross-pack state ownership.
 
 ## Use Only When
 

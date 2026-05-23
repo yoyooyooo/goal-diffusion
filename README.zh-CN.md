@@ -46,6 +46,9 @@ Goal Diffusion 把重心移到这些问题：
 | Validation | 证明路径成立的测试、检查、采集或验收方式 |
 | Receipt | 完成一次验证后留下的证据记录 |
 | Goal Pack | 项目里承载一个长期目标的文件夹 |
+| Goal Thread | 多个相关 Goal Pack 共享的 `goal_relations.thread_id` 标签 |
+| Goal Relation | 从一个 Goal Pack 指向另一个 Goal Pack 的带证据类型链接 |
+| Derived Graph View | CLI 根据 Goal Relations 渲染的派生视图，不是存储的规划状态 |
 | `contract.yaml` | 目标、范围、约束、验收方式 |
 | `state.yaml` | 当前进度和下一步允许做的小工作 |
 | `receipts.jsonl` | 完成工作后追加的验证证据 |
@@ -129,6 +132,29 @@ brief -> work -> verify -> receipt -> advance -> continue or block
 
 这就是滚动实施：不是一次性写完整计划，也不是每做一点就问人，而是在目标、验证、证据和停止条件之间持续滚动。
 
+## Goal Relations
+
+Goal Relations 用来连接彼此独立的 Goal Pack，但不引入新的规划对象。Goal Pack 仍然是完成单位：一个 objective、一个 oracle、一个 state 文件、一条 append-only receipt 链。
+
+Goal Thread 只是共享的 `thread_id` 标签。它没有自己的生命周期、任务列表、状态文件、receipt 流、注册表或存储图。
+
+关系写在 `contract.yaml` 元数据中：
+
+```yaml
+goal_relations:
+  thread_id: goal-relations
+  links:
+    - goal_id: 2026-05-23-goal-relations-protocol
+      relation: successor_of
+      receipt_ref: T999
+      evidence:
+        - goal_relations_protocol_documented=true
+```
+
+允许的关系类型只有 `successor_of`、`depends_on`、`supersedes`、`related_to`。successor 应在前置 Goal Pack 完成后引用其 receipt 证据。done Goal Pack 默认 append-only 关闭；正常后续工作创建 successor Goal Pack，而不是重开旧包。
+
+graph 是检查时从 Goal Relations 派生出来的视图，不作为规划状态写入仓库。
+
 ## 配合 Codex `/goal` 使用
 
 Goal Diffusion 负责保存长期目标状态；Codex `/goal` 负责把一次执行交给 agent 长时间推进。
@@ -180,6 +206,14 @@ goal-diffusion receipts list <goal-pack> --limit 5
 goal-diffusion brief <goal-pack>
 ```
 
+Relations 命令用于检查跨 Goal Pack 连续性：
+
+```bash
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
+```
+
 在含有 `docs/goal-diffusion/goals/<goal-id>` 的项目内，可以直接传裸 goal id；也可以传目标文件夹。
 
 ## CLI
@@ -193,6 +227,9 @@ goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--sta
 goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
 goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]

@@ -14,7 +14,21 @@ Diffusion operating loop.
 
 ## Active Goal Packs
 
-- `goals/2026-05-23-receipts-query-cli/` - add compact, filterable receipt history queries to the CLI.
+- None.
+
+## Completed Goal Packs
+
+- `goals/2026-05-23-receipts-query-cli/` - added compact, filterable receipt history queries to the CLI.
+- `goals/2026-05-23-goal-relations-protocol/` - defined minimal cross-pack relation metadata and skill guidance.
+- `goals/2026-05-23-goal-relations-cli-verification/` - added relations CLI verification and derived graph view.
+
+## Goal Threads
+
+- `goal-relations` - completed protocol and CLI verification packs.
+
+Goal Threads are shared labels only. Goal Packs remain independent completion
+units, and relation graphs are derived views rather than stored planning
+artifacts.
 
 ## Inbox
 

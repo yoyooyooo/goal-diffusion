@@ -653,6 +653,7 @@ test("main CLI exposes only official command names", () => {
     assert.match(help.stdout, /list \[options\] \[target\]/);
     assert.match(help.stdout, /tasks \[options\] <goal-pack>/);
     assert.match(help.stdout, /receipts\s+Inspect receipt history/);
+    assert.match(help.stdout, /relations\s+Inspect and verify Goal Pack relations/);
     assert.match(help.stdout, /brief \[options\] <goal-pack>/);
     assert.match(help.stdout, /dispatch \[options\] <goal-pack>/);
     assert.match(help.stdout, /activate \[options\] <goal-pack>/);
@@ -678,7 +679,7 @@ test("main CLI exposes structured commander help at every command layer", () => 
   const helpCases = [
     {
       args: ["--help"],
-      patterns: [/Usage: goal-diffusion \[options\] \[command\]/, /Options:/, /Commands:/, /inspect/, /brief/, /record/],
+      patterns: [/Usage: goal-diffusion \[options\] \[command\]/, /Options:/, /Commands:/, /inspect/, /relations/, /brief/, /record/],
     },
     {
       args: ["summary", "--help"],
@@ -703,6 +704,22 @@ test("main CLI exposes structured commander help at every command layer", () => 
     {
       args: ["receipts", "show", "--help"],
       patterns: [/Usage: goal-diffusion receipts show \[options\] <goal-pack>/, /--index <number>/, /--json/],
+    },
+    {
+      args: ["relations", "--help"],
+      patterns: [/Usage: goal-diffusion relations \[options\] \[command\]/, /Commands:/, /list/, /check/, /graph/],
+    },
+    {
+      args: ["relations", "list", "--help"],
+      patterns: [/Usage: goal-diffusion relations list \[options\] \[target\]/, /--thread <id>/, /--json/],
+    },
+    {
+      args: ["relations", "check", "--help"],
+      patterns: [/Usage: goal-diffusion relations check \[options\] \[target\]/, /--thread <id>/, /--json/],
+    },
+    {
+      args: ["relations", "graph", "--help"],
+      patterns: [/Usage: goal-diffusion relations graph \[options\] \[target\]/, /--thread <id>/, /--json/],
     },
     {
       args: ["inspect", "--help"],

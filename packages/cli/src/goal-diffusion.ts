@@ -10,6 +10,7 @@ import { runAppendReceipt } from "./append-receipt.ts";
 import { runBrief } from "./render-goal-task-brief.ts";
 import { runDispatch } from "./render-goal-task-dispatch.ts";
 import { runReceiptsList, runReceiptShow } from "./render-goal-receipts.ts";
+import { runRelationsCheck, runRelationsGraph, runRelationsList } from "./render-goal-relations.ts";
 import { runTasks } from "./render-goal-tasks.ts";
 import { runInspect } from "./inspect-goal-pack.ts";
 import { COMPLETION_VALUES, runList, runSummary } from "./summarize-goal-packs.ts";
@@ -135,6 +136,42 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--json", "print JSON output")
     .action((goalRoot: string, options: { index: string; json?: boolean }) => {
       emit(runReceiptShow(goalRoot, { index: options.index, json: Boolean(options.json) }));
+    });
+
+  const relations = program
+    .command("relations")
+    .description("Inspect and verify Goal Pack relations.");
+
+  relations
+    .command("list")
+    .description("List Goal Pack relations under a project or goals directory.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--thread <id>", "filter by goal_relations.thread_id")
+    .option("--json", "print JSON output")
+    .action((target: string, options: { thread?: string; json?: boolean }) => {
+      emit(runRelationsList(target, { thread: options.thread ?? null, json: Boolean(options.json) }));
+    });
+
+  relations
+    .command("check")
+    .description("Validate Goal Pack relation evidence.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--thread <id>", "filter by goal_relations.thread_id")
+    .option("--json", "print JSON output")
+    .action((target: string, options: { thread?: string; json?: boolean }) => {
+      const result = runRelationsCheck(target, { thread: options.thread ?? null, json: Boolean(options.json) });
+      emit(result.output);
+      if (!result.ok) throw new CliExit(1);
+    });
+
+  relations
+    .command("graph")
+    .description("Render a derived graph view from Goal Pack relations.")
+    .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
+    .option("--thread <id>", "filter by goal_relations.thread_id")
+    .option("--json", "print JSON output")
+    .action((target: string, options: { thread?: string; json?: boolean }) => {
+      emit(runRelationsGraph(target, { thread: options.thread ?? null, json: Boolean(options.json) }));
     });
 
   program

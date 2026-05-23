@@ -27,6 +27,11 @@ source goal state
 - Find the smallest runnable path that can prove or falsify the next movement.
 - Do not write a speculative task tree.
 - Write the chosen edge into `state.yaml.current_edge`.
+- If work continues a related Goal Pack, keep the edge inside the current Goal
+  Pack. Use `goal_relations.thread_id` only as a label and use relation links
+  only as predecessor evidence.
+- A derived graph view may help inspect continuity, but it is not an edge
+  artifact and must not be written as stored planning state.
 
 ## Edge Owns
 

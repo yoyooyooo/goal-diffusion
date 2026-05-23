@@ -11,6 +11,7 @@ export const TASK_TYPES = ["scout", "judge", "worker", "pm", "audit", "plan_requ
 export const TASK_STATUSES = ["queued", "active", "blocked", "done"];
 export const NEXT_DECISIONS = ["edge", "continue", "plan_required", "blocked", "audit", "done", "needs-human"];
 export const RECEIPT_RESULTS = ["done", "blocked"];
+export const GOAL_RELATION_TYPES = ["successor_of", "depends_on", "supersedes", "related_to"];
 
 export function loadGoalPack(goalRoot) {
   const root = resolveGoalPackRoot(goalRoot);
@@ -75,6 +76,7 @@ export function parseContract(text) {
     status: topScalar(text, "status"),
     objective: topScalar(text, "objective"),
     north_star: topScalar(text, "north_star"),
+    goal_relations: parseGoalRelations(text),
     authority_refs: listScalar(text, "authority_refs", 0),
     architecture_standard: listScalar(text, "architecture_standard", 0),
     constraints: listScalar(text, "constraints", 0),
@@ -90,6 +92,54 @@ export function parseContract(text) {
       protected_fields: listScalar(blockText(text, "autonomy_policy", 0), "protected_fields", 2),
     },
   };
+}
+
+function parseGoalRelations(text) {
+  const body = blockText(text, "goal_relations", 0);
+  if (!body) return { thread_id: null, links: [] };
+  return {
+    thread_id: pathScalar(text, ["goal_relations"], "thread_id"),
+    links: parseGoalRelationLinks(body),
+  };
+}
+
+function parseGoalRelationLinks(goalRelationsBody) {
+  const linksBody = blockText(goalRelationsBody, "links", 2);
+  if (!linksBody) return [];
+  const lines = linksBody.split(/\r?\n/);
+  const links = [];
+  let current = null;
+  let currentLines = [];
+  const finish = () => {
+    if (!current) return;
+    const body = currentLines.join("\n");
+    links.push({
+      goal_id: current.goal_id || relationScalar(currentLines, "goal_id"),
+      relation: relationScalar(currentLines, "relation"),
+      receipt_ref: relationScalar(currentLines, "receipt_ref"),
+      evidence: listScalar(body, "evidence", 6),
+    });
+  };
+
+  for (const line of lines) {
+    const item = line.match(/^ {4}-[ \t]*(.*?)[ \t]*$/);
+    if (item) {
+      finish();
+      current = {};
+      currentLines = [line];
+      const inline = item[1];
+      const inlineMatch = inline.match(/^([A-Za-z_][A-Za-z0-9_]*):[ \t]*(.*?)$/);
+      if (inlineMatch) current[inlineMatch[1]] = clean(inlineMatch[2]);
+      continue;
+    }
+    if (current) currentLines.push(line);
+  }
+  finish();
+  return links.filter((link) => link.goal_id || link.relation || link.receipt_ref || link.evidence.length > 0);
+}
+
+function relationScalar(lines, key) {
+  return keyValue(lines.join("\n"), key, 6);
 }
 
 export function parseState(text) {

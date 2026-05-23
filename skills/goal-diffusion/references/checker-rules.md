@@ -88,3 +88,26 @@ A done Goal Pack must include a final audit receipt:
 ```
 
 The checker rejects done state when the final audit does not satisfy the oracle.
+
+## Goal Relations Checks
+
+Base `goal-diffusion check` validates one Goal Pack. Cross-pack relation checks
+belong to `goal-diffusion relations check`.
+
+Relation metadata lives in `contract.yaml`:
+
+```yaml
+goal_relations:
+  thread_id: "<thread-label>"
+  links:
+    - goal_id: "<target-goal-id>"
+      relation: successor_of # successor_of | depends_on | supersedes | related_to
+      receipt_ref: T999
+      evidence:
+        - "<receipt-evidence-token>=true"
+```
+
+Hard failures for relation verification are limited to invalid relation type,
+missing target Goal Pack, missing required `receipt_ref`, and missing required
+evidence token. `related_to` is nonblocking: missing receipt or evidence should
+warn unless future protocol authority says otherwise.

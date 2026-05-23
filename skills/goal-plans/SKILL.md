@@ -24,6 +24,7 @@ id
 status
 objective
 north_star
+goal_relations
 authority_refs
 architecture_standard
 constraints
@@ -57,6 +58,11 @@ authority, architecture standard, claim boundary, or stop rules while running.
 - Contract links authority by path or URL; it does not copy authority content.
 - Contract may reference source material, but consumed source belongs in
   `docs/goal-diffusion/sources/` or `notes/`.
+- Contract may declare `goal_relations.thread_id` and `goal_relations.links`;
+  these are metadata only, not a supervising plan, thread lifecycle, task tree,
+  or nested Goal Pack state.
+- If a new Goal Pack continues a done Goal Pack, prefer `successor_of` with
+  `receipt_ref` and required evidence tokens from the predecessor receipt.
 - If objective or authority is unclear and no honest edge can be named, stop
   before execution.
 

@@ -4,6 +4,15 @@ status: forming # forming | ready | running | blocked | done | retired
 objective: "<one observable owner outcome>"
 north_star: "<far target that must not be lost>"
 
+goal_relations:
+  thread_id: "<thread-label-or-null>"
+  links:
+    # - goal_id: "<related-goal-id>"
+    #   relation: "successor_of" # successor_of | depends_on | supersedes | related_to
+    #   receipt_ref: "T999"
+    #   evidence:
+    #     - "<receipt-evidence-token>=true"
+
 authority_refs:
   - "<path-or-url>"
 
