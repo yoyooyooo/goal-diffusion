@@ -17,11 +17,12 @@ goal-diffusion summary .
 goal-diffusion list . --completion todo
 goal-diffusion inspect <goal-id>
 goal-diffusion tasks <goal-id>
+goal-diffusion receipts list <goal-id> --limit 5
 goal-diffusion brief <goal-id>
 goal-diffusion check <goal-id>
 ```
 
-`summary` 和 `list` 面向项目级使用。`inspect`、`tasks`、`brief`、`record`、`advance` 和 `check` 面向单个目标文件夹。
+`summary` 和 `list` 面向项目级使用。`inspect`、`tasks`、`receipts`、`brief`、`record`、`advance` 和 `check` 面向单个目标文件夹。
 
 ## 命令
 
@@ -32,6 +33,8 @@ goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
+goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
+goal-diffusion receipts show <goal-pack> --index N [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -44,6 +47,7 @@ goal-diffusion check <goal-pack>
 `summary` 可接收项目根目录或 `docs/goal-diffusion/goals` 目录；不传参数时从当前目录向上查找。
 对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
 对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
+对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
 
 典型执行环：
 

@@ -1,0 +1,70 @@
+version: 1
+goal_id: 2026-05-23-receipts-query-cli
+status: done
+
+current_edge:
+  from: "Agents currently inspect receipt history by reading raw receipts.jsonl directly, often with tail -n, which is line-oriented rather than receipt-intent-oriented and can dump oversized JSON into context."
+  target_delta: "The CLI has a bounded receipts query surface that answers common receipt-history questions with compact defaults and explicit expansion."
+  harnessed_path:
+    - "Add failing CLI tests for compact receipts list defaults, composable filters, JSON output, and indexed receipt show."
+    - "Implement receipts list/show as first-class CLI commands over existing parsed receipts."
+    - "Document the command surface in root docs, package docs, and the goal-diffusion skill."
+    - "Dogfood the command against this Goal Pack after recording at least one receipt."
+  verify:
+    - "bun run check"
+    - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-receipts-query-cli"
+    - "goal-diffusion receipts list docs/goal-diffusion/goals/2026-05-23-receipts-query-cli --json"
+  failure_inspection:
+    - packages/cli/src/goal-diffusion.ts
+    - packages/cli/src/lib/goal-pack.ts
+    - packages/cli/test/goal-pack-cli.test.ts
+    - README.md
+    - packages/cli/README.md
+    - skills/goal-diffusion/SKILL.md
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker
+    status: done
+    objective: "Implement compact, filterable receipts list/show commands for one Goal Pack."
+    allowed_scope:
+      - packages/cli/src/**
+      - packages/cli/test/**
+      - README.md
+      - README.zh-CN.md
+      - packages/cli/README.md
+      - packages/cli/README.zh-CN.md
+      - skills/goal-diffusion/SKILL.md
+      - CHANGELOG.md
+      - docs/goal-diffusion/**
+    verify:
+      - "bun run check"
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-receipts-query-cli"
+    stop_if:
+      - "The implementation needs receipt schema changes, timestamps, external indexing, or a query language."
+      - "Existing CLI command semantics or receipt validation would need a breaking change."
+      - "Compact default output cannot avoid raw full receipt dumps."
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit the receipt-query CLI against the completion oracle and record final proof."
+    allowed_scope:
+      - docs/goal-diffusion/goals/2026-05-23-receipts-query-cli/**
+    verify:
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-23-receipts-query-cli"
+    stop_if:
+      - "Any oracle field lacks receipt-backed evidence."
+
+blockers:
+
+last_verification:
+  result: pass
+  commands:
+    - "goal-diffusion-dev check docs/goal-diffusion/goals/2026-05-23-receipts-query-cli [pass]"
+    - "goal-diffusion-dev receipts list 2026-05-23-receipts-query-cli --command-status pass --changed-file packages/cli/src/** --json [pass]"
+    - "goal-diffusion-dev receipts show 2026-05-23-receipts-query-cli --index 1 --json [pass]"
+    - "bun run check [pass]"
+
+next_decision: done

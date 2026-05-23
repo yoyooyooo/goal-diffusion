@@ -72,6 +72,8 @@ goal-diffusion inspect <goal-pack> [--json]
 goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
 goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
+goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
+goal-diffusion receipts show <goal-pack> --index N [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
@@ -85,7 +87,10 @@ goal-diffusion check <goal-pack>
 `docs/goal-diffusion/goals` directory. For `summary` and `list`,
 `--completion todo` means goal status is neither `done` nor `retired`, and
 `--status` filters raw Goal Pack status. For `tasks`, `--completion todo`
-means task status is not `done`, and `--status` filters raw task status. Work loop:
+means task status is not `done`, and `--status` filters raw task status. For
+`receipts list`, filters compose with AND semantics and output compact receipt
+summaries by default; use `receipts show --index N` to expand one full receipt.
+Work loop:
 
 ```text
 check -> inspect -> brief -> work -> record -> advance -> check

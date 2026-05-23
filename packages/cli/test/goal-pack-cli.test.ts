@@ -177,9 +177,52 @@ tasks:
 blockers: []
 last_verification:
   result: unknown
-  commands: []
+commands: []
 next_decision: continue
 `;
+
+const receiptHistoryJsonl = [
+  {
+    task_id: "T001",
+    type: "pm",
+    result: "done",
+    evidence: ["seed context"],
+    summary: "Seeded the command surface.",
+    next_decision: "continue",
+  },
+  {
+    task_id: "T001",
+    type: "worker",
+    result: "done",
+    changed_files: ["packages/cli/src/goal-diffusion.ts", "packages/cli/src/render-goal-receipts.ts"],
+    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    evidence: ["DO_NOT_DUMP_FULL_EVIDENCE", "compact receipt list"],
+    claims: ["receipt list works"],
+    summary: "Added compact receipts list.",
+    next_decision: "continue",
+  },
+  {
+    task_id: "T001",
+    type: "worker",
+    result: "blocked",
+    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "fail" }],
+    blocked_by: ["filter failure"],
+    evidence: ["failed command"],
+    summary: "Blocked on filter failure.",
+    next_decision: "blocked",
+  },
+  {
+    task_id: "T002",
+    type: "audit",
+    result: "done",
+    decision: "complete",
+    oracle_satisfied: true,
+    evidence: ["audit proof"],
+    claims: ["complete"],
+    summary: "Audit complete.",
+    next_decision: "done",
+  },
+].map((receipt) => JSON.stringify(receipt)).join("\n");
 
 test("inspect --json returns compact agent-readable state", () => {
   const root = makePack({
@@ -386,6 +429,105 @@ test("tasks filters by completion and status with JSON output", () => {
   }
 });
 
+test("receipts list defaults to compact recent receipt output", () => {
+  const root = makePack({ receipts: receiptHistoryJsonl });
+  try {
+    const result = run(cliScript, ["receipts", "list", root]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /goal_id: cli-test-goal/);
+    assert.match(result.stdout, /filters: limit=5/);
+    assert.match(result.stdout, /receipts: total=4 matched=4 shown=4/);
+    assert.match(result.stdout, /#1\s+T001\s+pm\s+done\s+next=continue/);
+    assert.match(result.stdout, /#2\s+T001\s+worker\s+done\s+next=continue\s+files=2\s+commands=1\s+evidence=2\s+claims=1/);
+    assert.match(result.stdout, /#4\s+T002\s+audit\s+done\s+decision=complete\s+oracle=true\s+next=done/);
+    assert.doesNotMatch(result.stdout, /DO_NOT_DUMP_FULL_EVIDENCE/);
+    assert.doesNotMatch(result.stdout, /changed_files/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("receipts list composes filters with JSON output", () => {
+  const root = makePack({ receipts: receiptHistoryJsonl });
+  try {
+    const worker = run(cliScript, [
+      "receipts",
+      "list",
+      root,
+      "--task",
+      "T001",
+      "--type",
+      "worker",
+      "--result",
+      "done",
+      "--next-decision",
+      "continue",
+      "--changed-file",
+      "packages/cli/src/**",
+      "--command-status",
+      "pass",
+      "--contains",
+      "compact receipt list",
+      "--json",
+    ]);
+    assert.equal(worker.status, 0, worker.stderr);
+    const workerPayload = JSON.parse(worker.stdout);
+    assert.equal(workerPayload.total, 4);
+    assert.equal(workerPayload.matched, 1);
+    assert.equal(workerPayload.shown, 1);
+    assert.equal(workerPayload.items[0].index, 2);
+    assert.equal(workerPayload.items[0].task_id, "T001");
+    assert.equal(workerPayload.items[0].type, "worker");
+    assert.equal(workerPayload.items[0].counts.changed_files, 2);
+    assert.equal(JSON.stringify(workerPayload).includes("DO_NOT_DUMP_FULL_EVIDENCE"), false);
+
+    const audit = run(cliScript, [
+      "receipts",
+      "list",
+      root,
+      "--type",
+      "audit",
+      "--decision",
+      "complete",
+      "--oracle-satisfied",
+      "true",
+      "--json",
+    ]);
+    assert.equal(audit.status, 0, audit.stderr);
+    const auditPayload = JSON.parse(audit.stdout);
+    assert.equal(auditPayload.matched, 1);
+    assert.equal(auditPayload.items[0].index, 4);
+    assert.equal(auditPayload.items[0].oracle_satisfied, true);
+
+    const failed = run(cliScript, ["receipts", "list", root, "--command-status", "fail", "--json"]);
+    assert.equal(failed.status, 0, failed.stderr);
+    const failedPayload = JSON.parse(failed.stdout);
+    assert.equal(failedPayload.matched, 1);
+    assert.equal(failedPayload.items[0].result, "blocked");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("receipts show returns one full receipt by index", () => {
+  const root = makePack({ receipts: receiptHistoryJsonl });
+  try {
+    const result = run(cliScript, ["receipts", "show", root, "--index", "2", "--json"]);
+    assert.equal(result.status, 0, result.stderr);
+    const payload = JSON.parse(result.stdout);
+    assert.equal(payload.goal_id, "cli-test-goal");
+    assert.equal(payload.index, 2);
+    assert.equal(payload.receipt.task_id, "T001");
+    assert.deepEqual(payload.receipt.evidence, ["DO_NOT_DUMP_FULL_EVIDENCE", "compact receipt list"]);
+
+    const missing = run(cliScript, ["receipts", "show", root, "--index", "99"]);
+    assert.equal(missing.status, 1);
+    assert.match(missing.stderr, /receipt index out of range: 99/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("brief renders active task without dumping receipt history", () => {
   const root = makePack({
     receipts: `{"task_id":"T000","type":"pm","result":"done","summary":"DO_NOT_DUMP_FULL_RECEIPTS","evidence":["seed"],"next_decision":"continue"}\n`,
@@ -510,6 +652,7 @@ test("main CLI exposes only official command names", () => {
     assert.match(help.stdout, /summary \[options\] \[target\]/);
     assert.match(help.stdout, /list \[options\] \[target\]/);
     assert.match(help.stdout, /tasks \[options\] <goal-pack>/);
+    assert.match(help.stdout, /receipts\s+Inspect receipt history/);
     assert.match(help.stdout, /brief \[options\] <goal-pack>/);
     assert.match(help.stdout, /dispatch \[options\] <goal-pack>/);
     assert.match(help.stdout, /activate \[options\] <goal-pack>/);
@@ -548,6 +691,18 @@ test("main CLI exposes structured commander help at every command layer", () => 
     {
       args: ["tasks", "--help"],
       patterns: [/Usage: goal-diffusion tasks \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
+    },
+    {
+      args: ["receipts", "--help"],
+      patterns: [/Usage: goal-diffusion receipts \[options\] \[command\]/, /Commands:/, /list/, /show/],
+    },
+    {
+      args: ["receipts", "list", "--help"],
+      patterns: [/Usage: goal-diffusion receipts list \[options\] <goal-pack>/, /--limit <number>/, /--task <id>/, /--type <value>/, /--result <value>/, /--decision <value>/, /--next-decision <value>/, /--oracle-satisfied <value>/, /--changed-file <glob>/, /--command-status <value>/, /--contains <text>/, /--json/],
+    },
+    {
+      args: ["receipts", "show", "--help"],
+      patterns: [/Usage: goal-diffusion receipts show \[options\] <goal-pack>/, /--index <number>/, /--json/],
     },
     {
       args: ["inspect", "--help"],

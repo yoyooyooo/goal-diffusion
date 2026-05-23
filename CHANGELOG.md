@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added `goal-diffusion tasks` for listing tasks inside one Goal Pack, with task completion/status filters and JSON output.
+- Added `goal-diffusion receipts list/show` for compact, filterable receipt history inspection and explicit full receipt expansion.
 
 ## 0.1.0
 

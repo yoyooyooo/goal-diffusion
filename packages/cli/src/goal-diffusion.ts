@@ -9,10 +9,11 @@ import { runAdvance } from "./advance-goal-pack.ts";
 import { runAppendReceipt } from "./append-receipt.ts";
 import { runBrief } from "./render-goal-task-brief.ts";
 import { runDispatch } from "./render-goal-task-dispatch.ts";
+import { runReceiptsList, runReceiptShow } from "./render-goal-receipts.ts";
 import { runTasks } from "./render-goal-tasks.ts";
 import { runInspect } from "./inspect-goal-pack.ts";
 import { COMPLETION_VALUES, runList, runSummary } from "./summarize-goal-packs.ts";
-import { TASK_STATUSES } from "./lib/goal-pack.ts";
+import { NEXT_DECISIONS, RECEIPT_RESULTS, TASK_STATUSES, TASK_TYPES } from "./lib/goal-pack.ts";
 
 type CliResult = {
   status: number;
@@ -89,6 +90,51 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--json", "print JSON output")
     .action((goalRoot: string, options: { json?: boolean; completion?: string; status?: string }) => {
       emit(runTasks(goalRoot, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null }));
+    });
+
+  const receipts = program
+    .command("receipts")
+    .description("Inspect receipt history for one Goal Pack.");
+
+  receipts
+    .command("list")
+    .description("List compact receipt history with filters.")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
+    .option("--limit <number>", "maximum receipts to show", "5")
+    .option("--task <id>", "filter by task id, for example T001")
+    .option("--type <value>", `filter by receipt type: ${TASK_TYPES.join(", ")}`)
+    .option("--result <value>", `filter by receipt result: ${RECEIPT_RESULTS.join(", ")}`)
+    .option("--decision <value>", "filter by receipt decision")
+    .option("--next-decision <value>", `filter by next_decision: ${NEXT_DECISIONS.join(", ")}`)
+    .option("--oracle-satisfied <value>", "filter by oracle_satisfied: true, false")
+    .option("--changed-file <glob>", "filter by changed file glob")
+    .option("--command-status <value>", "filter by command status: pass, fail")
+    .option("--contains <text>", "filter by raw receipt text")
+    .option("--json", "print JSON output")
+    .action((goalRoot: string, options: {
+      limit?: string;
+      task?: string;
+      type?: string;
+      result?: string;
+      decision?: string;
+      nextDecision?: string;
+      oracleSatisfied?: string;
+      changedFile?: string;
+      commandStatus?: string;
+      contains?: string;
+      json?: boolean;
+    }) => {
+      emit(runReceiptsList(goalRoot, { ...options, json: Boolean(options.json) }));
+    });
+
+  receipts
+    .command("show")
+    .description("Show one full receipt by append-order index.")
+    .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
+    .requiredOption("--index <number>", "1-based receipt index")
+    .option("--json", "print JSON output")
+    .action((goalRoot: string, options: { index: string; json?: boolean }) => {
+      emit(runReceiptShow(goalRoot, { index: options.index, json: Boolean(options.json) }));
     });
 
   program

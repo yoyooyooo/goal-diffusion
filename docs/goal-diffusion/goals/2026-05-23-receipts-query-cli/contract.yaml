@@ -1,0 +1,56 @@
+id: "2026-05-23-receipts-query-cli"
+status: done
+
+objective: "Add an agent-first receipts query surface to the Goal Diffusion CLI so agents can inspect receipt history through compact filtered commands instead of reading raw receipts.jsonl with tail."
+north_star: "Goal Diffusion CLI should expose bounded, composable operating primitives that answer common agent questions without dumping large raw artifacts into context."
+
+authority_refs:
+  - "README.md"
+  - "packages/cli/README.md"
+  - "skills/goal-diffusion/SKILL.md"
+  - "packages/cli/src/goal-diffusion.ts"
+  - "packages/cli/src/lib/goal-pack.ts"
+  - "packages/cli/test/goal-pack-cli.test.ts"
+
+architecture_standard:
+  - "CLI commands must map stable natural-language intents to one primary command."
+  - "Default output should be compact and agent-readable; full raw receipt JSON should require an explicit show or JSON path."
+  - "Behavior changes must be covered by failing tests before implementation and verified by the repository check."
+
+constraints:
+  - "Do not turn the CLI into a generic JSONL database or jq wrapper."
+  - "Do not change receipts.jsonl format or existing receipt validation semantics."
+  - "Preserve existing inspect, summary, list, tasks, brief, dispatch, activate, record, advance, and check behavior."
+  - "Use append-order receipt indexes for selection; do not add time filtering unless receipt schema authority adds timestamps."
+
+non_goals:
+  - "No arbitrary jq expression support."
+  - "No OR/group query language."
+  - "No receipt schema migration."
+  - "No time-range filtering."
+  - "No UI or web view."
+
+completion_oracle:
+  signal: "CLI exposes receipts list/show commands with compact defaults, JSON output, receipt index selection, and filters for task, type, result, decision, next decision, oracle satisfaction, changed file, command status, and contains text."
+  final_proof: "Repository check passes; tests prove compact receipts list defaults avoid full raw dumps, filters compose with AND semantics, show returns one selected receipt by index, docs describe the command surface, and a final audit receipt sets oracle_satisfied true."
+
+claim_boundary: "This Goal Pack may claim only the receipt query CLI surface and documentation. It may not claim changes to receipt schema authority, project planning semantics, UI, storage format, or generic JSONL querying."
+
+stop_rules:
+  - "Stop if implementing the filters requires changing the receipt schema or receipt validation contract."
+  - "Stop if a requested filter needs timestamps, external indexing, or a query language beyond simple AND filters."
+  - "Stop if existing command semantics would need a breaking change."
+  - "Stop if completion cannot be proved with local tests and the repository check."
+
+autonomy_policy:
+  continue_by_default: true
+  protected_fields:
+    - objective
+    - authority_refs
+    - architecture_standard
+    - claim_boundary
+  agent_may_revise:
+    - next_slice
+    - task_order
+    - harness_strength
+    - implementation_shape
