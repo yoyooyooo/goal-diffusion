@@ -1,0 +1,85 @@
+version: 1
+goal_id: 2026-05-24-agent-first-output-control-cli
+status: done
+
+current_edge:
+  from: "summary currently returns flat goal summaries without thread grouping, while relations commands expose thread structure separately; output compactness and progressive disclosure controls are command-specific rather than a shared read-output protocol."
+  target_delta: "The CLI has a consistent agent-first read-output protocol and summary becomes a bounded thread-aware repo report."
+  harnessed_path:
+    - "Write failing tests for fermi-like mixed fixture: completed threaded goals, unthreaded todo goals, summary depths, no duplicate goal placement, filter-before-aggregate, empty-field omission, include/show-empty, and limit/omitted counts."
+    - "Implement shared output-control parsing and rendering helpers where useful, without forcing unsupported depth levels onto commands that cannot use them."
+    - "Update summary grouping so threaded goals live under threads and top-level items contain only unthreaded goals."
+    - "Apply compact default field omission consistently across read-command JSON outputs covered by this Goal Pack."
+    - "Synchronize root docs, package docs, skill docs, and changelog."
+  verify:
+    - "bun test packages/cli/test/goal-pack-cli.test.ts"
+    - "bun test packages/cli/test/goal-relations-cli.test.ts"
+    - "bun run check"
+    - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --depth groups --json"
+    - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli"
+  failure_inspection:
+    - packages/cli/src/goal-diffusion.ts
+    - packages/cli/src/summarize-goal-packs.ts
+    - packages/cli/src/render-goal-tasks.ts
+    - packages/cli/src/render-goal-receipts.ts
+    - packages/cli/src/render-goal-relations.ts
+    - packages/cli/test/goal-pack-cli.test.ts
+    - packages/cli/test/goal-relations-cli.test.ts
+    - README.md
+    - skills/goal-diffusion/SKILL.md
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker
+    status: done
+    objective: "Implement the shared read-output control protocol and thread-aware summary grouping."
+    allowed_scope:
+      - packages/cli/src/**
+      - packages/cli/test/**
+      - README.md
+      - README.zh-CN.md
+      - packages/cli/README.md
+      - packages/cli/README.zh-CN.md
+      - skills/goal-diffusion/SKILL.md
+      - CHANGELOG.md
+      - docs/goal-diffusion/README.md
+      - docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli/**
+    verify:
+      - "bun test packages/cli/test/goal-pack-cli.test.ts"
+      - "bun test packages/cli/test/goal-relations-cli.test.ts"
+      - "bun run check"
+      - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli"
+    stop_if:
+      - "A proposed command option creates a command-specific synonym for --depth, --limit, --include, or --show-empty."
+      - "summary would need to show repo-wide task details or infer execution order."
+      - "The implementation would need Goal Pack storage schema changes."
+      - "Default output would remain unbounded for many-goal repos."
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit the read-output control protocol against the completion oracle and record final proof."
+    allowed_scope:
+      - docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli/**
+    verify:
+      - "bun run check"
+      - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli"
+      - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --depth groups --json"
+    stop_if:
+      - "Any completion oracle field lacks receipt-backed evidence."
+
+blockers:
+
+last_verification:
+  result: pass
+  commands:
+    - "bun run check [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --depth groups --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --depth repo --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --depth items --limit 1 --json [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --completion todo --depth items --json [pass]"
+    - "bun test packages/cli/test/goal-read-output-cli.test.ts [pass]"
+
+next_decision: done

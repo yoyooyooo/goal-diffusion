@@ -1,24 +1,39 @@
 import { loadGoalPack, TASK_STATUSES } from "./lib/goal-pack.ts";
+import { limitItems, maybeSet, normalizeReadControls, readControlFilterFields, setIncluded, setOmittedCount } from "./read-output-control.ts";
 import { COMPLETION_VALUES } from "./summarize-goal-packs.ts";
 
-export function runTasks(goalRoot, { json = false, completion = "todo", status = null } = {}) {
-  const result = listGoalTasks(goalRoot, { completion, status });
+export function runTasks(goalRoot, options: any = {}) {
+  const { json = false } = options;
+  const result = listGoalTasks(goalRoot, json ? options : withIncluded(options, "objective"));
   if (json) return JSON.stringify(result, null, 2);
   return renderTasksText(result);
 }
 
+function withIncluded(options, field) {
+  const include = options.include ? `${options.include},${field}` : field;
+  return { ...options, include };
+}
+
 export function listGoalTasks(goalRoot, filterOptions = {}) {
+  const controls = normalizeReadControls(filterOptions);
   const filters = normalizeTaskFilters(filterOptions);
   const pack = loadGoalPack(goalRoot);
   const tasks = pack.state.tasks.filter((task) => matchesTaskFilters(task, filters));
+  const limited = limitItems(tasks, controls.limit);
 
-  return {
+  const result: any = {
     goal_id: pack.contract.id || pack.state.goal_id || pack.name,
-    path: pack.root,
-    filters,
+    filters: {
+      ...filters,
+      ...readControlFilterFields(controls),
+    },
     count: tasks.length,
-    items: tasks,
+    shown: limited.items.length,
+    items: limited.items.map((task) => compactTaskItem(task, controls)),
   };
+  setIncluded(result, "path", pack.root, controls);
+  setOmittedCount(result, "items_omitted", limited.omitted, controls);
+  return result;
 }
 
 function normalizeTaskFilters({ completion = "todo", status = null } = {}) {
@@ -55,4 +70,24 @@ function renderTasksText(result) {
     lines.push(`${task.id}  ${task.status}  ${task.type}  ${task.objective || ""}`);
   }
   return lines.join("\n");
+}
+
+function compactTaskItem(task, controls) {
+  const item: any = {
+    id: task.id,
+    type: task.type,
+    status: task.status,
+  };
+  setIncluded(item, "objective", task.objective || null, controls);
+  maybeSet(item, "plan", task.plan, controls);
+  if (controls.show_empty) {
+    item.allowed_scope = task.allowed_scope;
+    item.verify = task.verify;
+    item.stop_if = task.stop_if;
+  } else {
+    setIncluded(item, "allowed_scope", task.allowed_scope, controls);
+    setIncluded(item, "verify", task.verify, controls);
+    setIncluded(item, "stop_if", task.stop_if, controls);
+  }
+  return item;
 }

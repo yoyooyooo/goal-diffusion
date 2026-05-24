@@ -104,6 +104,10 @@ notes/                        long material only
 - Sources are traceability, not open candidates.
 - Receipts are evidence, not diaries.
 - Implementation plans are exceptional, not the default execution path.
+- Method-general lifecycle, promotion, retention, and cleanup rules belong to
+  this skill. Host projects should keep only local adapters such as authority
+  layer names, language policy, command gates, and product-specific promotion
+  targets.
 - If authority is missing but an honest path exists inside the current claim
   boundary, create the thinnest bridge or harness and continue.
 - If product truth, SSoT, standard, ADR, public protocol/API/schema, security,

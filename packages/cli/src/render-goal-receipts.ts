@@ -1,4 +1,5 @@
 import { loadGoalPack, NEXT_DECISIONS, RECEIPT_RESULTS, TASK_TYPES } from "./lib/goal-pack.ts";
+import { maybeSet, normalizeReadControls, readControlFilterFields, setIncluded, withoutZeroBuckets } from "./read-output-control.ts";
 
 const COMMAND_STATUSES = ["pass", "fail"];
 const ORACLE_SATISFIED_VALUES = ["true", "false"];
@@ -35,21 +36,26 @@ export function runReceiptShow(goalRoot, options: ReceiptShowOptions = {}) {
 }
 
 export function listGoalReceipts(goalRoot, options: ReceiptListOptions = {}) {
-  const filters = normalizeListFilters(options);
+  const controls = normalizeReadControls(options, { defaultLimit: 5 });
+  const filters = normalizeListFilters({ ...options, limit: controls.limit });
   const pack = loadGoalPack(goalRoot);
   const indexed = pack.receipts.map((receipt, index) => ({ index: index + 1, receipt }));
   const matched = indexed.filter((item) => matchesFilters(item.receipt, filters));
   const visible = matched.slice(Math.max(0, matched.length - filters.limit));
 
-  return {
+  const result: any = {
     goal_id: pack.contract.id || pack.state.goal_id || pack.name,
-    path: pack.root,
-    filters,
+    filters: {
+      ...filters,
+      ...readControlFilterFields(controls),
+    },
     total: indexed.length,
     matched: matched.length,
     shown: visible.length,
-    items: visible.map((item) => compactReceiptItem(item.index, item.receipt)),
+    items: visible.map((item) => compactReceiptItem(item.index, item.receipt, controls)),
   };
+  setIncluded(result, "path", pack.root, controls);
+  return result;
 }
 
 export function showGoalReceipt(goalRoot, options: ReceiptShowOptions = {}) {
@@ -119,24 +125,28 @@ function matchesFilters(receipt, filters) {
   return true;
 }
 
-function compactReceiptItem(index, receipt) {
-  return {
+function compactReceiptItem(index, receipt, controls) {
+  const item: any = {
     index,
-    task_id: receipt.task_id || null,
-    type: receipt.type || null,
-    result: receipt.result || null,
-    decision: receipt.decision || null,
-    oracle_satisfied: receipt.oracle_satisfied === true,
-    next_decision: receipt.next_decision || null,
-    counts: {
+  };
+  maybeSet(item, "task_id", receipt.task_id || null, controls);
+  maybeSet(item, "type", receipt.type || null, controls);
+  maybeSet(item, "result", receipt.result || null, controls);
+  maybeSet(item, "decision", receipt.decision || null, controls);
+  if (receipt.oracle_satisfied === true || controls.show_empty || controls.include.includes("oracle_satisfied")) {
+    item.oracle_satisfied = receipt.oracle_satisfied === true;
+  }
+  maybeSet(item, "next_decision", receipt.next_decision || null, controls);
+  const counts = withoutZeroBuckets({
       changed_files: Array.isArray(receipt.changed_files) ? receipt.changed_files.length : 0,
       commands: Array.isArray(receipt.commands) ? receipt.commands.length : 0,
       evidence: Array.isArray(receipt.evidence) ? receipt.evidence.length : 0,
       claims: Array.isArray(receipt.claims) ? receipt.claims.length : 0,
       blocked_by: Array.isArray(receipt.blocked_by) ? receipt.blocked_by.length : 0,
-    },
-    summary: typeof receipt.summary === "string" ? receipt.summary : null,
-  };
+    }, controls);
+  maybeSet(item, "counts", counts, controls);
+  maybeSet(item, "summary", typeof receipt.summary === "string" ? receipt.summary : null, controls);
+  return item;
 }
 
 function renderReceiptsListText(result) {
@@ -161,11 +171,11 @@ function renderReceiptLine(item) {
   if (item.decision) parts.push(`decision=${item.decision}`);
   if (item.oracle_satisfied) parts.push("oracle=true");
   if (item.next_decision) parts.push(`next=${item.next_decision}`);
-  parts.push(`files=${item.counts.changed_files}`);
-  parts.push(`commands=${item.counts.commands}`);
-  parts.push(`evidence=${item.counts.evidence}`);
-  parts.push(`claims=${item.counts.claims}`);
-  if (item.counts.blocked_by > 0) parts.push(`blocked_by=${item.counts.blocked_by}`);
+  parts.push(`files=${item.counts?.changed_files || 0}`);
+  parts.push(`commands=${item.counts?.commands || 0}`);
+  parts.push(`evidence=${item.counts?.evidence || 0}`);
+  parts.push(`claims=${item.counts?.claims || 0}`);
+  if ((item.counts?.blocked_by || 0) > 0) parts.push(`blocked_by=${item.counts.blocked_by}`);
   if (item.summary) parts.push(`summary="${truncate(item.summary)}"`);
   return parts.join("  ");
 }

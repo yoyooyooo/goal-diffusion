@@ -6,3 +6,4 @@ dist/
 .env.*
 coverage/
 .memdex
+skills/.skillshare-manifest.json

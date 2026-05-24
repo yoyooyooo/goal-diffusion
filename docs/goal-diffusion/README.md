@@ -18,6 +18,7 @@ Diffusion operating loop.
 
 ## Completed Goal Packs
 
+- `goals/2026-05-24-agent-first-output-control-cli/` - added shared read-output controls and thread-aware repo summary.
 - `goals/2026-05-23-receipts-query-cli/` - added compact, filterable receipt history queries to the CLI.
 - `goals/2026-05-23-goal-relations-protocol/` - defined minimal cross-pack relation metadata and skill guidance.
 - `goals/2026-05-23-goal-relations-cli-verification/` - added relations CLI verification and derived graph view.
@@ -25,6 +26,7 @@ Diffusion operating loop.
 
 ## Goal Threads
 
+- `agent-first-cli` - CLI command and output surfaces optimized for agent routing and bounded context.
 - `goal-relations` - completed protocol and CLI verification packs.
 - `receipt-cli` - receipt command-surface improvements for agent-first read/write workflows.
 

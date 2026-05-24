@@ -66,9 +66,13 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
     .option("--completion <value>", `filter by completion: ${COMPLETION_VALUES.join(", ")}`, "all")
     .option("--status <value>", "filter by Goal Pack status")
+    .option("--depth <value>", "output depth: repo, groups, items", "groups")
+    .option("--limit <number>", "maximum groups/items to show", "20")
+    .option("--include <fields>", "comma-separated fields to include, such as path,objective")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
-    .action((target: string, options: { json?: boolean; completion?: string; status?: string }) => {
-      emit(runSummary(target, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null }));
+    .action((target: string, options: { json?: boolean; completion?: string; status?: string; depth?: string; limit?: string; include?: string; showEmpty?: boolean }) => {
+      emit(runSummary(target, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null, depth: options.depth, limit: options.limit, include: options.include, showEmpty: Boolean(options.showEmpty) }));
     });
 
   program
@@ -77,9 +81,12 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
     .option("--completion <value>", `filter by completion: ${COMPLETION_VALUES.join(", ")}`, "all")
     .option("--status <value>", "filter by Goal Pack status")
+    .option("--limit <number>", "maximum items to show", "20")
+    .option("--include <fields>", "comma-separated fields to include, such as path,objective")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
-    .action((target: string, options: { json?: boolean; completion?: string; status?: string }) => {
-      emit(runList(target, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null }));
+    .action((target: string, options: { json?: boolean; completion?: string; status?: string; limit?: string; include?: string; showEmpty?: boolean }) => {
+      emit(runList(target, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null, limit: options.limit, include: options.include, showEmpty: Boolean(options.showEmpty) }));
     });
 
   program
@@ -88,9 +95,12 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .argument("<goal-pack>", "Goal Pack directory or id under docs/goal-diffusion/goals")
     .option("--completion <value>", `filter by task completion: ${COMPLETION_VALUES.join(", ")}`, "todo")
     .option("--status <value>", `filter by task status: ${TASK_STATUSES.join(", ")}`)
+    .option("--limit <number>", "maximum items to show", "20")
+    .option("--include <fields>", "comma-separated fields to include")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
-    .action((goalRoot: string, options: { json?: boolean; completion?: string; status?: string }) => {
-      emit(runTasks(goalRoot, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null }));
+    .action((goalRoot: string, options: { json?: boolean; completion?: string; status?: string; limit?: string; include?: string; showEmpty?: boolean }) => {
+      emit(runTasks(goalRoot, { json: Boolean(options.json), completion: options.completion, status: options.status ?? null, limit: options.limit, include: options.include, showEmpty: Boolean(options.showEmpty) }));
     });
 
   const receipts = program
@@ -111,6 +121,8 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--changed-file <glob>", "filter by changed file glob")
     .option("--command-status <value>", "filter by command status: pass, fail")
     .option("--contains <text>", "filter by raw receipt text")
+    .option("--include <fields>", "comma-separated fields to include")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
     .action((goalRoot: string, options: {
       limit?: string;
@@ -123,6 +135,8 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
       changedFile?: string;
       commandStatus?: string;
       contains?: string;
+      include?: string;
+      showEmpty?: boolean;
       json?: boolean;
     }) => {
       emit(runReceiptsList(goalRoot, { ...options, json: Boolean(options.json) }));
@@ -147,9 +161,12 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .description("List Goal Pack relations under a project or goals directory.")
     .argument("[target]", "project root or docs/goal-diffusion/goals directory", ".")
     .option("--thread <id>", "filter by goal_relations.thread_id")
+    .option("--limit <number>", "maximum items to show", "20")
+    .option("--include <fields>", "comma-separated fields to include")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
-    .action((target: string, options: { thread?: string; json?: boolean }) => {
-      emit(runRelationsList(target, { thread: options.thread ?? null, json: Boolean(options.json) }));
+    .action((target: string, options: { thread?: string; limit?: string; include?: string; showEmpty?: boolean; json?: boolean }) => {
+      emit(runRelationsList(target, { thread: options.thread ?? null, limit: options.limit, include: options.include, showEmpty: Boolean(options.showEmpty), json: Boolean(options.json) }));
     });
 
   relations
@@ -160,13 +177,19 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--completion <value>", `filter by Goal Pack completion: ${COMPLETION_VALUES.join(", ")}`, "all")
     .option("--status <value>", `filter by Goal Pack status: ${STATUS_VALUES.join(", ")}`)
     .option("--next-decision <value>", `filter by next_decision: ${NEXT_DECISIONS.join(", ")}`)
+    .option("--limit <number>", "maximum items to show", "20")
+    .option("--include <fields>", "comma-separated fields to include")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
-    .action((target: string, options: { thread?: string; completion?: string; status?: string; nextDecision?: string; json?: boolean }) => {
+    .action((target: string, options: { thread?: string; completion?: string; status?: string; nextDecision?: string; limit?: string; include?: string; showEmpty?: boolean; json?: boolean }) => {
       emit(runRelationsGoals(target, {
         thread: options.thread ?? null,
         completion: options.completion,
         status: options.status ?? null,
         nextDecision: options.nextDecision ?? null,
+        limit: options.limit,
+        include: options.include,
+        showEmpty: Boolean(options.showEmpty),
         json: Boolean(options.json),
       }));
     });
@@ -181,6 +204,9 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .option("--goal-completion <value>", `filter by parent Goal Pack completion: ${COMPLETION_VALUES.join(", ")}`, "all")
     .option("--goal-status <value>", `filter by parent Goal Pack status: ${STATUS_VALUES.join(", ")}`)
     .option("--goal <goal-id>", "filter by parent goal_id")
+    .option("--limit <number>", "maximum items to show", "20")
+    .option("--include <fields>", "comma-separated fields to include")
+    .option("--show-empty", "show empty/default fields")
     .option("--json", "print JSON output")
     .action((target: string, options: {
       thread?: string;
@@ -189,6 +215,9 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
       goalCompletion?: string;
       goalStatus?: string;
       goal?: string;
+      limit?: string;
+      include?: string;
+      showEmpty?: boolean;
       json?: boolean;
     }) => {
       emit(runRelationsTasks(target, {
@@ -198,6 +227,9 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
         goalCompletion: options.goalCompletion,
         goalStatus: options.goalStatus ?? null,
         goal: options.goal ?? null,
+        limit: options.limit,
+        include: options.include,
+        showEmpty: Boolean(options.showEmpty),
         json: Boolean(options.json),
       }));
     });

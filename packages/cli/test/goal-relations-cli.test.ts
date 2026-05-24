@@ -195,7 +195,7 @@ function makeRelationsProject() {
 test("relations list filters Goal Packs by thread with compact and JSON output", () => {
   const { project } = makeRelationsProject();
   try {
-    const json = run(cliScript, ["relations", "list", project, "--thread", "goal-relations", "--json"]);
+    const json = run(cliScript, ["relations", "list", project, "--thread", "goal-relations", "--include", "links", "--json"]);
     assert.equal(json.status, 0, json.stderr);
     const payload = JSON.parse(json.stdout);
     assert.equal(payload.filters.thread, "goal-relations");
@@ -219,7 +219,7 @@ test("relations list filters Goal Packs by thread with compact and JSON output",
 test("relations goals discovers thread-member Goal Packs with goal filters", () => {
   const { project } = makeRelationsProject();
   try {
-    const json = run(cliScript, ["relations", "goals", project, "--thread", "goal-relations", "--json"]);
+    const json = run(cliScript, ["relations", "goals", project, "--thread", "goal-relations", "--show-empty", "--json"]);
     assert.equal(json.status, 0, json.stderr);
     const payload = JSON.parse(json.stdout);
     assert.equal(payload.filters.thread, "goal-relations");

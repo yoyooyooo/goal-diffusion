@@ -58,6 +58,44 @@ Stay inline when one evidence path in the current turn can prove completion.
 Create or update a Goal Pack when completion needs multiple receipts, durable
 state, transition continuity, disjoint write scopes, or cross-session resume.
 
+## Governance Routing
+
+Goal Diffusion owns the goal artifact lifecycle:
+
+```text
+human signal -> inbox | source | goal pack | inline work
+goal pack -> state edge -> receipt -> next edge | final audit
+leftover gap -> inbox | successor goal pack | nearest implementation artifact
+```
+
+Use inbox for weak signals, open candidates, gap maps, and raw human input that
+is not ready to run. Inbox is not a backlog, task list, roadmap, or completion
+state.
+
+Promote an inbox item to a Goal Pack only when the agent can honestly state:
+
+```text
+objective
+authority_refs
+completion_oracle
+claim_boundary
+first harnessed edge
+```
+
+Use sources for consumed context kept for traceability. Sources are not open
+candidates. Use receipts for evidence. Use notes for long narrative only when a
+human-readable digest or rubric is needed.
+
+Use only the active homes in the Goal Pack shape for default operation. If a
+host project already has an explicit equivalent, map it to the Goal Pack roles
+instead of duplicating state.
+
+Project-local governance may define authority layers, language policy,
+commands, product promotion targets, or verification gates. Method-general
+rules about seed/inbox routing, Goal Pack promotion, receipt-backed completion,
+retention, and cleanup should live in this skill or its references, not be
+reimplemented in each project.
+
 ## Boundary
 
 Humans own `objective`, `architecture_standard`, `authority_refs`,
@@ -97,14 +135,14 @@ npm install -g goal-diffusion
 goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
-goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
-goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
-goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
-goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
+goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--depth repo|groups|items] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <value>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--include fields] [--show-empty] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
-goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--json]
-goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--json]
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--limit N] [--include fields] [--show-empty] [--json]
 goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
@@ -123,6 +161,12 @@ goal-diffusion check <goal-pack>
 means task status is not `done`, and `--status` filters raw task status. For
 `receipts list`, filters compose with AND semantics and output compact receipt
 summaries by default; use `receipts show --index N` to expand one full receipt.
+Read JSON commands share output controls: `--limit` bounds collections,
+`--include path,objective,links` restores omitted detail, and `--show-empty`
+restores empty/default fields. `summary` defaults to `--depth groups` and
+`--limit 20`; `--depth repo` returns only repo totals plus thread/unthreaded
+counts, while `--depth items` nests threaded goal items under `threads` and
+leaves only unthreaded goals in top-level `items`.
 For `record`, choose exactly one input source; use `--stdin` for heredoc receipt
 JSON. `activate` and `advance` are state-transition commands, not payload input
 commands.
@@ -148,7 +192,7 @@ bun run check
 
 ## Phases
 
-Use flat phase skills through this controller unless the user targets a phase:
+Use phase skills through this controller unless the user targets a phase:
 
 - `skills/goal-plans/`: compile or repair `contract.yaml`.
 - `skills/finding-harnessed-path/`: write `state.yaml.current_edge`.

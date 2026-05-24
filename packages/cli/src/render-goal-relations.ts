@@ -1,10 +1,12 @@
 import { loadGoalPack, GOAL_RELATION_TYPES, NEXT_DECISIONS, STATUS_VALUES, TASK_STATUSES } from "./lib/goal-pack.ts";
+import { limitItems, maybeSet, normalizeReadControls, readControlFilterFields, setIncluded, setOmittedCount, wantsField, withoutZeroBuckets } from "./read-output-control.ts";
 import { COMPLETION_VALUES, listGoalPackRoots, resolveGoalsRoot } from "./summarize-goal-packs.ts";
 
 const HARD_RELATIONS = ["successor_of", "depends_on", "supersedes"];
 
-export function runRelationsList(target = ".", { json = false, thread = null } = {}) {
-  const model = collectGoalRelations(target, { thread });
+export function runRelationsList(target = ".", { json = false, thread = null, limit = null, include = null, showEmpty = false } = {}) {
+  const readOptions = json ? { thread, limit, include, showEmpty } : { thread, limit, include: include ? `${include},links,path` : "links,path", showEmpty };
+  const model = collectGoalRelations(target, readOptions);
   if (json) return JSON.stringify(model, null, 2);
   return renderRelationsListText(model);
 }
@@ -23,8 +25,9 @@ export function runRelationsGraph(target = ".", { json = false, thread = null } 
   return renderRelationsGraphText(graph);
 }
 
-export function runRelationsGoals(target = ".", { json = false, thread = null, completion = "all", status = null, nextDecision = null } = {}) {
-  const model = collectGoalRelationGoals(target, { thread, completion, status, nextDecision });
+export function runRelationsGoals(target = ".", { json = false, thread = null, completion = "all", status = null, nextDecision = null, limit = null, include = null, showEmpty = false } = {}) {
+  const readOptions = json ? { thread, completion, status, nextDecision, limit, include, showEmpty } : { thread, completion, status, nextDecision, limit, include: include ? `${include},path` : "path", showEmpty };
+  const model = collectGoalRelationGoals(target, readOptions);
   if (json) return JSON.stringify(model, null, 2);
   return renderRelationsGoalsText(model);
 }
@@ -37,13 +40,19 @@ export function runRelationsTasks(target = ".", {
   goalCompletion = "all",
   goalStatus = null,
   goal = null,
+  limit = null,
+  include = null,
+  showEmpty = false,
 } = {}) {
-  const model = collectGoalRelationTasks(target, { thread, completion, status, goalCompletion, goalStatus, goal });
+  const readOptions = json ? { thread, completion, status, goalCompletion, goalStatus, goal, limit, include, showEmpty } : { thread, completion, status, goalCompletion, goalStatus, goal, limit, include: include ? `${include},objective,path` : "objective,path", showEmpty };
+  const model = collectGoalRelationTasks(target, readOptions);
   if (json) return JSON.stringify(model, null, 2);
   return renderRelationsTasksText(model);
 }
 
-export function collectGoalRelations(target = ".", { thread = null } = {}) {
+export function collectGoalRelations(target = ".", options: any = {}) {
+  const { thread = null } = options;
+  const controls = normalizeReadControls(options);
   const goalsRoot = resolveGoalsRoot(target);
   const packs = listGoalPackRoots(goalsRoot).map((root) => loadGoalPack(root));
   const items = packs
@@ -51,19 +60,25 @@ export function collectGoalRelations(target = ".", { thread = null } = {}) {
     .filter((item) => item.thread_id || item.links.length > 0)
     .filter((item) => !thread || item.thread_id === thread)
     .sort((a, b) => a.goal_id.localeCompare(b.goal_id));
+  const limited = limitItems(items, controls.limit);
 
-  return {
-    goals_root: goalsRoot,
+  const result: any = {
     filters: {
       thread: thread || "all",
+      ...readControlFilterFields(controls),
     },
     goal_count: items.length,
     relation_count: items.reduce((sum, item) => sum + item.links.length, 0),
-    items,
+    shown: limited.items.length,
+    items: limited.items.map((item) => relationListOutputItem(item, controls)),
   };
+  setIncluded(result, "goals_root", goalsRoot, controls, ["path", "goals_root"]);
+  setOmittedCount(result, "items_omitted", limited.omitted, controls);
+  return result;
 }
 
 export function collectGoalRelationGoals(target = ".", filterOptions = {}) {
+  const controls = normalizeReadControls(filterOptions);
   const goalsRoot = resolveGoalsRoot(target);
   const filters = normalizeRelationGoalFilters(filterOptions);
   const items = listGoalPackRoots(goalsRoot)
@@ -71,16 +86,24 @@ export function collectGoalRelationGoals(target = ".", filterOptions = {}) {
     .filter((item) => item.thread_id)
     .filter((item) => matchesRelationGoalFilters(item, filters))
     .sort((a, b) => a.goal_id.localeCompare(b.goal_id));
+  const limited = limitItems(items, controls.limit);
 
-  return {
-    goals_root: goalsRoot,
-    filters,
+  const result: any = {
+    filters: {
+      ...filters,
+      ...readControlFilterFields(controls),
+    },
     count: items.length,
-    items,
+    shown: limited.items.length,
+    items: limited.items.map((item) => relationGoalOutputItem(item, controls)),
   };
+  setIncluded(result, "goals_root", goalsRoot, controls, ["path", "goals_root"]);
+  setOmittedCount(result, "items_omitted", limited.omitted, controls);
+  return result;
 }
 
 export function collectGoalRelationTasks(target = ".", filterOptions = {}) {
+  const controls = normalizeReadControls(filterOptions);
   const goalsRoot = resolveGoalsRoot(target);
   const filters = normalizeRelationTaskFilters(filterOptions);
   const items = [];
@@ -96,14 +119,21 @@ export function collectGoalRelationTasks(target = ".", filterOptions = {}) {
   }
 
   items.sort((a, b) => `${a.goal_id}:${a.task.id}`.localeCompare(`${b.goal_id}:${b.task.id}`));
+  const limited = limitItems(items, controls.limit);
 
-  return {
-    goals_root: goalsRoot,
-    filters,
+  const result: any = {
+    filters: {
+      ...filters,
+      ...readControlFilterFields(controls),
+    },
     goal_count: new Set(items.map((item) => item.goal_id)).size,
     task_count: items.length,
-    items,
+    shown: limited.items.length,
+    items: limited.items.map((item) => relationTaskOutputItem(item, controls)),
   };
+  setIncluded(result, "goals_root", goalsRoot, controls, ["path", "goals_root"]);
+  setOmittedCount(result, "items_omitted", limited.omitted, controls);
+  return result;
 }
 
 export function checkGoalRelations(target = ".", { thread = null } = {}) {
@@ -187,6 +217,56 @@ function relationTaskItem(goal, task) {
       objective: task.objective || null,
     },
   };
+}
+
+function relationListOutputItem(item, controls) {
+  const output: any = {
+    goal_id: item.goal_id,
+    status: item.status,
+  };
+  maybeSet(output, "thread_id", item.thread_id, controls);
+  setIncluded(output, "path", item.path, controls);
+  setIncluded(output, "links", item.links, controls);
+  return output;
+}
+
+function relationGoalOutputItem(item, controls) {
+  const output: any = {
+    goal_id: item.goal_id,
+    thread_id: item.thread_id,
+    status: item.status,
+    next_decision: item.next_decision,
+    tasks: {
+      total: item.tasks.total,
+      done: item.tasks.done,
+      todo: item.tasks.todo,
+    },
+    receipt_count: item.receipt_count,
+  };
+  maybeSet(output, "active_task", item.active_task, controls);
+  if (controls.show_empty || wantsField(controls, "by_status")) {
+    output.tasks.by_status = withoutZeroBuckets(item.tasks.by_status, controls);
+  }
+  setIncluded(output, "path", item.path, controls);
+  setIncluded(output, "links", item.links, controls);
+  return output;
+}
+
+function relationTaskOutputItem(item, controls) {
+  const output: any = {
+    goal_id: item.goal_id,
+    thread_id: item.thread_id,
+    goal_status: item.goal_status,
+    goal_next_decision: item.goal_next_decision,
+    task: {
+      id: item.task.id,
+      type: item.task.type,
+      status: item.task.status,
+    },
+  };
+  setIncluded(output.task, "objective", item.task.objective, controls);
+  setIncluded(output, "path", item.path, controls);
+  return output;
 }
 
 function relationGoalItem(pack) {

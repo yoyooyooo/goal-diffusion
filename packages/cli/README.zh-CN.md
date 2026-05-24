@@ -34,14 +34,14 @@ goal-diffusion check <goal-id>
 goal-diffusion --help
 goal-diffusion <command> --help
 goal-diffusion inspect <goal-pack> [--json]
-goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
-goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--json]
-goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--json]
-goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <type>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--json]
+goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--depth repo|groups|items] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <value>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--include fields] [--show-empty] [--json]
 goal-diffusion receipts show <goal-pack> --index N [--json]
-goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--json]
-goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--json]
+goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--limit N] [--include fields] [--show-empty] [--json]
+goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--limit N] [--include fields] [--show-empty] [--json]
 goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
@@ -55,6 +55,7 @@ goal-diffusion check <goal-pack>
 `<goal-pack>` 可以是目录，也可以是 `docs/goal-diffusion/goals/` 下的裸 goal id。
 `summary` 可接收项目根目录或 `docs/goal-diffusion/goals` 目录；不传参数时从当前目录向上查找。
 对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
+读类 JSON 命令使用统一输出控制：`--limit` 限制可见集合，`--include path,objective,links` 补回省略字段，`--show-empty` 显示空值和默认值。`summary` 默认 `--depth groups`、`--limit 20`；`--depth items` 把 threaded goals 放在 `threads` 下，顶层 `items` 只放 unthreaded goals。
 对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
 对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
 对 `record`，必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个。`--stdin` 用于 heredoc receipt JSON；`activate` 和 `advance` 仍是状态转移命令，不接收 payload。

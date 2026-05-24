@@ -298,7 +298,7 @@ test("summary counts Goal Pack and task completion under a project root", () => 
   });
 
   try {
-    const json = run(cliScript, ["summary", project, "--json"]);
+    const json = run(cliScript, ["summary", project, "--depth", "items", "--json"]);
     assert.equal(json.status, 0, json.stderr);
     const payload = JSON.parse(json.stdout);
     assert.equal(payload.goals.total, 2);
@@ -313,7 +313,7 @@ test("summary counts Goal Pack and task completion under a project root", () => 
     assert.equal(payload.tasks.by_status.queued, 1);
     assert.equal(payload.problem_count, 0);
 
-    const todo = run(cliScript, ["summary", project, "--completion", "todo", "--json"]);
+    const todo = run(cliScript, ["summary", project, "--completion", "todo", "--depth", "items", "--json"]);
     assert.equal(todo.status, 0, todo.stderr);
     const todoPayload = JSON.parse(todo.stdout);
     assert.equal(todoPayload.filters.completion, "todo");
@@ -322,14 +322,14 @@ test("summary counts Goal Pack and task completion under a project root", () => 
     assert.equal(todoPayload.goals.todo, 1);
     assert.equal(todoPayload.items[0].goal_id, "cli-test-goal");
 
-    const done = run(cliScript, ["summary", project, "--completion", "done", "--json"]);
+    const done = run(cliScript, ["summary", project, "--completion", "done", "--depth", "items", "--json"]);
     assert.equal(done.status, 0, done.stderr);
     const donePayload = JSON.parse(done.stdout);
     assert.equal(donePayload.goals.total, 1);
     assert.equal(donePayload.goals.done, 1);
     assert.equal(donePayload.items[0].goal_id, "cli-done-goal");
 
-    const ready = run(cliScript, ["summary", project, "--status", "running", "--json"]);
+    const ready = run(cliScript, ["summary", project, "--status", "running", "--depth", "items", "--json"]);
     assert.equal(ready.status, 0, ready.stderr);
     const readyPayload = JSON.parse(ready.stdout);
     assert.equal(readyPayload.filters.status, "running");

@@ -44,7 +44,7 @@ raw idea
   -> inbox item
 
 inbox item
-  -> delete | source | goal pack
+  -> delete | source | goal pack | nearest implementation artifact
 
 proposal
   -> inbox item with lifecycle: open_candidate
@@ -74,6 +74,23 @@ external docs or decisions
   -> host authority layer when current truth
 ```
 
+## Governance Signal Routing
+
+Project-local docs often discover method-level rules while cleaning planning
+material. Route those rules by scope:
+
+| Signal | Route |
+|---|---|
+| Seed, inbox, Goal Pack, receipt, successor, final audit, lifecycle, retention or cleanup rule that should apply to any project | update this skill or its references |
+| Host authority layer, language policy, command name, product promotion target, release gate, local audit command | keep in the host project |
+| Raw idea, weak signal, gap map, or deferred follow-up | `inbox/` |
+| Consumed proposal, imported planning branch, historical prompt, or source digest | `sources/` or Goal Pack `notes/source-history/` |
+| Detailed task checklist, trace item list, or local implementation evidence | host implementation artifact such as `specs/**`, unless the Goal Pack has a `plan_required` slice |
+
+When a project has duplicated this method-level doctrine locally, converge by
+moving the generic rule here and reducing the project document to a thin local
+adapter.
+
 ## Inbox Rules
 
 Inbox is not a backlog. It is a staging area for material that has not yet
@@ -99,6 +116,61 @@ completion_oracle
 claim_boundary
 first harnessed edge
 ```
+
+Use `weak_signal` for raw material that is worth preserving but not yet
+evaluable. Use `open_candidate` when tradeoffs, authority refs, or a candidate
+oracle are visible but the first harnessed edge is not selected. Use
+`decision_needed` only when continuing would require a higher-authority choice.
+Use `bridge_needed` when two goals or states need a first harnessed path.
+Use `source_ready` when the material has been consumed and should be retained
+only for traceability.
+
+Do not write implementation plans, active task checklists, completion claims, or
+receipt substitutes in inbox items.
+
+## Retention Rules
+
+Keep goal artifacts only while they help a future agent preserve current
+authority, evidence, or continuity.
+
+Use these retention verdicts:
+
+| Verdict | Use when | Action |
+|---|---|---|
+| `keep` | Still active authority, route, evidence, or Goal Pack continuity | keep and index lightly |
+| `promote` | A candidate has enough authority and evidence to become current truth or a Goal Pack | move to the host authority layer or create/update a Goal Pack |
+| `demote` | A document looks authoritative but is only candidate material | move to inbox, source, notes, or nearest implementation artifact |
+| `migrate` | Valid material lives in the wrong role | move by semantic role and update links |
+| `split` | One artifact mixes unrelated candidates, decisions, or goals | split by lifecycle role |
+| `merge` | Multiple artifacts duplicate the same candidate or decision | merge into one live artifact and retire the rest |
+| `bridge` | A goal chain lacks a first harnessed path | create the thinnest bridge note or state edge |
+| `archive-as-source` | Accepted work consumed the material but traceability remains useful | retain as source or short backlink |
+| `delete` | Obsolete, duplicate, misleading, or no longer referenced | delete after reference and evidence checks |
+| `block` | No honest falsifiable path exists without changing protected authority | record the decision need and stop |
+
+Default bias is to delete, demote, or archive stale planning prose once the
+current authority, Goal Pack, receipt, or implementation artifact carries the
+needed fact.
+
+When demoted material remains visible, add a clear status line so future agents
+do not treat it as current scope:
+
+```text
+Status: planning material only.
+Not current implementation scope.
+Implementation may start only after the named evidence gates pass.
+```
+
+If demoted material later becomes accepted authority, a Goal Pack contract, an
+implementation artifact, or a receipt, reduce the original material to a short
+backlink or delete it after references are updated.
+
+## Active Homes Rule
+
+Default operation uses the active homes in the Goal Pack shape. Host projects
+may keep explicit equivalents only when they already have a documented role and
+do not create competing state. Map each equivalent to inbox, source, Goal Pack,
+receipt, notes, implementation plan, or host implementation artifact.
 
 ## Goal Pack Rules
 
