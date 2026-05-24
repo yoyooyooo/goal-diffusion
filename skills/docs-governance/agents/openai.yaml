@@ -1,0 +1,4 @@
+interface:
+  display_name: "Docs Governance"
+  short_description: "Project-agnostic docs architecture and human-agent SOP"
+  default_prompt: "Use $docs-governance to converge docs/* top-level layer boundaries, human-agent SOP, artifact lifecycle, skill handoffs, and cleanup/migration rules for a long-term AI coding project."

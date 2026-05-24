@@ -1,0 +1,20 @@
+{
+  "skill_name": "docs-governance",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I am starting a new TypeScript SaaS repo for long-term AI coding. Design the docs/* top-level folders and explain where roadmap, ADRs, proposals, implementation specs, API docs, and evidence should live.",
+      "expected_output": "Defines project-agnostic docs layers, keeps implementation specs outside docs/*, and gives clear owns/must-not-own boundaries."
+    },
+    {
+      "id": 2,
+      "prompt": "This repo has docs/next, docs/review-plan, docs/superpowers/results, docs/specs, and specs/. Decide what should be migrated, deleted, or kept so agents stop using old planning paths.",
+      "expected_output": "Audits old folders by semantic lifecycle, preserves evidence when needed, and avoids keeping duplicate current homes."
+    },
+    {
+      "id": 3,
+      "prompt": "We have a wire protocol with JSON Schema and canonical examples. Should it live under docs/specs, docs/protocols, standards, or root specs?",
+      "expected_output": "Routes wire contracts to docs/protocols, executable implementation specs to root specs, and standards to command/rule discipline."
+    }
+  ]
+}

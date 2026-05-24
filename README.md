@@ -2,19 +2,41 @@
 
 **English** | [中文](README.zh-CN.md)
 
-# Goal Diffusion
+# AI Coding Project OS
 
-Goal Diffusion is a long-running AI coding method and workflow for highly
-capable agents.
+AI Coding Project OS is a project-level long-term governance method suite for
+highly capable coding agents.
 
 It applies to any project type: 0-to-1 MVPs, new features, migrations,
 refactors, debugging campaigns, audits, research, documentation governance, or
 tooling. The difference is not whether it applies, but which boundaries,
-validation methods, and stop conditions each project needs.
+validation methods, evidence strength, and stop conditions each project needs.
+
+The default user entry is `$ai-coding-project-os`. It is a thin router: it owns
+no durable artifacts and routes work to Goal Diffusion, Docs Governance,
+Headless Product Harness, or inline execution.
 
 It does not try to lock a strong agent inside a giant task table. It gives the
-agent a clear charter, a verifiable current edge, receipt-backed execution, and
-a stricter path only when risk calls for it.
+agent clear routing, a clear charter when needed, a verifiable current edge,
+receipt-backed execution, and a stricter path only when risk calls for it.
+
+## Suite
+
+| Skill | Role |
+| --- | --- |
+| `ai-coding-project-os` | Default user entry; routes and coordinates, owns no durable artifact |
+| `goal-diffusion` | Goal planning, Goal Packs, rolling execution, cross-session continuation |
+| `docs-governance` | Docs layers, SSoT, standards, ADRs, roadmaps, cleanup, audit |
+| `headless-product-harness` | Proof commands, smoke checks, fixture/replay, evidence envelope |
+| `goal-plans` | Goal Diffusion phase skill: create or repair `charter.yaml` |
+| `finding-harnessed-path` | Goal Diffusion phase skill: find current edge |
+| `diffusion-implementation` | Goal Diffusion phase skill: execute, verify, receipt, advance |
+| `write-implementation-plans` | Goal Diffusion phase skill: write `implementation-plan.md` for high-risk slices |
+
+Most users should name only `$ai-coding-project-os`. When the user explicitly
+asks for a goal plan, Goal Pack, long-running continuation, or names
+`$goal-diffusion`, Goal Diffusion is the planning and continuation carrier.
+Small concrete changes stay inline and do not create a Goal Pack.
 
 ## Diffusion Analogy
 
@@ -38,17 +60,18 @@ Traditional spec-driven AI coding often aligns with the agent on "how to build"
 too early. That can work, but it can also spend too much effort constraining
 implementation details before the system has enough evidence.
 
-Goal Diffusion shifts the center of gravity to these questions:
+AI Coding Project OS shifts the center of gravity to these questions:
 
 - What goal should be reached?
 - What are the boundaries?
 - How will we verify the goal is reached?
 - When should the agent stop, advance, or return to the human?
 
-This does not remove planning. It avoids wasting strong model capability on an
-over-detailed implementation plan when clear goals, boundaries, validation, and
-stop conditions are enough for the agent to choose a path and keep calibrating
-with evidence.
+This does not remove planning. Planning is carried by Goal Packs when the user
+asks for it or the work needs durable continuation. It avoids wasting strong
+model capability on an over-detailed implementation plan when clear goals,
+boundaries, validation, and stop conditions are enough for the agent to choose a
+path and keep calibrating with evidence.
 
 ## Core Objects
 
@@ -103,15 +126,18 @@ npm install -g goal-diffusion
 goal-diffusion --help
 ```
 
-Then install the Agent Skill. The skill gives the method to the agent: create or
-update goal folders, find Harness Paths, validate, record receipts, and decide
-the next step.
+Then install the Agent Skills. The entry skill routes project-level intent; the
+method skills create or update goal folders, govern docs layers, design
+verification paths, record receipts, and decide the next step.
 
 Recommended full install:
 
 ```bash
 npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent '*' --skill '*' --full-depth -y
 ```
+
+The GitHub repository URL currently remains `goal-diffusion` for distribution
+compatibility; the project name is AI Coding Project OS.
 
 Codex-only install:
 
@@ -121,9 +147,20 @@ npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent codex --sk
 
 ## How To Use
 
+For normal project work, enter through `$ai-coding-project-os`:
+
+```text
+Use $ai-coding-project-os:
+I want to govern / plan / implement / audit ...
+Context: ...
+Boundaries: ...
+Acceptance: ...
+```
+
 After installation, you do not need to manually create a Goal Pack or maintain
-`charter.yaml` / `state.yaml`. Give the target to the agent and explicitly ask
-it to use `$goal-diffusion`.
+`charter.yaml` / `state.yaml`. If you want a goal plan, long-running
+continuation, or a Goal Pack, give the target to the agent and explicitly ask it
+to use `$goal-diffusion`.
 
 For a new long-running goal, this is enough:
 
@@ -212,9 +249,9 @@ normal follow-up starts a successor Goal Pack instead of reopening the old one.
 The graph is derived from Goal Relations at inspection time. It is not stored in
 the repository as planning state.
 
-## Current Migration Status
+## Current Vocabulary
 
-This README uses the future v1 vocabulary: `charter.yaml`, `completion`,
+This README uses the v1 vocabulary: `charter.yaml`, `completion`,
 `engineering_guidance`, `checks`, and `evidence_map`.
 
 The active CLI, templates, skills, checker behavior, tests, README files, and
@@ -249,15 +286,17 @@ If the work crosses a boundary, lacks permission, fails validation, has an uncle
 After Codex reads it, the agent should execute, verify, record, and advance by
 the Goal Diffusion rules.
 
-## Five Skills
+## Skill Routing
 
-Most users only name `$goal-diffusion`. The other four are phase skills the
-agent uses when the state requires them. Advanced users may name a phase skill
-directly, but that is not the normal path.
+Most users only name `$ai-coding-project-os`. It routes to the owning method by
+intent. Advanced users may name a concrete method or phase skill directly.
 
 | Skill | When used | Role |
 | --- | --- | --- |
-| `goal-diffusion` | Normal user entry | Main router that decides the current phase |
+| `ai-coding-project-os` | Default entry | Decide inline work vs. method routing |
+| `docs-governance` | Docs layer, authority, cleanup, audit | Govern docs structure and lifecycle |
+| `headless-product-harness` | Command surfaces, smoke proof, evidence envelope | Design verifiable headless product paths |
+| `goal-diffusion` | Goal plan, Goal Pack, long-running work | Goal Pack method router |
 | `goal-plans` | No Goal Pack, or unclear charter | Create or repair `charter.yaml` |
 | `finding-harnessed-path` | No verifiable next step | Find a Harness Path and write `state.yaml.current_edge` |
 | `diffusion-implementation` | Active task exists | Execute, verify, record receipt, advance, and continue inside boundaries |
@@ -384,10 +423,13 @@ a reviewed execution plan before work starts.
 ## Repository Layout
 
 ```text
-packages/cli/                   TypeScript CLI, built with Bun
-skills/goal-diffusion/          Entry skill
-skills/goal-plans/              Goal Charter authoring skill
-skills/finding-harnessed-path/  Next-step selection skill
+packages/cli/                    TypeScript CLI, built with Bun
+skills/ai-coding-project-os/     OS entry skill
+skills/docs-governance/          Docs governance skill
+skills/headless-product-harness/ Headless proof / evidence skill
+skills/goal-diffusion/           Goal Pack method entry skill
+skills/goal-plans/               Goal Charter authoring skill
+skills/finding-harnessed-path/   Next-step selection skill
 skills/diffusion-implementation/ Work execution skill
 skills/write-implementation-plans/ Plan-required work skill
 ```

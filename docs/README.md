@@ -6,13 +6,28 @@
 
 1. 先读仓库根目录 [AGENTS.md](../AGENTS.md)，确认协作语言、开发命令和当前方法论口径。
 2. 读本文件，确定文档放置层。
-3. 读 [docs/product/README.md](docs/product/README.md)，理解 Goal Diffusion 的产品/方法论定位。
-4. 读 [docs/ssot/README.md](docs/ssot/README.md) 和 [docs/standards/README.md](docs/standards/README.md)，确认当前事实和可执行规则。
-5. 需要查看长期目标状态时，读 [docs/goal-diffusion/README.md](docs/goal-diffusion/README.md)。
+3. 读 [docs/product/README.md](product/README.md)，理解 AI Coding Project OS 项目定位。
+4. 读 [docs/ssot/README.md](ssot/README.md) 和 [docs/standards/README.md](standards/README.md)，确认当前事实和可执行规则。
+5. 需要查看长期目标状态时，读 [docs/goal-diffusion/README.md](goal-diffusion/README.md)。
 
-## 当前迁移状态
+## 当前状态
 
-顶层方法论已冻结为未来 v1 口径：
+本仓库是 AI Coding Project OS 项目仓：一组平铺公开 skill、一个轻量 OS 入口，以及仍以 `goal-diffusion` 发布的 Goal Pack CLI。默认入口是 `$ai-coding-project-os`；它不拥有持久 artifact，只负责把项目级 AI coding 意图路由到拥有方法和 artifact 的 skill。
+
+当前平铺 skill：
+
+| Skill | 定位 |
+| --- | --- |
+| `ai-coding-project-os` | 用户默认入口，轻量路由和编排 |
+| `docs-governance` | 文档分层、权威放置、cleanup、audit |
+| `headless-product-harness` | headless proof command 与证据 envelope |
+| `goal-diffusion` | Goal Pack 方法总入口 |
+| `goal-plans` | `charter.yaml` 生成/修复 |
+| `finding-harnessed-path` | current edge / harness path |
+| `diffusion-implementation` | 执行、验证、receipt、advance |
+| `write-implementation-plans` | `plan_required` 高风险 slice 的实施计划 |
+
+Goal Diffusion 主路径已使用 v1 Goal Pack 口径：
 
 ```text
 charter.yaml
@@ -21,7 +36,7 @@ receipts.jsonl
 implementation-plan.md
 ```
 
-当前仓库主路径已使用 v1 Goal Pack 口径。后续 schema 迁移仍应通过 Goal Diffusion 目标推进，并同步更新 skills、templates、checker、README、测试和 dogfood Goal Pack。
+后续 schema 或 skill 口径变更仍应同步更新 skills、templates、checker、README、测试和 dogfood Goal Pack。
 
 ## 文档层
 
@@ -68,6 +83,6 @@ docs/ssot/**
 
 ## 下一步阅读
 
-- 产品/方法论定位：[docs/product/README.md](docs/product/README.md)
-- 当前事实：[docs/ssot/README.md](docs/ssot/README.md)
-- 可执行规则：[docs/standards/README.md](docs/standards/README.md)
+- 产品/方法论定位：[docs/product/README.md](product/README.md)
+- 当前事实：[docs/ssot/README.md](ssot/README.md)
+- 可执行规则：[docs/standards/README.md](standards/README.md)

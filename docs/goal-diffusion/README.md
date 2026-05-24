@@ -13,7 +13,7 @@
 | goal packs | `docs/goal-diffusion/goals/<goal-id>/` |
 | implementation plans | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
-未来目标 Goal Pack 结构：
+Goal Pack 结构：
 
 ```text
 goals/<goal-id>/
@@ -28,15 +28,17 @@ goals/<goal-id>/
 
 ## Active Goal Packs
 
-- `goals/2026-05-24-charter-v1-dogfood-migration/` - migrate this repository to future v1 charter/completion/checks/evidence_map schema.
+当前没有 active Goal Pack。
 
 ## Completed Goal Packs
 
+- `goals/2026-05-24-charter-v1-dogfood-migration/` - migrated this repository to v1 charter/completion/checks/evidence_map schema.
 - `goals/2026-05-24-agent-first-output-control-cli/` - added shared read-output controls and thread-aware repo summary.
 - `goals/2026-05-23-receipts-query-cli/` - added compact, filterable receipt history queries to the CLI.
 - `goals/2026-05-23-goal-relations-protocol/` - defined minimal cross-pack relation metadata and skill guidance.
 - `goals/2026-05-23-goal-relations-cli-verification/` - added relations CLI verification and derived graph view.
 - `goals/2026-05-23-record-stdin-input-cli/` - added explicit `record --stdin` receipt input for heredoc-safe agent writes.
+- `goals/2026-05-23-relations-thread-discovery-cli/` - added thread-member goal/task discovery for relation-aware continuation.
 
 ## Goal Threads
 

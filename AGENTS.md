@@ -1,6 +1,6 @@
 # Agent 协作规则
 
-本仓库是 Goal Diffusion 方法论、agent skills 和 `goal-diffusion` CLI 的源码仓库。
+本仓库是 AI Coding Project OS 方法套件、agent skills 和 `goal-diffusion` CLI 的源码仓库。
 
 ## 沟通与文档语言
 
@@ -11,7 +11,16 @@
 
 ## 当前顶层口径
 
-Goal Diffusion 面向高智能 agent，不面向弱模型防御式流程。
+AI Coding Project OS 面向高智能 agent，不面向弱模型防御式流程。
+
+默认用户入口是 `$ai-coding-project-os`。它是轻量路由 skill，不拥有持久 artifact；按用户意图路由到：
+
+- `$goal-diffusion`：目标计划、Goal Pack、跨会话延续、长期执行。
+- `$docs-governance`：docs 分层、权威放置、文档清理和审计。
+- `$headless-product-harness`：headless proof command、smoke evidence、fixture/replay、证据 envelope。
+- inline work：一轮内可完成且有明确验证路径的小改动。
+
+Goal Diffusion 是本套件的目标计划和滚动执行载体。只要用户要求“生成目标计划 / Goal Plan / Goal Pack / 使用 Goal Diffusion”，就进入 Goal Diffusion；随口小改动不创建 Goal Pack，直接实施并验证。
 
 默认工作流是：
 
@@ -26,7 +35,7 @@ human intent
 -> done
 ```
 
-未来目标语义：
+Goal Pack 语义：
 
 ```text
 charter.yaml             目标授权与人类意图压缩
@@ -43,14 +52,14 @@ notes/                   长材料，不承载当前状态
 - `packages/cli/src/`：CLI 命令和库代码。
 - `packages/cli/test/`：CLI 行为测试。
 - `scripts/`：发布脚本和脚本级测试。
-- `skills/`：agent skill、references、templates、evals。
+- `skills/`：AI Coding Project OS suite 的 agent skill 镜像，由 `skill-manager` / `skillshare` 从 SSoT 分发。
 - `docs/`：项目文档分层入口。先读 `docs/README.md`。
 - `docs/goal-diffusion/goals/`：Goal Pack 示例或历史工作记录。
 - `assets/`：README 横幅等媒体资源。
 
 ## Docs 治理
 
-遵循 `ai-coding-project-governance` 口径：
+遵循 `docs-governance` 口径：
 
 - `docs/README.md` 是文档路由入口，不承载领域真相。
 - `docs/product/**` 放产品/方法论定位和用户价值。

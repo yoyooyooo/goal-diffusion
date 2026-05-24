@@ -1,8 +1,8 @@
 {
-  "name": "goal-diffusion-monorepo",
+  "name": "ai-coding-project-os-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "Goal Diffusion monorepo: agent skill and Bun-built CLI.",
+  "description": "AI Coding Project OS suite with Goal Diffusion skills and CLI.",
   "type": "module",
   "packageManager": "bun@1.2.17",
   "workspaces": [
