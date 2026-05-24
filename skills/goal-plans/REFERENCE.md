@@ -1,34 +1,44 @@
-# Contract Phase Reference
+# Goal Charter Phase Reference
 
-This reference supports the `$goal-diffusion` contract phase.
+This reference supports the `$goal-diffusion` Goal Charter authoring phase.
 
-## Contract Template
+## Charter Template
 
-Use `../templates/contract.yaml` as the current template.
+Use `../templates/charter.yaml` as the current template.
 
 Minimum shape:
 
 ```yaml
 id:
 status:
+intent:
+  source:
+  interpreted_as:
+  assumptions: []
+  open_questions: []
 objective:
 north_star:
 authority_refs: []
-architecture_standard: []
+engineering_guidance:
+  standards: []
+  architecture_notes: []
+  quality_bar:
+  preferred_harness:
 constraints: []
 non_goals: []
-completion_oracle:
+completion:
   signal:
   final_proof:
 claim_boundary:
 stop_rules: []
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
-    - authority_refs
-    - architecture_standard
+    - completion
     - claim_boundary
+    - stop_rules
+    - authority_refs
   agent_may_revise:
     - next_slice
     - task_order
@@ -36,14 +46,15 @@ autonomy_policy:
     - implementation_shape
 ```
 
-## Contract Review
+## Charter Review
 
-Before marking a contract `ready`, verify:
+Before marking a charter `ready`, verify:
 
 - objective is observable;
 - authority refs point to current project truth or standards;
-- architecture standard is explicit enough to constrain execution;
-- completion oracle names the final proof, not just local activity;
+- engineering guidance is explicit enough to guide execution, or assumptions are
+  recorded when no formal architecture standard exists;
+- completion names the final proof, not just local activity;
 - claim boundary says what the goal does not prove;
 - stop rules catch authority, security, API/schema/protocol, private data, and
   destructive boundaries;
@@ -51,16 +62,17 @@ Before marking a contract `ready`, verify:
 
 ## Human Review Boundary
 
-Humans review contract fields. Agents may propose repairs, but may not silently
-change protected fields after execution starts.
+Humans review charter fields. Agents may propose repairs, but may not silently
+change fields listed in `autonomy.cannot_silently_change` after execution
+starts.
 
-## Contract Status
+## Charter Status
 
 ```text
 forming  - still compiling target or authority
 ready    - edge can be discovered
 running  - state has active execution
-blocked  - no safe path inside current contract
-done     - final audit satisfied the oracle
+blocked  - no safe path inside current charter
+done     - final audit satisfied completion
 retired  - replaced or no longer pursued
 ```

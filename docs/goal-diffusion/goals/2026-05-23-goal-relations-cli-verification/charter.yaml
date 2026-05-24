@@ -25,14 +25,15 @@ authority_refs:
   - "packages/cli/src/goal-diffusion.ts"
   - "packages/cli/src/lib/goal-pack.ts"
   - "packages/cli/test/goal-pack-cli.test.ts"
-  - "docs/goal-diffusion/goals/2026-05-23-goal-relations-protocol/contract.yaml"
+  - "docs/goal-diffusion/goals/2026-05-23-goal-relations-protocol/charter.yaml"
 
-architecture_standard:
-  - "Relations CLI must be a verification and inspection surface, not a planner, scheduler, or graph database."
-  - "The only top-level CLI namespace for this work is relations."
-  - "Thread views are derived from goal_relations.thread_id and links; they do not create thread-owned files or state."
-  - "Hard relation failures must be limited to invalid relation enum, missing target, missing required receipt, and missing required evidence."
-  - "related_to is nonblocking: missing evidence should warn rather than fail unless future protocol explicitly says otherwise."
+engineering_guidance:
+  architecture_notes:
+    - "Relations CLI must be a verification and inspection surface, not a planner, scheduler, or graph database."
+    - "The only top-level CLI namespace for this work is relations."
+    - "Thread views are derived from goal_relations.thread_id and links; they do not create thread-owned files or state."
+    - "Hard relation failures must be limited to invalid relation enum, missing target, missing required receipt, and missing required evidence."
+    - "related_to is nonblocking: missing evidence should warn rather than fail unless future protocol explicitly says otherwise."
 
 constraints:
   - "Do not add a top-level threads command namespace."
@@ -48,7 +49,7 @@ non_goals:
   - "No schema migration for old Goal Packs."
   - "No external storage or graph database."
 
-completion_oracle:
+completion:
   signal: "The CLI exposes goal-diffusion relations list/check/graph with compact text and JSON output, validates hard relation evidence, renders thread-derived graph views, and preserves existing Goal Pack commands."
   final_proof: "Repository check passes; tests prove relation enum validation, predecessor existence checks, receipt_ref checks, required evidence token checks, related_to warning behavior, thread filtering, graph rendering, and docs coverage; relations check against the dogfood Goal Packs passes; final audit receipt sets oracle_satisfied=true."
 
@@ -60,13 +61,13 @@ stop_rules:
   - "Stop if adding relations commands would break existing Goal Pack command behavior."
   - "Stop if required predecessor evidence cannot be verified from receipt JSON."
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
     - authority_refs
-    - architecture_standard
-    - completion_oracle
+    - engineering_guidance
+    - completion
     - claim_boundary
   agent_may_revise:
     - next_slice

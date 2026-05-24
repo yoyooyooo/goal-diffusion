@@ -13,18 +13,19 @@ authority_refs:
   - "README.zh-CN.md"
   - "skills/goal-diffusion/SKILL.md"
   - "skills/goal-diffusion/references/checker-rules.md"
-  - "skills/goal-diffusion/templates/contract.yaml"
+  - "skills/goal-diffusion/templates/charter.yaml"
   - "skills/goal-diffusion/templates/receipt.jsonl"
   - "skills/goal-plans/SKILL.md"
   - "skills/finding-harnessed-path/SKILL.md"
   - "skills/diffusion-implementation/SKILL.md"
 
-architecture_standard:
-  - "A Goal Pack remains the unit of completion: one objective, one oracle, one state, and one append-only receipt chain."
-  - "A Goal Thread is only a shared thread_id across related Goal Packs; it does not own state, tasks, receipts, or lifecycle."
-  - "A Goal Relation is an evidence-linked cross-pack link stored as metadata in contract.yaml."
-  - "The graph view is derived from Goal Relations; it is not a stored planning object."
-  - "Retired bundled-goal vocabulary must not appear in current docs, skills, templates, tests, or CLI surfaces."
+engineering_guidance:
+  architecture_notes:
+    - "A Goal Pack remains the unit of completion: one objective, one oracle, one state, and one append-only receipt chain."
+    - "A Goal Thread is only a shared thread_id across related Goal Packs; it does not own state, tasks, receipts, or lifecycle."
+    - "A Goal Relation is an evidence-linked cross-pack link stored as metadata in charter.yaml."
+    - "The graph view is derived from Goal Relations; it is not a stored planning object."
+    - "Retired bundled-goal vocabulary must not appear in current docs, skills, templates, tests, or CLI surfaces."
 
 constraints:
   - "Do not add a thread file, thread lifecycle, thread receipt, parent task tree, or child Goal Pack state nesting."
@@ -40,7 +41,7 @@ non_goals:
   - "No migration of external projects."
   - "No stored graph artifact."
 
-completion_oracle:
+completion:
   signal: "Goal Diffusion docs, skills, and templates define Goal Thread, Goal Relation, derived graph view, done-pack closure, successor links, and relation-aware final audit guidance without adding a new planning object."
   final_proof: "Repository check passes; local lexical scan and memdex semantic detection show the retired bundled-goal vocabulary is absent from current guidance; Goal Pack check passes; receipts show goal_relations_protocol_documented=true, thread_id_is_label_only=true, graph_is_derived_view=true, done_pack_append_only_closed=true, successor_uses_predecessor_receipt=true, and final audit receipt sets oracle_satisfied=true."
 
@@ -52,13 +53,13 @@ stop_rules:
   - "Stop if relation semantics cannot be expressed as evidence links to existing Goal Pack receipts."
   - "Stop if the change requires CLI parser or checker implementation before the protocol is reviewable."
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
     - authority_refs
-    - architecture_standard
-    - completion_oracle
+    - engineering_guidance
+    - completion
     - claim_boundary
   agent_may_revise:
     - next_slice

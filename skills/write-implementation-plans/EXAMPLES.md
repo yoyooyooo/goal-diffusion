@@ -7,7 +7,7 @@
 
 ## Goal Pack
 
-- contract: `docs/goal-diffusion/goals/public-relay-deployment-readiness/contract.yaml`
+- charter: `docs/goal-diffusion/goals/public-relay-deployment-readiness/charter.yaml`
 - state: `docs/goal-diffusion/goals/public-relay-deployment-readiness/state.yaml`
 - task: `T002`
 - plan: `docs/goal-diffusion/goals/public-relay-deployment-readiness/implementation-plan.md`

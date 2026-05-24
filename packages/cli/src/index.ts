@@ -8,7 +8,7 @@ export {
   loadGoalPack,
   matchesAllowedScope,
   normalizePath,
-  parseContract,
+  parseCharter,
   parseReceipts,
   parseState,
   renderPrompt,

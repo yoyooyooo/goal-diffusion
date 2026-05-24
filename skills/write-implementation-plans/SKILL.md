@@ -1,10 +1,11 @@
 ---
 name: write-implementation-plans
 description: >-
-  Plan-required phase for Goal Diffusion. Prefer entering through
-  $goal-diffusion. Use only when a selected Goal Pack task needs pre-reviewed
-  execution structure because of broad transition, security, public API/schema/protocol,
-  irreversible data, strict multi-agent coordination, or expensive rollback.
+  Writes implementation-plan.md for selected plan_required Goal Diffusion tasks.
+  Use through $goal-diffusion when a Goal Plan/Goal Pack task needs pre-reviewed
+  execution structure because of broad transition, security, public
+  API/schema/protocol, irreversible data, strict multi-agent coordination, or
+  expensive rollback.
 ---
 
 # Plan Required Phase
@@ -21,7 +22,7 @@ docs/goal-diffusion/goals/<goal-id>/implementation-plan.md
 ```
 
 The plan lives inside the Goal Pack by design. It is not a product spec, schema
-authority, contract replacement, or parallel workflow. The corresponding
+authority, charter replacement, or parallel workflow. The corresponding
 `state.yaml` task should use `type: plan_required` and
 `plan: implementation-plan.md`, with the plan file in `allowed_scope`.
 For related Goal Packs, the plan may cite `goal_relations` as predecessor
@@ -31,7 +32,7 @@ task tree, or cross-pack state ownership.
 ## Use Only When
 
 - transition or deletion has broad blast radius;
-- public API, schema, protocol, or persisted contract changes;
+- public API, schema, protocol, or persisted charter changes;
 - irreversible data, destructive action, credentials, permissions, or security;
 - multiple agents need strict sequencing or disjoint write-scope control;
 - a wrong first implementation would be expensive to unwind.
@@ -40,7 +41,7 @@ task tree, or cross-pack state ownership.
 
 ```text
 goal_pack
-contract.claim_boundary
+charter.claim_boundary
 state.current_edge
 task.objective
 task.allowed_scope
@@ -49,44 +50,21 @@ task.stop_if
 authority_refs
 ```
 
-Stop if any protected contract field would need to change.
+Stop if any field listed in `autonomy.cannot_silently_change` would need to
+change.
+
+For schema, terminology, or command-language migrations, the plan should include
+an active-surface pass: skill bodies, references, templates, agents, evals,
+README/package docs, CLI help/flags, tests/fixtures, and active Goal Pack
+artifacts. It should also state the public-surface decision for renamed fields:
+rename now, keep a documented compatibility alias, or leave it as a
+`remaining_gaps` item instead of claiming it complete.
 
 ## Plan Shape
 
-```markdown
-# <Goal ID> Implementation Plan
-
-## Goal Pack
-- contract: `docs/goal-diffusion/goals/<goal-id>/contract.yaml`
-- state: `docs/goal-diffusion/goals/<goal-id>/state.yaml`
-- task:
-- plan: `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md`
-
-## Protected Boundary
-- objective:
-- authority:
-- architecture_standard:
-- claim_boundary:
-- stop_if:
-
-## Allowed Scope
-- ...
-
-## Verification
-- ...
-
-## Execution Chunks
-1. ...
-
-## Receipt Requirements
-- changed_files:
-- commands:
-- evidence:
-- claims:
-
-## Handoff
-- next_decision:
-```
+Use [REFERENCE.md](REFERENCE.md#plan-template) for the full template and
+[EXAMPLES.md](EXAMPLES.md) for an example. The plan must include verification,
+receipt requirements, and handoff back to the run phase.
 
 ## Output
 

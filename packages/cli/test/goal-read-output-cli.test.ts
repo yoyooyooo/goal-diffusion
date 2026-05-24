@@ -12,7 +12,7 @@ const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
 
 function writePack(root, { contract, state, receipts = "" }) {
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "contract.yaml"), contract.trimStart());
+  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
   writeFileSync(join(root, "state.yaml"), state.trimStart());
   writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
 }
@@ -33,9 +33,10 @@ status: ${status}
 objective: "${objective}"
 ${relations}authority_refs:
   - "goal-diffusion/SKILL.md"
-architecture_standard:
-  - "Read output stays bounded and thread-aware."
-completion_oracle:
+engineering_guidance:
+  standards:
+    - "Read output stays bounded and thread-aware."
+completion:
   signal: "Summary exposes thread groups without duplicate goal placement."
   final_proof: "CLI tests pass."
 claim_boundary: "Only proves read-output CLI behavior."
@@ -74,7 +75,7 @@ ${taskYaml}
 blockers: []
 last_verification:
   result: ${status === "done" ? "pass" : "unknown"}
-  commands: []
+  checks: []
 next_decision: ${nextDecision}
 `;
 }
@@ -292,7 +293,7 @@ test("list tasks receipts and relation reads apply limit/include/show-empty cont
     assert.equal(receipts.status, 0, receipts.stderr);
     const receiptsPayload = JSON.parse(receipts.stdout);
     assert.equal(typeof receiptsPayload.path, "string");
-    assert.equal(receiptsPayload.items[0].counts.commands, 0);
+    assert.equal(receiptsPayload.items[0].counts.checks, 0);
 
     const goals = run(["relations", "goals", project, "--thread", "fermi-thread", "--limit", "1", "--json"]);
     assert.equal(goals.status, 0, goals.stderr);

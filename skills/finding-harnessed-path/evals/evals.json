@@ -16,7 +16,7 @@
     {
       "id": 3,
       "prompt": "我已经写了一份很长的需求和 30 多条 task，想做一个本地优先的 AI 写作应用，但现在越看越虚：功能很多，验证很弱，也不知道 agent 第一轮到底该做什么。请把它压回一条可执行路径。",
-      "expected_output": "应进入 deflation 模式，把膨胀 spec/task list 压回 contract repair、harnessed edge、verify、failure_inspection、task seed 和 next_decision。",
+      "expected_output": "应进入 deflation 模式，把膨胀 spec/task list 压回 charter repair、harnessed edge、verify、failure_inspection、task seed 和 next_decision。",
       "files": []
     },
     {

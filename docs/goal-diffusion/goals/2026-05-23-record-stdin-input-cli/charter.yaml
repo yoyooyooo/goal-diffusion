@@ -23,12 +23,13 @@ authority_refs:
   - "packages/cli/README.zh-CN.md"
   - "skills/goal-diffusion/SKILL.md"
 
-architecture_standard:
-  - "Agent-facing write commands must keep one primary intent per command."
-  - "Content-payload write input should support explicit stdin when payload quoting is error-prone."
-  - "State-transition write commands must not accept arbitrary payload input."
-  - "Input-source flags for record must be mutually exclusive and must not rely on implicit stdin reads."
-  - "User-facing CLI command-surface changes require tests and synchronized docs."
+engineering_guidance:
+  architecture_notes:
+    - "Agent-facing write commands must keep one primary intent per command."
+    - "Content-payload write input should support explicit stdin when payload quoting is error-prone."
+    - "State-transition write commands must not accept arbitrary payload input."
+    - "Input-source flags for record must be mutually exclusive and must not rely on implicit stdin reads."
+    - "User-facing CLI command-surface changes require tests and synchronized docs."
 
 constraints:
   - "Support record --stdin as an explicit receipt JSON input source."
@@ -46,7 +47,7 @@ non_goals:
   - "No automatic receipt generation."
   - "No shell-specific wrapper command."
 
-completion_oracle:
+completion:
   signal: "goal-diffusion record accepts exactly one input source among --file, --json, and --stdin; --stdin reads a full JSON receipt from stdin and supports heredoc usage; activate and advance remain parameter/state-derived commands with no payload stdin."
   final_proof: "bun run check passes; CLI tests prove record --stdin appends a valid receipt, conflicts with --file and --json, rejects empty stdin, keeps existing --file and --json paths working, and help/docs/skill text describe the command surface; a dogfood receipt is recorded via --stdin; final audit receipt sets oracle_satisfied=true."
 
@@ -58,14 +59,14 @@ stop_rules:
   - "Stop if implementation would require implicit stdin reads that can hang agents."
   - "Stop if docs cannot state a stable rule separating content-payload writes from state-transition writes."
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
     - authority_refs
-    - architecture_standard
+    - engineering_guidance
     - constraints
-    - completion_oracle
+    - completion
     - claim_boundary
     - stop_rules
   agent_may_revise:

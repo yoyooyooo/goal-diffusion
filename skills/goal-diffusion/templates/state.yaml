@@ -31,6 +31,6 @@ blockers: []
 
 last_verification:
   result: unknown # unknown | pass | fail | blocked
-  commands: []
+  checks: []
 
 next_decision: edge # edge | continue | plan_required | blocked | audit | done | needs-human

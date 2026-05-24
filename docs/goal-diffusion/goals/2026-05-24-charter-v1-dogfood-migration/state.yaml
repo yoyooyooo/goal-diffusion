@@ -1,0 +1,141 @@
+version: 1
+goal_id: 2026-05-24-charter-v1-dogfood-migration
+status: done
+
+current_edge:
+  from: "Docs, skills, templates, CLI behavior, checker behavior, tests, and historical dogfood Goal Packs now use v1 charter/completion/checks/evidence_map as the active path."
+  target_delta: "Final audit maps receipt evidence to completion.final_proof and closes this Goal Pack."
+  harnessed_path:
+    - "Map T001-T005 receipts to each completion.final_proof clause."
+    - "Verify repository checks, docs audit, active Goal Pack check, and v1 terminology scans."
+    - "Record T999 audit receipt with evidence_map, not_claimed, remaining_gaps, and oracle_satisfied true."
+  verify:
+    - "bun run check"
+    - "python3 /Users/yoyo/.agents/skills/ai-coding-project-governance/scripts/run_docs_audit.py --repo /Users/yoyo/Documents/code/personal/goal-diffusion"
+    - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_oracle|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" README.md README.zh-CN.md AGENTS.md docs skills packages scripts"
+  failure_inspection:
+    - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/receipts.jsonl
+    - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/charter.yaml
+    - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/state.yaml
+    - README.md
+    - README.zh-CN.md
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker
+    status: done
+    objective: "Synchronize English README and skill documentation with future v1 charter/completion/checks/evidence_map terminology, keeping old terms only in migration/history contexts."
+    allowed_scope:
+      - README.md
+      - README.zh-CN.md
+      - docs/**
+      - skills/**
+    verify:
+      - "bun run check"
+      - "python3 /Users/yoyo/.agents/skills/ai-coding-project-governance/scripts/run_docs_audit.py --repo /Users/yoyo/Documents/code/personal/goal-diffusion"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_oracle|architecture_standard|protected_fields|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" README.md README.zh-CN.md AGENTS.md docs skills"
+    stop_if:
+      - "Skill rename or CLI public command rename requires a product decision."
+      - "Docs and skill ownership conflict cannot be resolved from docs/README.md."
+  - id: T002
+    type: plan_required
+    status: done
+    objective: "Write implementation-plan.md for schema, CLI checker/renderer/tests, and historical Goal Pack rewrite, using this Goal Pack as the workflow owner."
+    plan: implementation-plan.md
+    allowed_scope:
+      - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/implementation-plan.md
+      - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/state.yaml
+      - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/receipts.jsonl
+    verify:
+      - "test -f docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/implementation-plan.md"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"charter.yaml|state.yaml|receipts.jsonl|implementation-plan.md|docs/roadmap\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/implementation-plan.md"
+    stop_if:
+      - "The plan would move execution state into docs/roadmap or another project-level docs layer."
+      - "The plan would require strict proof fields on the default path."
+      - "The plan would broaden the goal into release/versioning."
+  - id: T003
+    type: worker
+    status: done
+    objective: "Migrate Goal Diffusion templates and checker-facing examples to charter.yaml, checks, and final audit evidence_map."
+    allowed_scope:
+      - skills/goal-diffusion/templates/**
+      - skills/goal-diffusion/references/**
+      - skills/goal-diffusion/SKILL.md
+      - skills/goal-plans/**
+      - skills/diffusion-implementation/**
+      - skills/finding-harnessed-path/**
+      - skills/write-implementation-plans/**
+    verify:
+      - "bun run check"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_oracle|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" skills"
+    stop_if:
+      - "Default path would require strict proof fields."
+  - id: T004
+    type: worker
+    status: done
+    objective: "Update CLI parser, checker, renderers, command docs, and tests to validate and display v1 Goal Packs."
+    allowed_scope:
+      - packages/cli/**
+      - scripts/**
+      - README.md
+      - README.zh-CN.md
+      - docs/**
+    verify:
+      - "bun run check"
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration"
+    stop_if:
+      - "CLI public compatibility or release semantics need a product decision."
+  - id: T005
+    type: worker
+    status: done
+    objective: "Rewrite historical dogfood Goal Packs under docs/goal-diffusion/goals/** to v1 schema, update indexes, and refresh migration-status docs."
+    allowed_scope:
+      - AGENTS.md
+      - README.md
+      - README.zh-CN.md
+      - docs/README.md
+      - docs/ssot/README.md
+      - docs/roadmap/README.md
+      - docs/goal-diffusion/goals/**
+      - docs/goal-diffusion/README.md
+      - docs/goal-diffusion/sources/**
+    verify:
+      - "bun run check"
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_oracle|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" docs/goal-diffusion/goals docs/goal-diffusion/README.md"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"仍可能使用旧口径|仍处于迁移期|legacy names such as|current historical\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" AGENTS.md README.md README.zh-CN.md docs/README.md docs/ssot/README.md docs/roadmap/README.md docs/goal-diffusion/README.md"
+    stop_if:
+      - "A historical evidence rewrite would make completion evidence unrecoverable."
+  - id: T999
+    type: audit
+    status: done
+    objective: "Audit the v1 dogfood migration against completion.final_proof and record final evidence_map."
+    allowed_scope:
+      - docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration/**
+      - docs/goal-diffusion/README.md
+    verify:
+      - "bun run check"
+      - "python3 /Users/yoyo/.agents/skills/ai-coding-project-governance/scripts/run_docs_audit.py --repo /Users/yoyo/Documents/code/personal/goal-diffusion"
+      - "goal-diffusion check docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_oracle|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" README.md README.zh-CN.md AGENTS.md docs skills packages scripts"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"evidence_map|not_claimed|remaining_gaps|implementation-plan.md\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration"
+    stop_if:
+      - "Any completion proof element lacks receipt-backed evidence."
+      - "Receipts do not show that execution used Goal Pack artifacts as the workflow owner."
+
+blockers:
+
+last_verification:
+  result: pass
+  checks:
+    - "bun run check [pass]"
+    - "python3 /Users/yoyo/.agents/skills/ai-coding-project-governance/scripts/run_docs_audit.py --repo /Users/yoyo/Documents/code/personal/goal-diffusion [pass]"
+    - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration [pass]"
+    - "rg -n \"contract.yaml|completion_oracle|architecture_standard|protected_fields|\\\"commands\\\"|Goal Plan\" README.md README.zh-CN.md AGENTS.md docs/README.md docs/ssot docs/standards docs/roadmap docs/product docs/adr docs/architecture docs/goal-diffusion/README.md skills packages scripts [pass]"
+    - "rg -n \"contract.yaml|completion_oracle|architecture_standard|protected_fields|\\\"commands\\\"|Goal Plan\" docs/goal-diffusion/goals --glob '!**/2026-05-24-charter-v1-dogfood-migration/**' [pass]"
+    - "rg -n \"evidence_map|not_claimed|remaining_gaps|implementation-plan.md\" docs/goal-diffusion/goals/2026-05-24-charter-v1-dogfood-migration [pass]"
+    - "wc -l packages/cli/src/lib/goal-pack.ts packages/cli/src/lib/goal-receipt-helpers.ts [pass]"
+
+next_decision: done

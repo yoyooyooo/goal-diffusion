@@ -1,4 +1,4 @@
 interface:
   display_name: "Goal Diffusion"
   short_description: "Goal Pack operating loop for AI coding"
-  default_prompt: "Use $goal-diffusion as one goal operating system: create or update a Goal Pack, run harnessed edges, record receipts, check completion against the oracle, and continue by default inside the contract."
+  default_prompt: "Use $goal-diffusion as one goal operating system: create or update a Goal Pack, run harnessed edges, record receipts, check completion against completion.final_proof, and continue by default inside the charter."

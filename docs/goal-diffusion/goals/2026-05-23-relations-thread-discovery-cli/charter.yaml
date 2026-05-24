@@ -31,12 +31,13 @@ authority_refs:
   - "skills/goal-diffusion/SKILL.md"
   - "/Users/yoyo/Documents/code/personal/fermi.worktrees/planning"
 
-architecture_standard:
-  - "The relations namespace is for Goal Relations derived discovery, filtering, validation, and graph inspection only."
-  - "thread_id is a label, not a queue, worklist, scheduler, plan order, registry, or lifecycle object."
-  - "New relations commands must find candidate goals and tasks quickly; they must not choose execution order or next action."
-  - "Deep implementation context stays in inspect, tasks, receipts, and brief."
-  - "The command surface may remove or avoid anything that conflicts with this frozen principle; compatibility is not required for nonconforming proposals."
+engineering_guidance:
+  architecture_notes:
+    - "The relations namespace is for Goal Relations derived discovery, filtering, validation, and graph inspection only."
+    - "thread_id is a label, not a queue, worklist, scheduler, plan order, registry, or lifecycle object."
+    - "New relations commands must find candidate goals and tasks quickly; they must not choose execution order or next action."
+    - "Deep implementation context stays in inspect, tasks, receipts, and brief."
+    - "The command surface may remove or avoid anything that conflicts with this frozen principle; compatibility is not required for nonconforming proposals."
 
 constraints:
   - "Do not add a top-level thread or threads namespace."
@@ -56,7 +57,7 @@ non_goals:
   - "No UI."
   - "No compatibility preservation for command shapes that violate the frozen principle."
 
-completion_oracle:
+completion:
   signal: "The CLI exposes relations goals and relations tasks; agents can filter thread-member Goal Packs and tasks by completion and status without any queue or worklist semantics; existing relations list/check/graph keep their narrower metadata, evidence validation, and derived graph meanings."
   final_proof: "bun run check passes; tests prove thread goal discovery, unfinished goal filtering, unfinished task filtering, task status filtering, parent goal filtering, goal-id filtering, invalid filter rejection, unchanged list/check/graph behavior, and docs coverage; fermi.worktrees/planning is usable as an external validation target; the final audit receipt sets oracle_satisfied=true."
 
@@ -69,14 +70,14 @@ stop_rules:
   - "Stop if validation against fermi.worktrees/planning would require modifying that external worktree."
   - "Stop if the command surface cannot keep relations list/check/graph semantically narrow."
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
     - authority_refs
-    - architecture_standard
+    - engineering_guidance
     - constraints
-    - completion_oracle
+    - completion
     - claim_boundary
     - stop_rules
   agent_may_revise:

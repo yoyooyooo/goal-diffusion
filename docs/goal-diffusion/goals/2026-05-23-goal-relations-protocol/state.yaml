@@ -20,7 +20,7 @@ current_edge:
     - README.zh-CN.md
     - skills/goal-diffusion/SKILL.md
     - skills/goal-diffusion/references/checker-rules.md
-    - skills/goal-diffusion/templates/contract.yaml
+    - skills/goal-diffusion/templates/charter.yaml
     - skills/goal-diffusion/templates/receipt.jsonl
     - skills/goal-plans/SKILL.md
     - skills/finding-harnessed-path/SKILL.md
@@ -62,7 +62,7 @@ blockers:
 
 last_verification:
   result: pass
-  commands:
+  checks:
     - "goal-diffusion-dev relations check docs/goal-diffusion/goals --thread goal-relations --json [pass]"
 
 next_decision: done

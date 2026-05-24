@@ -22,7 +22,7 @@ export function runDispatch(goalRoot, { taskId = null } = {}) {
   lines.push("执行规则：");
   lines.push("");
   lines.push("- 只在 allowed_scope 内修改。");
-  lines.push("- 不修改 protected fields：objective、authority_refs、architecture_standard、completion_oracle、claim_boundary。");
+  lines.push("- 不修改 protected fields：objective、authority_refs、engineering_guidance、completion、claim_boundary。");
   lines.push("- 使用 current_edge 作为 harnessed path；缺 harness 且不需要新 authority 决策时，创建最小可证伪 harness。");
   lines.push("- stop_rules 触发时停止，并写 blocked receipt。");
   lines.push("- 完成 task 后写 receipt，运行 advance 和 check。");

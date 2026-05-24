@@ -73,7 +73,7 @@ blockers:
 
 last_verification:
   result: pass
-  commands:
+  checks:
     - "bun run check [pass]"
     - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-24-agent-first-output-control-cli [pass]"
     - "bun packages/cli/src/goal-diffusion.ts summary docs/goal-diffusion/goals --depth groups --json [pass]"

@@ -4,7 +4,7 @@
 
 ```text
 north_star       far target that must not be lost
-contract         current human-owned objective and boundaries
+charter          current human-owned objective and boundaries
 current_edge     harnessed path to sharper clarity
 active_task      largest safe useful slice inside the edge
 ```
@@ -14,7 +14,7 @@ Agents may see far, but execute the current edge.
 ## Largest Safe Useful Slice
 
 Safe means bounded, explicit, verified, and reversible enough for the current
-contract. Safe does not mean tiny.
+charter. Safe does not mean tiny.
 
 Prefer slices that produce one of:
 
@@ -27,7 +27,7 @@ Prefer slices that produce one of:
 - harness that proves the current edge.
 
 After two helper-sized slices in a row, reorient the edge or task. If the next
-slice cannot move the oracle, stop and update state instead of pretending
+slice cannot move completion, stop and update state instead of pretending
 progress.
 
 ## Run Loop
@@ -36,7 +36,7 @@ progress.
 choose useful slice
   -> capture baseline if needed
   -> implement inside allowed scope
-  -> verify
+  -> check
   -> record receipt
   -> update state
   -> continue / plan_required / blocked / audit
@@ -44,7 +44,7 @@ choose useful slice
 
 ## Allowed Revisions
 
-Inside the current contract, the agent may revise:
+Inside the current charter, the agent may revise:
 
 - next slice;
 - task order;
@@ -57,7 +57,8 @@ The agent may not silently revise:
 
 - objective;
 - authority refs;
-- architecture standard;
+- engineering guidance;
+- completion;
 - claim boundary;
 - public API/schema/protocol posture;
 - security or private-data handling;
@@ -74,7 +75,7 @@ task_id
 type
 result
 changed_files
-commands
+checks
 evidence
 claims
 summary
@@ -100,7 +101,34 @@ result: done
 decision: complete
 oracle_satisfied: true
 evidence
+evidence_map
+not_claimed
+remaining_gaps
 ```
+
+Worker receipt shape:
+
+```json
+{
+  "task_id": "T001",
+  "type": "worker",
+  "result": "done",
+  "changed_files": ["<file-in-allowed-scope>"],
+  "checks": [{ "kind": "command", "cmd": "<command>", "status": "pass" }],
+  "evidence": ["<evidence>"],
+  "claims": ["<claim>"],
+  "summary": "",
+  "next_decision": "continue"
+}
+```
+
+`checks[].status: "pass"` means the check's assertion passed. For absence
+claims, use an inverted no-match command such as `! rg ...` or record an
+explicit allowlist of intentional matches.
+
+For schema or terminology migrations, include active surfaces in receipt
+evidence: templates, references, agents, evals, CLI help/flags, README examples,
+tests/fixtures, and active Goal Pack artifacts.
 
 ## Recovery
 

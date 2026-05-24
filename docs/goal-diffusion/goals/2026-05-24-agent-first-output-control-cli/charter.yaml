@@ -30,12 +30,13 @@ authority_refs:
   - "packages/cli/README.zh-CN.md"
   - "skills/goal-diffusion/SKILL.md"
 
-architecture_standard:
-  - "All read commands should share the same output-control vocabulary: --depth, --limit, --include, and --show-empty where applicable."
-  - "Default read output should omit empty arrays, null fields, zero-valued buckets, paths, objectives, raw links, and empty warnings/errors unless they carry direct decision value or are explicitly included."
-  - "Default read output should preserve decision-critical zero values such as todo=0, total=0, and problem_count=0."
-  - "summary is the repo-level status report; relations commands remain thread and relation detail tools."
-  - "Progressive disclosure must be bounded by default and must not require agents to read every Goal Pack to understand repo shape."
+engineering_guidance:
+  architecture_notes:
+    - "All read commands should share the same output-control vocabulary: --depth, --limit, --include, and --show-empty where applicable."
+    - "Default read output should omit empty arrays, null fields, zero-valued buckets, paths, objectives, raw links, and empty warnings/errors unless they carry direct decision value or are explicitly included."
+    - "Default read output should preserve decision-critical zero values such as todo=0, total=0, and problem_count=0."
+    - "summary is the repo-level status report; relations commands remain thread and relation detail tools."
+    - "Progressive disclosure must be bounded by default and must not require agents to read every Goal Pack to understand repo shape."
 
 constraints:
   - "Do not preserve old summary.items meaning if it conflicts with the new grouped structure."
@@ -55,7 +56,7 @@ non_goals:
   - "No generic query language."
   - "No compatibility shim that keeps a second flat all-goals truth."
 
-completion_oracle:
+completion:
   signal: "Read commands expose a consistent agent-first output-control protocol; summary groups threaded goals under threads, leaves only unthreaded goals in top-level items, omits empty/default-noise fields by default, applies filters before aggregation, and supports bounded progressive disclosure through depth and limit."
   final_proof: "Repository check passes; tests prove summary repo/groups/items depths, default empty-field omission, include/show-empty behavior, limit/omitted counts, filtered aggregation, no duplication between threads and top-level items, and fermi-like fixture behavior where completed threads disappear under --completion todo while unthreaded todo goals remain; docs describe the full read-output control protocol; final audit receipt sets oracle_satisfied=true."
 
@@ -64,18 +65,18 @@ claim_boundary: "This Goal Pack may claim only the CLI read-output control proto
 stop_rules:
   - "Stop if the output-control vocabulary cannot stay consistent across read commands without creating command-specific aliases."
   - "Stop if summary needs to infer execution order, priority, or scheduling from relations."
-  - "Stop if implementing the grouped summary would require changing contract.yaml, state.yaml, or receipts.jsonl storage schema."
+  - "Stop if implementing the grouped summary would require changing charter.yaml, state.yaml, or receipts.jsonl storage schema."
   - "Stop if defaults cannot remain bounded for repos with many goals and threads."
   - "Stop if fermi-like mixed threaded/unthreaded fixtures cannot be expressed in tests without relying on the external fermi repo."
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
     - authority_refs
-    - architecture_standard
+    - engineering_guidance
     - constraints
-    - completion_oracle
+    - completion
     - claim_boundary
     - stop_rules
   agent_may_revise:

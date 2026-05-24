@@ -12,22 +12,22 @@ does not replace engineering judgment.
 ## Required Files
 
 ```text
-contract.yaml
+charter.yaml
 state.yaml
 receipts.jsonl
 ```
 
 `notes/` is optional for machine validity.
 
-## Contract Checks
+## Charter Checks
 
 - `id` exists.
 - `status` is `forming`, `ready`, `running`, `blocked`, `done`, or `retired`.
-- `completion_oracle.signal` exists.
-- `completion_oracle.final_proof` exists.
+- `completion.signal` exists.
+- `completion.final_proof` exists.
 - `claim_boundary` exists.
 
-Weak oracle fields warn during active work and fail completion.
+Weak completion fields warn during active work and fail completion.
 
 ## State Checks
 
@@ -57,7 +57,7 @@ Done worker receipts must include:
 
 ```text
 changed_files
-commands with status: pass
+checks with status: pass
 evidence
 claims
 summary
@@ -71,6 +71,10 @@ Each changed file must match the task `allowed_scope`.
 - `next_decision` must use the current decision vocabulary.
 - Blocked receipts must include `blocked_by`.
 - Invalid JSONL lines fail the check.
+- `checks[].status: "pass"` means the assertion in that check passed. For a
+  no-match claim such as "old vocabulary is absent", the command should be an
+  inverted search (`! rg ...`) or the evidence should name the allowed matches
+  explicitly. Do not record a plain positive search as proof of absence.
 
 ## Completion Checks
 
@@ -83,18 +87,31 @@ A done Goal Pack must include a final audit receipt:
   "result": "done",
   "decision": "complete",
   "oracle_satisfied": true,
-  "evidence": ["<oracle evidence>"]
+  "evidence_map": [
+    {
+      "claim": "completion.final_proof",
+      "evidence": ["<receipt/check/evidence reference>"]
+    }
+  ],
+  "not_claimed": [],
+  "remaining_gaps": []
 }
 ```
 
-The checker rejects done state when the final audit does not satisfy the oracle.
+The checker rejects done state when the final audit does not satisfy completion.
+
+When completion claims a schema or terminology migration, final audit evidence
+should cover active surfaces, not only the main skill body: `agents/**`,
+`evals/**`, templates, references, CLI help/flags, READMEs, tests/fixtures, and
+active Goal Pack artifacts. Public-surface names that remain old must be marked
+as documented aliases or excluded from the claim with `remaining_gaps`.
 
 ## Goal Relations Checks
 
 Base `goal-diffusion check` validates one Goal Pack. Cross-pack relation checks
 belong to `goal-diffusion relations check`.
 
-Relation metadata lives in `contract.yaml`:
+Relation metadata lives in `charter.yaml`:
 
 ```yaml
 goal_relations:

@@ -13,7 +13,7 @@ docs/goal-diffusion/
   sources/
   goals/
     <goal-id>/
-      contract.yaml
+      charter.yaml
       state.yaml
       receipts.jsonl
       implementation-plan.md  # only when plan_required
@@ -30,8 +30,8 @@ equivalent to these roles instead of recreating this exact tree.
 | Method index | Explains local Goal Diffusion routing and current goal packs | `docs/goal-diffusion/README.md` |
 | Inbox item | Weak signal, open candidate, or raw human input not yet a Goal Pack | `docs/goal-diffusion/inbox/` |
 | Source | Consumed context retained for traceability | `docs/goal-diffusion/sources/` |
-| Goal Pack | Contract, state, receipt chain, and notes for one goal | `docs/goal-diffusion/goals/<goal-id>/` |
-| Contract | Human-owned goal node | `docs/goal-diffusion/goals/<goal-id>/contract.yaml` |
+| Goal Pack | Charter, state, receipt chain, and notes for one goal | `docs/goal-diffusion/goals/<goal-id>/` |
+| Goal Charter | Human-owned goal authorization and executable intent compression | `docs/goal-diffusion/goals/<goal-id>/charter.yaml` |
 | State | Agent operating memory for current edge and tasks | `docs/goal-diffusion/goals/<goal-id>/state.yaml` |
 | Receipts | Append-only evidence chain | `docs/goal-diffusion/goals/<goal-id>/receipts.jsonl` |
 | Notes | Long narrative, final summaries, or source digests | `docs/goal-diffusion/goals/<goal-id>/notes/` |
@@ -55,8 +55,8 @@ harnessed path
   -> goal pack state.current_edge
   -> notes/ only when long explanation is needed
 
-goal contract
-  -> goal pack contract.yaml
+goal charter
+  -> goal pack charter.yaml
 
 run state
   -> goal pack state.yaml
@@ -112,14 +112,14 @@ Promote an inbox item to a Goal Pack only when it has or can honestly create:
 ```text
 objective
 authority_refs
-completion_oracle
+completion
 claim_boundary
 first harnessed edge
 ```
 
 Use `weak_signal` for raw material that is worth preserving but not yet
-evaluable. Use `open_candidate` when tradeoffs, authority refs, or a candidate
-oracle are visible but the first harnessed edge is not selected. Use
+evaluable. Use `open_candidate` when tradeoffs, authority refs, or candidate
+completion evidence are visible but the first harnessed edge is not selected. Use
 `decision_needed` only when continuing would require a higher-authority choice.
 Use `bridge_needed` when two goals or states need a first harnessed path.
 Use `source_ready` when the material has been consumed and should be retained
@@ -161,7 +161,7 @@ Not current implementation scope.
 Implementation may start only after the named evidence gates pass.
 ```
 
-If demoted material later becomes accepted authority, a Goal Pack contract, an
+If demoted material later becomes accepted authority, a Goal Pack charter, an
 implementation artifact, or a receipt, reduce the original material to a short
 backlink or delete it after references are updated.
 
@@ -174,10 +174,10 @@ receipt, notes, implementation plan, or host implementation artifact.
 
 ## Goal Pack Rules
 
-One Goal Pack owns one objective contract and one receipt chain.
+One Goal Pack owns one objective charter and one receipt chain.
 
 Follow-up work is represented by another Goal Pack only when it has its own
-contract, claim boundary, and receipt chain. A Goal Pack may reference another
+charter, claim boundary, and receipt chain. A Goal Pack may reference another
 Goal Pack in state or notes, but that referenced pack is not a second task list
 inside the current pack.
 
@@ -189,7 +189,7 @@ stays in `state.yaml` and `receipts.jsonl`.
 
 When the plan exists, the corresponding `state.yaml` task should use
 `type: plan_required`, `plan: implementation-plan.md`, and an `allowed_scope`
-entry for the plan file. The plan is not a contract, product spec, schema
+entry for the plan file. The plan is not a charter, product spec, schema
 authority, or parallel workflow; it is an execution plan for one selected
 high-risk slice inside the Goal Pack boundary.
 

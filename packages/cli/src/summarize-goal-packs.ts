@@ -208,7 +208,7 @@ export function listGoalPackRoots(goalsRoot) {
   return readdirSync(goalsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => join(goalsRoot, entry.name))
-    .filter((root) => existsSync(join(root, "contract.yaml")) || existsSync(join(root, "state.yaml")) || existsSync(join(root, "receipts.jsonl")))
+    .filter((root) => existsSync(join(root, "charter.yaml")) || existsSync(join(root, "state.yaml")) || existsSync(join(root, "receipts.jsonl")))
     .sort();
 }
 

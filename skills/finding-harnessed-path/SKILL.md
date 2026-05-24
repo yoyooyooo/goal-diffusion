@@ -1,9 +1,10 @@
 ---
 name: finding-harnessed-path
 description: >-
-  Edge phase for Goal Diffusion. Prefer entering through $goal-diffusion. Use
-  this phase when a Goal Pack needs the smallest falsifiable runnable path from
-  current clarity to a sharper state, or when no honest path may exist.
+  Finds the smallest falsifiable runnable edge for a Goal Diffusion Goal Pack
+  and writes state.yaml.current_edge. Use through $goal-diffusion when a Goal
+  Plan/Goal Pack needs a first executable path, sharper next state, or an honest
+  blocked decision because no path exists.
 ---
 
 # Edge Phase
@@ -49,7 +50,7 @@ infrastructure is run-phase work only when it proves the current edge.
 
 ## Quick Workflow
 
-1. Read `contract.yaml`.
+1. Read `charter.yaml`.
 2. Read authority context relevant to the edge.
 3. Classify the distance: greenfield, existing module, stabilization before
    feature, transition, or blocked authority.
@@ -70,7 +71,7 @@ smallest_bridge_needed:
 human_decision_needed:
 ```
 
-Then set `state.next_decision: blocked` or return to the contract phase.
+Then set `state.next_decision: blocked` or return to the charter phase.
 
 ## Output
 

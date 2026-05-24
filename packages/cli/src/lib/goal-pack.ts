@@ -5,6 +5,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
+import { allChecksPass, checkLines, hasFinalAuditEvidence, receiptChecks } from "./goal-receipt-helpers.ts";
 
 export const STATUS_VALUES = ["forming", "ready", "running", "blocked", "done", "retired"];
 export const TASK_TYPES = ["scout", "judge", "worker", "pm", "audit", "plan_required"];
@@ -16,31 +17,36 @@ export const GOAL_RELATION_TYPES = ["successor_of", "depends_on", "supersedes", 
 export function loadGoalPack(goalRoot) {
   const root = resolveGoalPackRoot(goalRoot);
   const files = {
-    contract: join(root, "contract.yaml"),
+    charter: join(root, "charter.yaml"),
+    contract: join(root, "charter.yaml"),
     state: join(root, "state.yaml"),
     receipts: join(root, "receipts.jsonl"),
   };
   const missing = [];
-  if (!existsSync(files.contract)) missing.push("contract.yaml");
+  if (!existsSync(files.charter)) missing.push("charter.yaml");
   if (!existsSync(files.state)) missing.push("state.yaml");
   if (!existsSync(files.receipts)) missing.push("receipts.jsonl");
 
-  const contractText = existsSync(files.contract) ? readFileSync(files.contract, "utf8") : "";
+  const charterText = existsSync(files.charter) ? readFileSync(files.charter, "utf8") : "";
   const stateText = existsSync(files.state) ? readFileSync(files.state, "utf8") : "";
   const receiptsText = existsSync(files.receipts) ? readFileSync(files.receipts, "utf8") : "";
   const { receipts, parseErrors: receiptParseErrors } = parseReceipts(receiptsText);
+  const charter = parseCharter(charterText);
 
   return {
     root,
     name: basename(root),
     files,
     missing,
+    schema: existsSync(files.charter) ? "v1" : "missing",
     texts: {
-      contract: contractText,
+      charter: charterText,
+      contract: charterText,
       state: stateText,
       receipts: receiptsText,
     },
-    contract: parseContract(contractText),
+    charter,
+    contract: charter,
     state: parseState(stateText),
     receipts,
     receiptParseErrors,
@@ -70,27 +76,42 @@ function looksLikePath(value) {
   return value.includes("/") || value.includes("\\") || value === "." || value === ".." || value.startsWith("./") || value.startsWith("../") || value.startsWith("~/");
 }
 
-export function parseContract(text) {
+export function parseCharter(text) {
+  const engineeringGuidanceBody = blockText(text, "engineering_guidance", 0);
+  const autonomyBody = blockText(text, "autonomy", 0);
   return {
     id: topScalar(text, "id"),
     status: topScalar(text, "status"),
+    intent: {
+      source: pathScalar(text, ["intent"], "source"),
+      interpreted_as: pathScalar(text, ["intent"], "interpreted_as"),
+      assumptions: listScalar(blockText(text, "intent", 0), "assumptions", 2),
+      open_questions: listScalar(blockText(text, "intent", 0), "open_questions", 2),
+    },
     objective: topScalar(text, "objective"),
     north_star: topScalar(text, "north_star"),
     goal_relations: parseGoalRelations(text),
     authority_refs: listScalar(text, "authority_refs", 0),
-    architecture_standard: listScalar(text, "architecture_standard", 0),
+    engineering_guidance: {
+      standards: listScalar(engineeringGuidanceBody, "standards", 2),
+      architecture_notes: listScalar(engineeringGuidanceBody, "architecture_notes", 2),
+      quality_bar: pathScalar(text, ["engineering_guidance"], "quality_bar"),
+      preferred_harness: pathScalar(text, ["engineering_guidance"], "preferred_harness"),
+    },
     constraints: listScalar(text, "constraints", 0),
     non_goals: listScalar(text, "non_goals", 0),
     stop_rules: listScalar(text, "stop_rules", 0),
-    completion_oracle: {
-      signal: pathScalar(text, ["completion_oracle"], "signal"),
-      final_proof: pathScalar(text, ["completion_oracle"], "final_proof"),
+    completion: {
+      signal: pathScalar(text, ["completion"], "signal"),
+      final_proof: pathScalar(text, ["completion"], "final_proof"),
     },
     claim_boundary: topScalar(text, "claim_boundary"),
-    autonomy_policy: {
-      continue_by_default: pathScalar(text, ["autonomy_policy"], "continue_by_default"),
-      protected_fields: listScalar(blockText(text, "autonomy_policy", 0), "protected_fields", 2),
+    autonomy: {
+      continue_by_default: pathScalar(text, ["autonomy"], "continue_by_default"),
+      cannot_silently_change: listScalar(autonomyBody, "cannot_silently_change", 2),
+      agent_may_revise: listScalar(autonomyBody, "agent_may_revise", 2),
     },
+    evidence_mode: topScalar(text, "evidence_mode"),
   };
 }
 
@@ -143,6 +164,7 @@ function relationScalar(lines, key) {
 }
 
 export function parseState(text) {
+  const lastVerification = blockText(text, "last_verification", 0);
   return {
     version: topScalar(text, "version"),
     goal_id: topScalar(text, "goal_id"),
@@ -159,7 +181,7 @@ export function parseState(text) {
     blockers: listScalar(text, "blockers", 0),
     last_verification: {
       result: pathScalar(text, ["last_verification"], "result") || "unknown",
-      commands: listScalar(blockText(text, "last_verification", 0), "commands", 2),
+      checks: listScalar(lastVerification, "checks", 2),
     },
     next_decision: topScalar(text, "next_decision"),
   };
@@ -214,7 +236,7 @@ export function inspectGoalPack(goalRoot) {
     goal_id: pack.contract.id || pack.state.goal_id || null,
     status: pack.state.status || pack.contract.status || null,
     objective: pack.contract.objective || null,
-    oracle: pack.contract.completion_oracle,
+    completion: pack.contract.completion,
     claim_boundary: pack.contract.claim_boundary || null,
     current_edge: pack.state.current_edge,
     active_task: activeTask,
@@ -243,11 +265,11 @@ export function renderPrompt(goalRoot, { taskId = null } = {}) {
   return {
     goal_id: pack.contract.id || pack.state.goal_id || null,
     status: pack.state.status || null,
-    protected_fields: {
+    charter_fields: {
       objective: pack.contract.objective || null,
       authority_refs: pack.contract.authority_refs,
-      architecture_standard: pack.contract.architecture_standard,
-      completion_oracle: pack.contract.completion_oracle,
+      engineering_guidance: pack.contract.engineering_guidance,
+      completion: pack.contract.completion,
       claim_boundary: pack.contract.claim_boundary || null,
       stop_rules: pack.contract.stop_rules,
     },
@@ -271,21 +293,21 @@ export function validateGoalPack(pack) {
   for (const error of pack.receiptParseErrors) errors.push(error);
 
   const { contract, state, receipts } = pack;
-  if (!contract.id) errors.push("contract.yaml missing id");
+  if (!contract.id) errors.push("charter.yaml missing id");
   if (!STATUS_VALUES.includes(contract.status)) {
-    errors.push(`contract status must be ${STATUS_VALUES.join(", ")}; got ${contract.status || "<missing>"}`);
+    errors.push(`charter status must be ${STATUS_VALUES.join(", ")}; got ${contract.status || "<missing>"}`);
   }
   if (!STATUS_VALUES.includes(state.status)) {
     errors.push(`state status must be ${STATUS_VALUES.join(", ")}; got ${state.status || "<missing>"}`);
   }
   if (contract.status && state.status && contract.status !== state.status) {
-    warnings.push(`contract status ${contract.status} differs from state status ${state.status}`);
+    warnings.push(`charter status ${contract.status} differs from state status ${state.status}`);
   }
   if (state.next_decision && !NEXT_DECISIONS.includes(state.next_decision)) {
     errors.push(`state next_decision must be ${NEXT_DECISIONS.join(", ")}; got ${state.next_decision}`);
   }
-  if (isWeak(contract.completion_oracle.signal)) warnings.push("completion_oracle.signal is missing or weak");
-  if (isWeak(contract.completion_oracle.final_proof)) warnings.push("completion_oracle.final_proof is missing or weak");
+  if (isWeak(contract.completion.signal)) warnings.push("completion.signal is missing or weak");
+  if (isWeak(contract.completion.final_proof)) warnings.push("completion.final_proof is missing or weak");
   if (isWeak(contract.claim_boundary)) warnings.push("claim_boundary is missing or weak");
   if (state.tasks.length === 0) errors.push("state.yaml tasks must contain at least one task");
 
@@ -314,8 +336,8 @@ export function validateGoalPack(pack) {
   if (state.status === "done") {
     if (state.active_task !== null) errors.push("done goal pack must set active_task: null");
     if (activeTasks.length > 0) errors.push("done goal pack must not have active tasks");
-    if (isWeak(contract.completion_oracle.signal) || isWeak(contract.completion_oracle.final_proof) || isWeak(contract.claim_boundary)) {
-      errors.push("done goal pack requires concrete completion_oracle and claim_boundary");
+    if (isWeak(contract.completion.signal) || isWeak(contract.completion.final_proof) || isWeak(contract.claim_boundary)) {
+      errors.push("done goal pack requires concrete completion and claim_boundary");
     }
     const finalAudit = receipts.find((receipt) =>
       (receipt.type === "audit" || receipt.task_id === "T999")
@@ -326,14 +348,14 @@ export function validateGoalPack(pack) {
       errors.push("done goal pack requires a final audit receipt with decision: complete");
     } else {
       if (finalAudit.oracle_satisfied !== true) errors.push("final audit receipt must set oracle_satisfied: true");
-      if (!Array.isArray(finalAudit.evidence) || finalAudit.evidence.length === 0) errors.push("final audit receipt must include evidence");
+      if (!hasFinalAuditEvidence(finalAudit)) errors.push("final audit receipt must include evidence_map");
     }
   }
 
   return {
     ok: errors.length === 0,
     goal_pack: pack.name,
-    contract_status: contract.status,
+    charter_status: contract.status,
     state_status: state.status,
     active_task: state.active_task,
     task_count: state.tasks.length,
@@ -372,9 +394,9 @@ export function validateReceipt(pack, receipt) {
 
   if (receipt.result === "done" && receipt.type === "worker") {
     if (!Array.isArray(receipt.changed_files) || receipt.changed_files.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing changed_files`);
-    if (!Array.isArray(receipt.commands) || receipt.commands.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing commands`);
-    for (const command of Array.isArray(receipt.commands) ? receipt.commands : []) {
-      if (!command || command.status !== "pass") errors.push(`receipt ${receipt.task_id} done worker command did not pass`);
+    if (!Array.isArray(receiptChecks(receipt)) || receiptChecks(receipt).length === 0) errors.push(`receipt ${receipt.task_id} done worker missing checks`);
+    for (const check of receiptChecks(receipt)) {
+      if (!check || check.status !== "pass") errors.push(`receipt ${receipt.task_id} done worker check did not pass`);
     }
     if (!Array.isArray(receipt.evidence) || receipt.evidence.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing evidence`);
     if (!Array.isArray(receipt.claims) || receipt.claims.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing claims`);
@@ -387,7 +409,7 @@ export function validateReceipt(pack, receipt) {
 
   if (receipt.type === "audit" && receipt.decision === "complete") {
     if (receipt.oracle_satisfied !== true) errors.push("final audit receipt must set oracle_satisfied: true");
-    if (!Array.isArray(receipt.evidence) || receipt.evidence.length === 0) errors.push("final audit receipt must include evidence");
+    if (!hasFinalAuditEvidence(receipt)) errors.push("final audit receipt must include evidence_map");
   }
 
   return errors;
@@ -472,7 +494,7 @@ export function activateGoalPack(goalRoot, { taskId, dryRun = false }: ActivateG
     status: nextState.status,
     active_task: nextState.active_task,
     next_decision: nextState.next_decision,
-    contract_status: contractStatus,
+    charter_status: contractStatus,
     warnings,
   };
 }
@@ -501,7 +523,7 @@ export function advanceGoalPack(goalRoot, { dryRun = false } = {}) {
     nextState.blockers = unique([...nextState.blockers, ...latest.blocked_by]);
     nextState.last_verification = {
       result: "blocked",
-      commands: commandLines(latest.commands),
+      checks: checkLines(receiptChecks(latest)),
     };
     nextState.next_decision = "blocked";
   } else if (latest.type === "audit" && latest.decision === "complete" && latest.oracle_satisfied === true) {
@@ -510,15 +532,15 @@ export function advanceGoalPack(goalRoot, { dryRun = false } = {}) {
     nextState.active_task = null;
     nextState.last_verification = {
       result: "pass",
-      commands: commandLines(latest.commands),
+      checks: checkLines(receiptChecks(latest)),
     };
     nextState.next_decision = "done";
     contractStatus = "done";
   } else if (latest.result === "done") {
     task.status = "done";
     nextState.last_verification = {
-      result: allCommandsPass(latest.commands) ? "pass" : "unknown",
-      commands: commandLines(latest.commands),
+      result: allChecksPass(receiptChecks(latest)) ? "pass" : "unknown",
+      checks: checkLines(receiptChecks(latest)),
     };
     const decision = latest.next_decision || "edge";
     applyNextDecision(nextState, decision, warnings);
@@ -539,7 +561,7 @@ export function advanceGoalPack(goalRoot, { dryRun = false } = {}) {
     dry_run: dryRun,
     receipt: compactReceipt(latest),
     state: nextState,
-    contract_status: contractStatus,
+    charter_status: contractStatus,
     warnings,
   };
 }
@@ -575,7 +597,7 @@ export function serializeState(state) {
   lines.push("");
   lines.push("last_verification:");
   lines.push(`  result: ${state.last_verification.result || "unknown"}`);
-  appendList(lines, "  commands:", state.last_verification.commands || [], 4);
+  appendList(lines, "  checks:", state.last_verification.checks || [], 4);
   lines.push("");
   lines.push(`next_decision: ${state.next_decision || "edge"}`);
   return `${lines.join("\n")}\n`;
@@ -722,8 +744,9 @@ function receiptSchemaForTask(task) {
       result: "done",
       decision: "complete",
       oracle_satisfied: true,
-      evidence: ["<oracle evidence>"],
-      claims: ["<claim>"],
+      evidence_map: [{ claim: "completion.final_proof", evidence: ["<receipt/check/evidence reference>"] }],
+      not_claimed: [],
+      remaining_gaps: [],
       summary: "",
       next_decision: "done",
     };
@@ -733,9 +756,10 @@ function receiptSchemaForTask(task) {
     type: task.type,
     result: "done",
     changed_files: ["<file-in-allowed-scope>"],
-    commands: [{ cmd: "<command>", status: "pass" }],
+    checks: [{ kind: "command", cmd: "<command>", status: "pass" }],
     evidence: ["<evidence>"],
     claims: ["<claim>"],
+    not_claimed: [],
     summary: "",
     next_decision: "continue",
   };
@@ -790,20 +814,6 @@ function activateQueuedTask(state, warnings, { preferredType, fallbackDecision }
   state.next_decision = fallbackDecision;
   if (queued.length > 1) warnings.push(`multiple queued tasks match ${preferredType || "any"}; active_task not changed`);
   if (queued.length === 0) warnings.push(`no queued task matches ${preferredType || "any"}; next_decision set to ${fallbackDecision}`);
-}
-
-function allCommandsPass(commands) {
-  if (!Array.isArray(commands) || commands.length === 0) return false;
-  return commands.every((command) => command && command.status === "pass");
-}
-
-function commandLines(commands) {
-  if (!Array.isArray(commands)) return [];
-  return commands.map((command) => {
-    if (typeof command === "string") return command;
-    if (!command || !command.cmd) return null;
-    return `${command.cmd} [${command.status || "unknown"}]`;
-  }).filter(Boolean);
 }
 
 function appendList(lines, label, values, itemIndent) {

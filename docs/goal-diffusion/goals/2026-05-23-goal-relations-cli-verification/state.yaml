@@ -65,7 +65,7 @@ blockers:
 
 last_verification:
   result: pass
-  commands:
+  checks:
     - "bun run check [pass]"
     - "goal-diffusion-dev check docs/goal-diffusion/goals/2026-05-23-goal-relations-cli-verification [pass]"
     - "goal-diffusion-dev relations check docs/goal-diffusion/goals --thread goal-relations --json [pass]"

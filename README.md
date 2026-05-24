@@ -4,34 +4,33 @@
 
 # Goal Diffusion
 
-Goal Diffusion is a goal-driven method for long-running agent work.
+Goal Diffusion is a long-running AI coding method and workflow for highly
+capable agents.
 
 It applies to any project type: 0-to-1 MVPs, new features, migrations,
 refactors, debugging campaigns, audits, research, documentation governance, or
 tooling. The difference is not whether it applies, but which boundaries,
 validation methods, and stop conditions each project needs.
 
-It solves a specific problem: when an agent needs to keep working for a long
-time, how do you make the goal clearer, the path more verifiable, and the
-execution less dependent on an over-specified implementation plan written too
-early?
+It does not try to lock a strong agent inside a giant task table. It gives the
+agent a clear charter, a verifiable current edge, receipt-backed execution, and
+a stricter path only when risk calls for it.
 
 ## Diffusion Analogy
 
 The name borrows from diffusion models: low precision becomes high precision.
 
-At the start, you may only have a few coarse goal nodes. As work progresses,
-smaller and clearer goal nodes are inserted between distant ones. The goal graph
-becomes denser and more precise.
+At the start, you may only have a coarse target. As work progresses, the agent
+inserts smaller, clearer, verifiable states between the target and reality.
 
 ```text
-coarse goal -> intermediate goal -> smaller goal -> verifiable goal
+coarse target -> current edge -> evidenced state change -> sharper next step
 ```
 
-The links between those nodes are Harness Paths: verifiable paths from the
-current goal to the next goal. Every Harness Path needs a validation method:
-test scripts, build commands, screenshots, human acceptance checklists, log
-collection, data comparison, or any other evidence that proves the path holds.
+The links between those states are Harness Paths: verifiable paths from current
+state to sharper state. A check can be a test script, build command, CLI output,
+screenshot, log collection, human acceptance checklist, data comparison, or any
+other evidence that supports the claim.
 
 ## Goal-Driven, Not Implementation-Driven
 
@@ -55,32 +54,44 @@ with evidence.
 
 | Term | Plain meaning |
 | --- | --- |
-| Goal Node | A describable and acceptable target point |
-| Goal Plan | The goal-contract generation or repair phase, mainly producing `contract.yaml` |
-| Harness Path | A verifiable path between two goal nodes |
-| Validation | A test, check, collection method, or acceptance method that proves a path |
-| Receipt | Evidence recorded after one verified step |
-| Goal Pack | Project folder for one long-running goal |
+| Goal Pack | Completion unit for one long-running goal |
+| Goal Charter | Executable compression of human intent and authorization |
+| Current Edge | Current smallest verifiable movement path |
+| Harness Path | Verifiable path from current state to sharper state |
+| Check | Test, command, manual gate, or evidence collection method behind a claim |
+| Receipt | Append-only evidence checkpoint after executed work |
+| Final Audit | Completion evidence summary mapped back to `completion` |
 | Goal Thread | Shared `goal_relations.thread_id` label across related Goal Packs |
 | Goal Relation | Typed, evidence-linked metadata from one Goal Pack to another |
 | Derived Graph View | CLI-rendered view from Goal Relations, not stored planning state |
-| `contract.yaml` | Target, scope, constraints, and acceptance |
-| `state.yaml` | Current progress and the next allowed piece of work |
-| `receipts.jsonl` | Append-only evidence from completed work |
-| `implementation-plan.md` | Execution plan for high-risk work only |
+| `charter.yaml` | Goal authorization, boundaries, completion criteria, and autonomy policy |
+| `state.yaml` | Runtime state, active task, current edge, and next decision |
+| `receipts.jsonl` | Append-only receipts |
+| `implementation-plan.md` | Plan for `plan_required` high-risk slices only |
 
 ## How It Works
 
 Goal Diffusion asks one question per pass: what is the smallest verifiable next
-step that still moves the goal forward?
+edge that still moves the goal forward?
 
 ```text
-goal and boundaries -> contract -> Harness Path -> state -> validation -> receipt -> next goal | audit
+human intent
+  -> agent writes goal charter
+  -> agent finds current edge
+  -> agent executes largest safe useful slice
+  -> agent records receipt
+  -> continue | plan_required | blocked | audit
+  -> final audit maps evidence to completion
+  -> done
 ```
 
 The loop is deliberately narrow. It does not require a full task tree up front.
 It locks the goal and boundaries, finds one verifiable path, does useful work,
-records evidence, and then continues sharpening the goal graph.
+records evidence, and then continues from the next edge.
+
+Default work does not require machine-level formal proof. Completion discipline
+still applies: any `done` claim must say which completion criteria were met,
+where the evidence is, what is not claimed, and where remaining gaps went.
 
 ## Install
 
@@ -111,7 +122,7 @@ npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent codex --sk
 ## How To Use
 
 After installation, you do not need to manually create a Goal Pack or maintain
-`contract.yaml` / `state.yaml`. Give the target to the agent and explicitly ask
+`charter.yaml` / `state.yaml`. Give the target to the agent and explicitly ask
 it to use `$goal-diffusion`.
 
 For a new long-running goal, this is enough:
@@ -131,11 +142,12 @@ the CLI for status checks, briefs, receipts, and advancement.
 ## Aligning With The Agent
 
 The human owns the goal, boundaries, acceptance, and stop conditions. The agent
-compiles those inputs into a Goal Plan and writes them into the Goal Pack.
+compresses those inputs into a Goal Charter and writes them into the Goal Pack.
 
-A Goal Plan is not a detailed implementation checklist. It is a goal contract:
-what should be achieved, where the scope ends, how it will be verified, and when
-the agent should stop. Its main artifact is `contract.yaml`.
+A Goal Charter is not a detailed implementation checklist. It is the executable
+goal authorization: what should be achieved, where the scope ends, how it will
+be verified, and when the agent should stop. Its main artifact is
+`charter.yaml`.
 
 After alignment, the agent finds the first Harness Path and writes it into
 `state.yaml`. If the goal is still too vague, the agent should ask questions. If
@@ -145,7 +157,7 @@ verifiable path.
 ## Rolling Execution
 
 Long-running agent work cannot rely on "just keep going." If the goal is too
-near, the agent will cautiously do a little and ask again. If the goal is too
+near, the agent may cautiously do a little and ask again. If the goal is too
 far, execution becomes hard to control.
 
 Goal Diffusion gives the agent a far enough goal for direction, while
@@ -153,14 +165,14 @@ continually adding smaller and clearer goal nodes to the graph. The agent moves
 one verifiable Harness Path at a time.
 
 ```text
-brief -> work -> verify -> receipt -> advance -> continue or block
+charter -> edge -> work -> check -> receipt -> continue | plan_required | blocked | audit
 ```
 
 At the end of each pass, the agent must answer:
 
 - Was this step verified?
 - What is the evidence?
-- Is the next step still inside the contract?
+- Is the next step still inside the charter boundary?
 
 If yes, it records a receipt and continues. If it hits a boundary violation,
 missing permission, failed validation, unclear goal, or no honest verifiable
@@ -173,13 +185,13 @@ evidence, and stop conditions.
 ## Goal Relations
 
 Goal Relations connect independent Goal Packs without creating another planning
-object. A Goal Pack stays the unit of completion: one objective, one oracle, one
-state file, and one append-only receipt chain.
+object. A Goal Pack stays the unit of completion: one objective, one completion,
+one state file, and one append-only receipt chain.
 
 A Goal Thread is only a shared `thread_id` label. It has no lifecycle, task
 list, state file, receipt stream, registry, or stored graph.
 
-Relations live in `contract.yaml` metadata:
+Relations live in `charter.yaml` metadata:
 
 ```yaml
 goal_relations:
@@ -200,6 +212,16 @@ normal follow-up starts a successor Goal Pack instead of reopening the old one.
 The graph is derived from Goal Relations at inspection time. It is not stored in
 the repository as planning state.
 
+## Current Migration Status
+
+This README uses the future v1 vocabulary: `charter.yaml`, `completion`,
+`engineering_guidance`, `checks`, and `evidence_map`.
+
+The active CLI, templates, skills, checker behavior, tests, README files, and
+dogfood Goal Packs use v1 vocabulary as the primary path. Older vocabulary may
+remain only in archived source material or migration receipts that preserve the
+evidence trail.
+
 ## Using Codex `/goal`
 
 Goal Diffusion stores long-running goal state. Codex `/goal` hands one execution
@@ -208,7 +230,7 @@ run to the agent so it can keep working for a while.
 Short prompt:
 
 ```text
-/goal Use $goal-diffusion: read `goal-diffusion brief <goal-id>`, complete the current active task, verify it, record a receipt, and advance; continue if still inside the contract, otherwise stop and report boundary issues, missing permission, failed validation, or unclear goals.
+/goal Use $goal-diffusion: read `goal-diffusion brief <goal-id>`, complete the current active task, verify it, record a receipt, and advance; continue if still inside the charter boundary, otherwise stop and report boundary issues, missing permission, failed validation, or unclear goals.
 ```
 
 More explicit prompt:
@@ -219,7 +241,7 @@ Run `goal-diffusion brief <goal-id>` to get the current brief.
 Complete the current active task from the brief.
 Run the necessary verification.
 Record a receipt and advance state.
-If the next step remains inside the contract, continue rolling execution.
+If the next step remains inside the charter boundary, continue rolling execution.
 If the work crosses a boundary, lacks permission, fails validation, has an unclear goal, or has no verifiable path, stop and report a block.
 ```
 
@@ -236,7 +258,7 @@ directly, but that is not the normal path.
 | Skill | When used | Role |
 | --- | --- | --- |
 | `goal-diffusion` | Normal user entry | Main router that decides the current phase |
-| `goal-plans` | No Goal Pack, or unclear contract | Create or repair `contract.yaml` |
+| `goal-plans` | No Goal Pack, or unclear charter | Create or repair `charter.yaml` |
 | `finding-harnessed-path` | No verifiable next step | Find a Harness Path and write `state.yaml.current_edge` |
 | `diffusion-implementation` | Active task exists | Execute, verify, record receipt, advance, and continue inside boundaries |
 | `write-implementation-plans` | High-risk work | Write `implementation-plan.md` before execution |
@@ -345,15 +367,16 @@ docs/goal-diffusion/
   inbox/
   sources/
   goals/<goal-id>/
-    contract.yaml
+    charter.yaml
     state.yaml
     receipts.jsonl
     implementation-plan.md  # only when plan_required
     notes/
 ```
 
-`contract.yaml` defines the goal and boundaries. `state.yaml` records current
-progress and the next allowed task. `receipts.jsonl` is append-only evidence.
+`charter.yaml` defines the goal authorization, boundaries, completion criteria,
+and autonomy policy. `state.yaml` records runtime state and the next allowed
+task. `receipts.jsonl` is append-only evidence.
 `notes/` stores long-form context only when needed.
 `implementation-plan.md` exists only when a selected `plan_required` task needs
 a reviewed execution plan before work starts.
@@ -363,7 +386,7 @@ a reviewed execution plan before work starts.
 ```text
 packages/cli/                   TypeScript CLI, built with Bun
 skills/goal-diffusion/          Entry skill
-skills/goal-plans/              Contract writing skill
+skills/goal-plans/              Goal Charter authoring skill
 skills/finding-harnessed-path/  Next-step selection skill
 skills/diffusion-implementation/ Work execution skill
 skills/write-implementation-plans/ Plan-required work skill

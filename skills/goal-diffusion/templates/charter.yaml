@@ -1,6 +1,12 @@
 id: "<goal-id>"
 status: forming # forming | ready | running | blocked | done | retired
 
+intent:
+  source: "<path-or-url-or-human-message>"
+  interpreted_as: "<agent interpretation of the human intent>"
+  assumptions: []
+  open_questions: []
+
 objective: "<one observable owner outcome>"
 north_star: "<far target that must not be lost>"
 
@@ -16,8 +22,13 @@ goal_relations:
 authority_refs:
   - "<path-or-url>"
 
-architecture_standard:
-  - "<architecture or method standard this goal must obey>"
+engineering_guidance:
+  standards:
+    - "<standard path or rule>"
+  architecture_notes:
+    - "<architecture or method note this goal should obey>"
+  quality_bar: "<quality bar for this goal>"
+  preferred_harness: "<preferred check or evidence path>"
 
 constraints:
   - "<hard constraint>"
@@ -25,7 +36,7 @@ constraints:
 non_goals:
   - "<explicit non-goal>"
 
-completion_oracle:
+completion:
   signal: "<observable signal proving the original outcome is true>"
   final_proof: "<receipt-backed proof required before completion>"
 
@@ -34,15 +45,31 @@ claim_boundary: "<what this goal may and may not claim>"
 stop_rules:
   - "<when the agent must stop for human or higher-authority decision>"
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
-    - authority_refs
-    - architecture_standard
+    - completion
     - claim_boundary
+    - stop_rules
+    - authority_refs
   agent_may_revise:
     - next_slice
     - task_order
     - harness_strength
     - implementation_shape
+
+evidence_mode: normal # light | normal | strict
+
+conditional:
+  interfaces: []
+  data_policy:
+  security_boundary:
+  migration_guard:
+  release_gate:
+  coordination:
+
+strict:
+  required_checks: []
+  required_evidence: []
+  provenance: []

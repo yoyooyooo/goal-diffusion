@@ -1,20 +1,34 @@
 # Goal Diffusion
 
-This directory stores Goal Packs and related input/source material for the Goal
-Diffusion operating loop.
+本目录存放 Goal Diffusion 方法产物：inbox、sources、Goal Pack、receipt 和需要保留的长上下文。
+
+项目级 docs 治理规则不放在这里；先读 `../README.md`。
 
 ## Homes
 
-| Role | Path |
-|---|---|
+| 角色 | 路径 |
+| --- | --- |
 | inbox | `docs/goal-diffusion/inbox/` |
 | sources | `docs/goal-diffusion/sources/` |
 | goal packs | `docs/goal-diffusion/goals/<goal-id>/` |
 | implementation plans | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
+未来目标 Goal Pack 结构：
+
+```text
+goals/<goal-id>/
+  charter.yaml
+  state.yaml
+  receipts.jsonl
+  implementation-plan.md  # 仅 plan_required 时存在
+  notes/
+```
+
+当前 dogfood Goal Pack 主路径使用 v1 `charter.yaml` 结构。旧口径只保留在归档 source 或迁移 receipt 文本中作为证据记录。
+
 ## Active Goal Packs
 
-- None.
+- `goals/2026-05-24-charter-v1-dogfood-migration/` - migrate this repository to future v1 charter/completion/checks/evidence_map schema.
 
 ## Completed Goal Packs
 
@@ -30,10 +44,12 @@ Diffusion operating loop.
 - `goal-relations` - completed protocol and CLI verification packs.
 - `receipt-cli` - receipt command-surface improvements for agent-first read/write workflows.
 
-Goal Threads are shared labels only. Goal Packs remain independent completion
-units, and relation graphs are derived views rather than stored planning
-artifacts.
+Goal Thread 只是共享标签。Goal Pack 仍然是完成单位；relation graph 是派生视图，不作为存储规划状态。
 
 ## Inbox
 
+弱信号、开放候选和未准备进入 Goal Pack 的输入放这里。Inbox 不是 backlog。
+
 ## Sources
+
+已被消费但需要保留追溯的材料放这里。Sources 不是开放候选。

@@ -1,11 +1,13 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 
-const cliScript = resolve("src/goal-diffusion.ts");
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
 
 function makePack() {
   const root = mkdtempSync(join(tmpdir(), "goal-pack-test-"));
@@ -15,7 +17,7 @@ function makePack() {
 }
 
 function writePack(root, { contract, state, receipts = "" }) {
-  writeFileSync(join(root, "contract.yaml"), contract.trimStart());
+  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
   writeFileSync(join(root, "state.yaml"), state.trimStart());
   writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
 }
@@ -35,11 +37,12 @@ status: running
 objective: "Exercise the Goal Pack checker."
 authority_refs:
   - "goal-diffusion/SKILL.md"
-architecture_standard:
-  - "Contract / Edge / State / Receipt are the minimum primitives."
-completion_oracle:
+engineering_guidance:
+  standards:
+    - "Contract / Edge / State / Receipt are the minimum primitives."
+completion:
   signal: "The checker validates Goal Pack state, tasks, receipts, and final audits."
-  final_proof: "Checker passes and final audit maps receipts to the oracle."
+  final_proof: "Checker passes and final audit maps receipts to completion."
 claim_boundary: "Only claims local checker behavior."
 `;
 
@@ -116,7 +119,7 @@ next_decision: continue
   }
 });
 
-test("rejects done goal packs without an oracle-backed final audit receipt", () => {
+test("rejects done goal packs without a completion-backed final audit receipt", () => {
   const root = makePack();
   try {
     writePack(root, {
@@ -169,7 +172,7 @@ tasks:
 blockers: []
 next_decision: continue
 `,
-      receipts: `{"task_id":"T404","type":"worker","result":"done","changed_files":["goal-diffusion/SKILL.md"],"commands":[{"cmd":"bun test packages/cli/test/check-goal-pack.test.ts","status":"pass"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
+      receipts: `{"task_id":"T404","type":"worker","result":"done","changed_files":["goal-diffusion/SKILL.md"],"checks":[{"kind":"command","cmd":"bun test packages/cli/test/check-goal-pack.test.ts","status":"pass"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
     });
 
     const result = runChecker(root);
@@ -180,7 +183,7 @@ next_decision: continue
   }
 });
 
-test("rejects done worker receipts without passing commands inside allowed scope", () => {
+test("rejects done worker receipts without passing checks inside allowed scope", () => {
   const root = makePack();
   try {
     writePack(root, {
@@ -204,13 +207,13 @@ tasks:
 blockers: []
 next_decision: continue
 `,
-      receipts: `{"task_id":"T001","type":"worker","result":"done","changed_files":["outside.txt"],"commands":[{"cmd":"bun test packages/cli/test/check-goal-pack.test.ts","status":"fail"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
+      receipts: `{"task_id":"T001","type":"worker","result":"done","changed_files":["outside.txt"],"checks":[{"kind":"command","cmd":"bun test packages/cli/test/check-goal-pack.test.ts","status":"fail"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
     });
 
     const result = runChecker(root);
     assert.equal(result.status, 1);
     assert.match(result.stdout.errors.join("\n"), /receipt T001 changed file outside allowed_scope: outside\.txt/i);
-    assert.match(result.stdout.errors.join("\n"), /receipt T001 done worker command did not pass/i);
+    assert.match(result.stdout.errors.join("\n"), /receipt T001 done worker check did not pass/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

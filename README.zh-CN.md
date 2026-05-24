@@ -3,66 +3,240 @@
 
 # Goal Diffusion
 
-Goal Diffusion 是一套目标驱动的长期 agent 任务方法论。
+Goal Diffusion 是一套面向高智能 agent 的长期 AI coding 方法论和工作流。
 
-它适用于任何类型的项目：从 0 到 1 做 MVP、新功能、迁移、重构、排障、审计、研究探索、文档治理、工具链建设。
-区别不在于“能不能用”，而在于不同项目的边界、验证方式和停止条件不同。
+它适用于新项目、老项目、功能开发、迁移、重构、排障、审计、研究探索、文档治理和工具链建设。区别不在于“能不能用”，而在于不同项目需要不同的边界、验证方式、证据强度和停止条件。
 
-它解决的问题很具体：当一个任务需要 agent 长时间持续推进时，怎样让目标越来越清楚、路径越来越可验证，同时不把 agent 绑死在过早写好的实施细节里。
-
-## Diffusion 类比
-
-这里的 Diffusion 类比扩散模型的“从低精度到高精度”。
-
-一开始，你可能只有几个很粗的大目标节点。随着工作推进，两个较远的目标节点之间会补进更小、更清晰的目标节点。目标图从稀疏变密，从模糊变清楚。
+Goal Diffusion 的目标不是把强 agent 关进表格，而是给它清晰跳板：
 
 ```text
-粗目标 -> 中间目标 -> 更小目标 -> 可验证目标
+目标不漂移
+路径可验证
+过程可滚动
+完成可解释
+高风险可升级
 ```
 
-这些目标节点之间的连线，就是 Harness Path：一条从当前目标走向下一个目标的可验证路径。
-每条 Harness Path 都必须有验证方式，可以是测试脚本、构建命令、截图、人工验收清单、日志采集、数据对比，或其他能证明路径成立的手段。
+默认姿态是强 agent optimistic workflow：相信 agent 能自主实施，但要求它在目标、边界、证据和完成声明上保持诚实。
 
-## 目标驱动，而不是实施细节驱动
+## 核心思想
 
-传统 Spec-driven AI Coding 往往在规划阶段和 agent 对齐“怎么做”。这在一些场景有效，但也容易把大量精力花在提前约束实施细节上。
+传统 Spec-driven AI Coding 往往在规划阶段和 agent 对齐“怎么做”。这在一些场景有效，但也容易把强模型过早锁死在实施细节里。
 
 Goal Diffusion 把重心移到这些问题：
 
 - 要达到什么目标？
 - 目标边界是什么？
-- 怎样验证目标已经达成？
-- 什么时候应该停止、推进或回到人类确认？
+- 当前最小可验证推进路径是什么？
+- 完成声明需要回扣哪些证据？
+- 什么时候应该继续、升级计划、阻塞或回到人类确认？
 
-这样做不是不要规划，而是避免用过细的实施计划浪费强模型的自主实施能力。只要目标、边界、验证和停止条件清楚，agent 可以自己选择具体路径，并用证据持续校准。
+它不是不要规划，而是不默认写完整任务树。agent 只要目标授权、边界、验证和停止条件清楚，就应该自主选择实现路径，并用 receipt 持续校准。
+
+## Diffusion 类比
+
+这里的 Diffusion 类比“从低精度目标到高精度目标”。
+
+一开始，你可能只有一个较粗的目标。随着执行推进，agent 会在目标和现实之间补出更小、更清晰、可验证的中间节点。
+
+```text
+粗目标 -> 当前 edge -> 有证据的状态变化 -> 更清晰的下一步
+```
+
+这些节点之间的连线是 Harness Path：从当前状态走向更清晰状态的可验证路径。验证可以是测试脚本、构建命令、CLI 输出、截图、日志、人工验收清单、数据对比或其他能支撑 claim 的证据。
 
 ## 核心对象
 
-| 术语 | 人话 |
+| 对象 | 作用 |
 | --- | --- |
-| Goal Node | 一个可描述、可验收的目标点 |
-| Goal Plan | 目标合同的生成或修复阶段，产物主要是 `contract.yaml` |
-| Harness Path | 连接两个目标点的可验证路径 |
-| Validation | 证明路径成立的测试、检查、采集或验收方式 |
-| Receipt | 完成一次验证后留下的证据记录 |
-| Goal Pack | 项目里承载一个长期目标的文件夹 |
-| Goal Thread | 多个相关 Goal Pack 共享的 `goal_relations.thread_id` 标签 |
-| Goal Relation | 从一个 Goal Pack 指向另一个 Goal Pack 的带证据类型链接 |
-| Derived Graph View | CLI 根据 Goal Relations 渲染的派生视图，不是存储的规划状态 |
-| `contract.yaml` | 目标、范围、约束、验收方式 |
-| `state.yaml` | 当前进度和下一步允许做的小工作 |
-| `receipts.jsonl` | 完成工作后追加的验证证据 |
-| `implementation-plan.md` | 只给高风险工作用的执行计划 |
+| Goal Pack | 一个长期目标的完成单元 |
+| Goal Charter | agent 对人类意图的可执行压缩和目标授权 |
+| Current Edge | 当前最小可验证推进路径 |
+| Check | 支撑本轮 claim 的检查；命令只是 check 的一种 |
+| Receipt | 一段已执行工作的追加式证据检查点 |
+| Final Audit | 完成前的证据摘要，必须回扣 completion |
+| Goal Relation | Goal Pack 之间的证据关系 |
+| Goal Thread | 多个 Goal Pack 共享的标签，不拥有状态 |
+| `charter.yaml` | 目标授权、边界、完成标准和自主策略 |
+| `state.yaml` | 当前运行态、active task、edge 和 next decision |
+| `receipts.jsonl` | append-only receipts |
+| `implementation-plan.md` | 仅 `plan_required` 高风险 slice 使用 |
 
-## 运行方式
-
-Goal Diffusion 每轮只问一个问题：下一步最小可验证、同时又能推进目标的工作是什么？
+## 最小完整流程
 
 ```text
-目标和边界 -> contract -> Harness Path -> state -> 验证 -> receipt -> 下一目标 | 审计
+human intent
+  -> agent writes goal charter
+  -> agent finds current edge
+  -> agent executes largest safe useful slice
+  -> agent records receipt
+  -> continue | plan_required | blocked | audit
+  -> final audit maps evidence to completion
+  -> done
 ```
 
-这个循环刻意保持窄。它不要求一开始生成完整任务树，而是先锁住目标和边界，再找一条能验证的路径，做一段有用工作，留下证据，然后继续细化目标图。
+默认不做机器级形式化证明。完成 discipline 仍然存在：任何 `done` 都必须说明完成了哪个标准、证据在哪里、没有声明什么、剩余 gap 被路由到哪里。
+
+## 字段等级
+
+Goal Charter 使用字段等级，而不是把所有字段都变成必填。
+
+```text
+must    缺失则不能启动长期目标
+should  强烈建议；缺失可启动，但应记录 assumption 或 warning
+when    场景触发才需要
+strict  仅 evidence_mode: strict 时需要
+```
+
+默认字段口径：
+
+```yaml
+id:
+status: forming | ready | running | blocked | done | retired
+
+intent:
+  source:
+  interpreted_as:
+  assumptions: []
+  open_questions: []
+
+objective:
+north_star:
+
+authority_refs: []
+
+engineering_guidance:
+  standards: []
+  architecture_notes: []
+  quality_bar:
+  preferred_harness:
+
+constraints: []
+non_goals: []
+
+completion:
+  signal:
+  final_proof:
+
+claim_boundary:
+stop_rules: []
+
+autonomy:
+  continue_by_default: true
+  agent_may_revise:
+    - next_slice
+    - task_order
+    - harness_strength
+    - implementation_shape
+  cannot_silently_change:
+    - objective
+    - completion
+    - claim_boundary
+    - stop_rules
+    - authority_refs
+
+evidence_mode: light | normal | strict
+
+conditional:
+  interfaces: []
+  data_policy:
+  security_boundary:
+  migration_guard:
+  release_gate:
+  coordination:
+
+strict:
+  required_checks: []
+  required_evidence: []
+  provenance: []
+```
+
+`engineering_guidance` 是强烈建议字段，不是硬性架构合同。项目早期没有正式架构标准时，agent 可以继续，但应说明它将以现有代码结构、测试风格和最近权威文档作为工程指引。
+
+## Evidence Mode
+
+`light` 用于小修小补或一轮可完成的工作。可以只有一个 worker receipt 和一个 final audit。
+
+`normal` 是长期目标默认模式。需要 receipt、checks、evidence、claims、not_claimed 和 final audit 的 `evidence_map`。
+
+`strict` 只用于高风险场景，例如 public API/schema/protocol、安全、权限、私有数据、破坏性迁移、release/compliance、多 agent 严格协作，或 successor goal 依赖前置证据。
+
+## 完成证明
+
+默认 final audit 形态：
+
+```json
+{
+  "task_id": "T999",
+  "type": "audit",
+  "result": "done",
+  "decision": "complete",
+  "oracle_satisfied": true,
+  "evidence_map": [
+    {
+      "claim": "completion.final_proof",
+      "evidence": []
+    }
+  ],
+  "not_claimed": [],
+  "remaining_gaps": [],
+  "summary": "",
+  "next_decision": "done"
+}
+```
+
+这不是形式化 proof，而是完成理由压缩。它回答：
+
+- 哪个 `completion.final_proof` 被满足？
+- 哪些 receipt / check / evidence 支撑它？
+- 本次没有声明什么？
+- 剩余 gap 是删除、放入 inbox、创建 successor，还是进入最近实现 artifact？
+
+## 滚动实施
+
+Goal Diffusion 每轮只问一个问题：当前最小可验证、同时又能推进目标的 edge 是什么？
+
+```text
+charter -> edge -> work -> check -> receipt -> continue | plan_required | blocked | audit
+```
+
+edge phase 找最小可验证路径。run phase 执行最大安全有用 slice。这样不会把任务切成无意义小块，也不会一开始写完整任务树。
+
+agent 默认继续推进。只有以下情况才停：
+
+- 无法命名诚实可验证路径；
+- 需要静默改变 objective、completion、claim_boundary、stop_rules 或 authority_refs；
+- 触发安全、权限、私有数据、public API/schema/protocol、破坏性数据或 compliance 边界；
+- 验证反复失败且修复会越界。
+
+## `implementation-plan.md`
+
+`implementation-plan.md` 只在 `plan_required` 时存在。
+
+典型触发：
+
+- public API / schema / protocol；
+- security / permissions / private data；
+- destructive migration；
+- release / compliance；
+- 多 agent 严格协作；
+- 错一步回滚成本很高。
+
+它不是第二套任务系统。plan receipt 只声明“执行计划已就绪”，不声明目标完成。计划就绪后回到 rolling implementation。
+
+## Goal Relations
+
+Goal Relations 连接彼此独立的 Goal Pack，但不引入新的规划对象。Goal Pack 仍然是完成单位：一个 objective、一个 completion、一个 state 文件、一条 append-only receipt 链。
+
+Goal Thread 只是共享标签。它没有自己的生命周期、任务列表、状态文件、receipt 流、注册表或存储图。
+
+graph 是检查时从 Goal Relations 派生出来的视图，不作为规划状态写入仓库。
+
+## 当前迁移状态
+
+本 README 使用未来 v1 口径：`charter.yaml`、`completion`、`engineering_guidance`、`checks`、`evidence_map`。
+
+当前 CLI、templates、skills、checker、tests、README 和 dogfood Goal Pack 主路径已使用 v1 口径。旧口径只应出现在归档 source 或迁移 receipts 中，用于保留证据链。
 
 ## 安装
 
@@ -89,9 +263,7 @@ npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent codex --sk
 
 ## 如何使用
 
-安装后，用户不需要手动创建 Goal Pack 或维护 `contract.yaml` / `state.yaml`。把目标交给 agent，并明确使用 `$goal-diffusion` 即可。
-
-开始一个长期目标时，给 agent 这些信息就够：
+开始一个长期目标时，给 agent 这些信息即可：
 
 ```text
 使用 $goal-diffusion：
@@ -102,96 +274,19 @@ npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent codex --sk
 停止条件：遇到什么必须回来问我……
 ```
 
-agent 会在项目内创建或更新 `docs/goal-diffusion/goals/<goal-id>`，并用 CLI 做状态检查、简报、记录和推进。
-
-## 和 agent 对齐
-
-用户负责说清目标、边界、验收和停止条件。agent 负责把这些输入编译成 Goal Plan，并落到 Goal Pack 文件里。
-
-这里的 Goal Plan 不是“详细实施步骤清单”，而是目标合同：要达成什么、范围在哪里、怎样验证、什么时候停下来。它主要落在 `contract.yaml`。
-
-对齐完成后，agent 会继续找第一条 Harness Path，并写入 `state.yaml`。如果目标还太模糊，agent 应该先追问；如果边界和验收足够清楚，agent 应该开始找可验证路径。
-
-## 滚动实施
-
-让 agent 长时间运行，不能只靠一句“继续做”。目标太近，agent 会做一点就回来确认；目标太远，实施过程又会失控。
-
-Goal Diffusion 的做法是：给 agent 一个足够远的目标作为方向，同时不断在目标图里补充更小、更清晰的目标节点。agent 每次只沿着一条可验证的 Harness Path 推进。
-
-```text
-brief -> work -> verify -> receipt -> advance -> continue or block
-```
-
-每轮结束时，agent 都要回答：
-
-- 这一步是否已经验证？
-- 证据是什么？
-- 下一步是否仍在 contract 边界内？
-
-如果答案成立，就记录 receipt 并继续推进。如果遇到越界、缺权限、验证失败、目标不清或没有诚实可验证路径，就停止并汇报 block。
-
-这就是滚动实施：不是一次性写完整计划，也不是每做一点就问人，而是在目标、验证、证据和停止条件之间持续滚动。
-
-## Goal Relations
-
-Goal Relations 用来连接彼此独立的 Goal Pack，但不引入新的规划对象。Goal Pack 仍然是完成单位：一个 objective、一个 oracle、一个 state 文件、一条 append-only receipt 链。
-
-Goal Thread 只是共享的 `thread_id` 标签。它没有自己的生命周期、任务列表、状态文件、receipt 流、注册表或存储图。
-
-关系写在 `contract.yaml` 元数据中：
-
-```yaml
-goal_relations:
-  thread_id: goal-relations
-  links:
-    - goal_id: 2026-05-23-goal-relations-protocol
-      relation: successor_of
-      receipt_ref: T999
-      evidence:
-        - goal_relations_protocol_documented=true
-```
-
-允许的关系类型只有 `successor_of`、`depends_on`、`supersedes`、`related_to`。successor 应在前置 Goal Pack 完成后引用其 receipt 证据。done Goal Pack 默认 append-only 关闭；正常后续工作创建 successor Goal Pack，而不是重开旧包。
-
-graph 是检查时从 Goal Relations 派生出来的视图，不作为规划状态写入仓库。
-
-## 配合 Codex `/goal` 使用
-
-Goal Diffusion 负责保存长期目标状态；Codex `/goal` 负责把一次执行交给 agent 长时间推进。
-
-常用短提示词：
-
-```text
-/goal 使用 $goal-diffusion：读取 `goal-diffusion brief <goal-id>`，完成当前 active task，验证后记录 receipt 并 advance；能继续就继续，遇到越界、缺权限、验证失败或目标不清就停止汇报。
-```
-
-更完整的提示词：
-
-```text
-/goal 使用 $goal-diffusion：
-执行 `goal-diffusion brief <goal-id>` 获取当前简报。
-按简报完成当前 active task。
-完成后运行必要验证。
-记录 receipt，并执行 advance 推进状态。
-如果下一步仍在 contract 内，继续滚动实施。
-如果越界、缺权限、验证失败、目标不清或没有可验证路径，停止并汇报 block。
-```
-
-这里的 `brief` 是当前目标的执行简报，不是完整项目计划。Codex 读取它之后，应按 Goal Diffusion 的规则执行、验证、记录和推进。
+agent 会在项目内创建或更新 `docs/goal-diffusion/goals/<goal-id>`，并用 CLI 做状态检查、简报、记录和推进。执行 agent 默认信任 charter；只有发现意图误解、completion 不可验证、边界必须改变或风险升级时才 repair charter。
 
 ## 五个 skill 的关系
 
 用户日常只需要点名 `$goal-diffusion`。其余四个是阶段 skill，由 agent 按状态调用；高级用户才需要直接点名阶段 skill。
 
-| Skill | 什么时候用 | 作用 |
+| Skill | 什么时候用 | 未来职责 |
 | --- | --- | --- |
-| `goal-diffusion` | 用户日常点名 | 总入口，判断现在该进入哪个阶段 |
-| `goal-plans` | 没有 Goal Pack，或目标合同不清楚 | 生成或修复 `contract.yaml` |
-| `finding-harnessed-path` | 没有可验证下一步 | 找 Harness Path，写入 `state.yaml.current_edge` |
+| `goal-diffusion` | 用户日常点名 | 总入口，判断当前应进入哪个阶段 |
+| `goal-plans` | 没有 Goal Pack，或目标授权不清楚 | 生成或修复 `charter.yaml` |
+| `finding-harnessed-path` | 没有可验证下一步 | 找 current edge，写入 `state.yaml.current_edge` |
 | `diffusion-implementation` | 已有 active task | 执行、验证、记录 receipt、advance，并在边界内继续 |
-| `write-implementation-plans` | 高风险任务 | 先写 `implementation-plan.md`，再执行 |
-
-高风险通常包括迁移、安全、公共 API/schema/protocol、不可逆数据、严格多 agent 协调，或回滚代价很高的任务。
+| `write-implementation-plans` | 高风险任务 | 写 `implementation-plan.md`，计划就绪后回到执行 |
 
 ## 快速查看
 
@@ -208,18 +303,7 @@ goal-diffusion relations tasks . --thread <thread-id> --completion todo --json
 goal-diffusion brief <goal-pack>
 ```
 
-Relations 命令用于检查跨 Goal Pack 连续性，也用于发现 thread 成员候选 goal/task。
-它不创建队列、worklist、scheduler、thread 生命周期或执行顺序。
-
-```bash
-goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
-```
-
-在含有 `docs/goal-diffusion/goals/<goal-id>` 的项目内，可以直接传裸 goal id；也可以传目标文件夹。
+Relations 命令用于检查跨 Goal Pack 连续性，也用于发现 thread 成员候选 goal/task。它不创建队列、worklist、scheduler、thread 生命周期或执行顺序。
 
 ## CLI
 
@@ -245,19 +329,6 @@ goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
 
-`<goal-pack>` 可以是目标文件夹，也可以是裸 goal id。裸 id 会从当前目录向上解析到 `docs/goal-diffusion/goals/<goal-id>`。
-`summary` 可接收项目根目录或 `docs/goal-diffusion/goals` 目录；不传参数时从当前目录向上查找。
-对 `summary` 和 `list`，`--completion todo` 表示 goal status 既不是 `done` 也不是 `retired`，`--status` 过滤原始 Goal Pack status。
-读类 JSON 命令使用统一输出控制：`--limit` 限制可见集合，`--include path,objective,links` 显式补回省略字段，`--show-empty` 显示空值和默认值。默认省略空数组、null、路径、objective、原始 links 和零值桶，除非该值直接影响决策。
-`summary` 默认 `--depth groups`、`--limit 20`。`--depth repo` 只返回 repo 总量和 thread/unthreaded 数量，`--depth groups` 返回 thread 与 unthreaded 分组摘要，`--depth items` 在 thread 下展开有界 goal items，顶层 `items` 只放 unthreaded goals。过滤先于聚合执行。
-对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
-对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
-对 `record`，必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个。`--stdin` 用于 heredoc receipt JSON；`activate` 和 `advance` 仍是状态转移命令，不接收 payload。
-对 `relations`，`list` 显示关系元数据，`check` 校验证据，`graph` 渲染派生关系图。
-`goals` 用 goal 级过滤发现 thread 成员 Goal Pack。`tasks` 发现 thread 成员 task；`--status`
-过滤 task status，`--goal-status` 和 `--goal-completion` 过滤父 Goal Pack。
-这些命令只把 `goal_relations.thread_id` 当标签，不选择执行顺序。
-
 典型循环：
 
 ```text
@@ -268,31 +339,33 @@ check -> inspect -> brief -> work -> record -> advance -> check
 
 ## 目标文件夹结构
 
+未来目标结构：
+
 ```text
 docs/goal-diffusion/
   README.md
   inbox/
   sources/
   goals/<goal-id>/
-    contract.yaml
+    charter.yaml
     state.yaml
     receipts.jsonl
     implementation-plan.md  # 仅 plan_required 时存在
     notes/
 ```
 
-`contract.yaml` 定义目标和边界。`state.yaml` 记录当前进度和下一步允许做的任务。`receipts.jsonl` 保存追加式证据。`notes/` 只在需要时保存长上下文。
-`implementation-plan.md` 只在被选中的 `plan_required` 任务需要先审执行计划时存在。
+历史 dogfood Goal Pack 已按 v1 结构保留为 `charter.yaml`、`state.yaml`、`receipts.jsonl`。后续迁移 schema 时仍应同步更新 skills、CLI checker、README、测试和历史示例，不应只替换文件名。
 
 ## 仓库结构
 
 ```text
-packages/cli/                   TypeScript CLI，使用 Bun 构建
-skills/goal-diffusion/          入口 skill
-skills/goal-plans/              合同编写 skill
-skills/finding-harnessed-path/  下一步选择 skill
+packages/cli/                    TypeScript CLI，使用 Bun 构建
+skills/goal-diffusion/           入口 skill
+skills/goal-plans/               目标授权编写 skill（命名待收敛）
+skills/finding-harnessed-path/   下一步选择 skill
 skills/diffusion-implementation/ 工作执行 skill
 skills/write-implementation-plans/ plan-required 工作 skill
+docs/                            文档治理与方法论分层入口
 ```
 
 CLI 包发布名为 `goal-diffusion`。

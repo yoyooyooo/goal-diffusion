@@ -97,7 +97,7 @@ blockers:
 
 last_verification:
   result: pass
-  commands:
+  checks:
     - "bun run check [pass]"
     - "bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-23-relations-thread-discovery-cli [pass]"
     - "bun packages/cli/src/goal-diffusion.ts relations goals docs/goal-diffusion/goals --thread goal-relations --completion todo --json [pass]"

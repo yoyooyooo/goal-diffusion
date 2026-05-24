@@ -1,42 +1,48 @@
 ---
 name: goal-plans
 description: >-
-  Contract phase for Goal Diffusion. Prefer entering through $goal-diffusion.
-  Use this phase only to compile or repair a Goal Pack contract.yaml: objective,
-  authority, architecture standard, constraints, completion oracle, claim
-  boundary, stop rules, and autonomy policy.
+  Authors or repairs Goal Diffusion charter.yaml for a Goal Pack: objective,
+  authority, engineering guidance, completion, claim boundary, stop rules, and
+  autonomy policy. Use through $goal-diffusion when the user asks to turn a
+  discussed plan/solution into a Goal Plan, or when only the charter needs
+  compilation or repair.
 ---
 
-# Contract Phase
+# Goal Charter Phase
 
 This is an internal phase module for `$goal-diffusion`.
 
 It compiles or repairs the human-owned goal node:
 
 ```text
-docs/goal-diffusion/goals/<goal-id>/contract.yaml
+docs/goal-diffusion/goals/<goal-id>/charter.yaml
 ```
 
-## Contract Owns
+## Goal Charter Owns
 
 ```text
 id
 status
+intent
 objective
 north_star
 goal_relations
 authority_refs
-architecture_standard
+engineering_guidance
 constraints
 non_goals
-completion_oracle
+completion
 claim_boundary
 stop_rules
-autonomy_policy
+autonomy
+evidence_mode
+conditional
+strict
 ```
 
-The contract is the protected surface. Agents may not silently change objective,
-authority, architecture standard, claim boundary, or stop rules while running.
+The charter is the protected surface. Agents may not silently change objective,
+authority, completion, claim boundary, stop rules, or explicitly protected
+fields while running.
 
 ## Quick Workflow
 
@@ -44,27 +50,32 @@ authority, architecture standard, claim boundary, or stop rules while running.
    standards, ADR, architecture, roadmap, code/tests/evidence.
 2. Decide whether the work stays inline or needs a Goal Pack. If completion
    needs more than one verified receipt, create or repair the Goal Pack.
-3. Write or update `contract.yaml`.
-4. Define `completion_oracle.signal` and `completion_oracle.final_proof`.
+3. Write or update `charter.yaml`.
+4. Define `completion.signal` and `completion.final_proof`.
 5. Define `claim_boundary`: what the receipt chain may and may not claim.
-6. Define `autonomy_policy`: what agents may revise and which fields are
-   protected.
+6. Define `autonomy`: what agents may revise and which fields cannot change
+   silently.
 7. Route to the edge phase to discover the first harnessed edge.
 
-## Contract Rules
+## Charter Rules
 
-- Contract is not a task tree.
-- Contract does not precompute file-by-file implementation.
-- Contract links authority by path or URL; it does not copy authority content.
-- Contract may reference source material, but consumed source belongs in
+- Charter is not a task tree.
+- Charter does not precompute file-by-file implementation.
+- Charter links authority by path or URL; it does not copy authority content.
+- Charter may reference source material, but consumed source belongs in
   `docs/goal-diffusion/sources/` or `notes/`.
-- Contract may declare `goal_relations.thread_id` and `goal_relations.links`;
+- Charter may declare `goal_relations.thread_id` and `goal_relations.links`;
   these are metadata only, not a supervising plan, thread lifecycle, task tree,
   or nested Goal Pack state.
 - If a new Goal Pack continues a done Goal Pack, prefer `successor_of` with
   `receipt_ref` and required evidence tokens from the predecessor receipt.
 - If objective or authority is unclear and no honest edge can be named, stop
   before execution.
+- If the goal changes schema fields, method terminology, or command language,
+  include public surfaces in `claim_boundary`: CLI flags/help, JSON fields,
+  README examples, package docs, templates, agents, evals, tests, fixtures, and
+  active Goal Pack artifacts. The charter should make clear whether public names
+  are renamed, kept as documented aliases, or excluded from the claim.
 
 ## Output
 
@@ -72,9 +83,9 @@ Return:
 
 ```text
 goal_pack:
-contract:
+charter:
 status: forming | ready | running | blocked | done | retired
-oracle:
+completion:
 claim_boundary:
 next_phase: edge | blocked | inline
 ```

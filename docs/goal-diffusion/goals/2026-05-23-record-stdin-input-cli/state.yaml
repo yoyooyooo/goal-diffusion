@@ -72,7 +72,7 @@ blockers:
 
 last_verification:
   result: pass
-  commands:
+  checks:
     - "rtk bun run check [pass]"
     - "rtk bun packages/cli/src/goal-diffusion.ts check docs/goal-diffusion/goals/2026-05-23-record-stdin-input-cli [pass]"
     - "rtk bun packages/cli/src/goal-diffusion.ts receipts show docs/goal-diffusion/goals/2026-05-23-record-stdin-input-cli --index 2 --json [pass]"

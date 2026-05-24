@@ -20,7 +20,7 @@ the plan file.
 
 ## Goal Pack
 
-- contract: `docs/goal-diffusion/goals/<goal-id>/contract.yaml`
+- charter: `docs/goal-diffusion/goals/<goal-id>/charter.yaml`
 - state: `docs/goal-diffusion/goals/<goal-id>/state.yaml`
 - task: `<T###>`
 - plan: `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md`
@@ -29,7 +29,7 @@ the plan file.
 
 - objective:
 - authority:
-- architecture_standard:
+- engineering_guidance:
 - claim_boundary:
 - stop_if:
 
@@ -44,6 +44,8 @@ the plan file.
 - command/manual:
 - expected:
 - failure inspection:
+- no-match or allowlist checks for retired terms when absence is claimed
+- public-surface rename/alias checks when schema fields are renamed
 
 ## Execution Chunks
 
@@ -63,7 +65,7 @@ the plan file.
   "type": "plan_required",
   "result": "done",
   "changed_files": ["docs/goal-diffusion/goals/<goal-id>/implementation-plan.md"],
-  "commands": [{ "cmd": "<review command or manual gate>", "status": "pass" }],
+  "checks": [{ "kind": "command", "cmd": "<review command or manual gate>", "status": "pass" }],
   "evidence": ["<plan review evidence>"],
   "claims": ["<claim limited to plan readiness>"],
   "summary": "",
@@ -80,5 +82,12 @@ the plan file.
 
 ## Review Gate
 
-The plan is valid only if it preserves the Goal Pack contract and can return to
-the run phase without changing protected fields.
+The plan is valid only if it preserves the Goal Pack charter and can return to
+the run phase without changing fields listed in
+`autonomy.cannot_silently_change`.
+
+For schema, terminology, or command-language migrations, the plan should include
+an active-surface pass: skill bodies, references, templates, agents, evals,
+README/package docs, CLI help/flags, tests/fixtures, and active Goal Pack
+artifacts. It should also state whether public names are renamed, kept as
+documented aliases, or recorded as `remaining_gaps`.

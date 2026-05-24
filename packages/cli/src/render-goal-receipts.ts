@@ -1,4 +1,5 @@
 import { loadGoalPack, NEXT_DECISIONS, RECEIPT_RESULTS, TASK_TYPES } from "./lib/goal-pack.ts";
+import { receiptChecks } from "./lib/goal-receipt-helpers.ts";
 import { maybeSet, normalizeReadControls, readControlFilterFields, setIncluded, withoutZeroBuckets } from "./read-output-control.ts";
 
 const COMMAND_STATUSES = ["pass", "fail"];
@@ -120,7 +121,7 @@ function matchesFilters(receipt, filters) {
   if (filters.next_decision && receipt.next_decision !== filters.next_decision) return false;
   if (filters.oracle_satisfied !== null && (receipt.oracle_satisfied === true) !== filters.oracle_satisfied) return false;
   if (filters.changed_file && !arrayIncludesGlob(receipt.changed_files, filters.changed_file)) return false;
-  if (filters.command_status && !arrayIncludesCommandStatus(receipt.commands, filters.command_status)) return false;
+  if (filters.command_status && !arrayIncludesCommandStatus(receiptChecks(receipt), filters.command_status)) return false;
   if (filters.contains && !JSON.stringify(receipt).includes(filters.contains)) return false;
   return true;
 }
@@ -139,7 +140,7 @@ function compactReceiptItem(index, receipt, controls) {
   maybeSet(item, "next_decision", receipt.next_decision || null, controls);
   const counts = withoutZeroBuckets({
       changed_files: Array.isArray(receipt.changed_files) ? receipt.changed_files.length : 0,
-      commands: Array.isArray(receipt.commands) ? receipt.commands.length : 0,
+      checks: receiptChecks(receipt).length,
       evidence: Array.isArray(receipt.evidence) ? receipt.evidence.length : 0,
       claims: Array.isArray(receipt.claims) ? receipt.claims.length : 0,
       blocked_by: Array.isArray(receipt.blocked_by) ? receipt.blocked_by.length : 0,
@@ -172,7 +173,7 @@ function renderReceiptLine(item) {
   if (item.oracle_satisfied) parts.push("oracle=true");
   if (item.next_decision) parts.push(`next=${item.next_decision}`);
   parts.push(`files=${item.counts?.changed_files || 0}`);
-  parts.push(`commands=${item.counts?.commands || 0}`);
+  parts.push(`checks=${item.counts?.checks || 0}`);
   parts.push(`evidence=${item.counts?.evidence || 0}`);
   parts.push(`claims=${item.counts?.claims || 0}`);
   if ((item.counts?.blocked_by || 0) > 0) parts.push(`blocked_by=${item.counts.blocked_by}`);

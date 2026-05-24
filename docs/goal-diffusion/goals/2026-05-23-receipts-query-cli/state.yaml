@@ -61,7 +61,7 @@ blockers:
 
 last_verification:
   result: pass
-  commands:
+  checks:
     - "goal-diffusion-dev check docs/goal-diffusion/goals/2026-05-23-receipts-query-cli [pass]"
     - "goal-diffusion-dev receipts list 2026-05-23-receipts-query-cli --command-status pass --changed-file packages/cli/src/** --json [pass]"
     - "goal-diffusion-dev receipts show 2026-05-23-receipts-query-cli --index 1 --json [pass]"

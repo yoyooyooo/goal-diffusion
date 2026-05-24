@@ -24,7 +24,7 @@ function makeProjectPack(goalId = "cli-test-goal", options = {}) {
 
 function writePack(root, { contract = contractYaml, state = stateYaml, receipts = "" } = {}) {
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "contract.yaml"), contract.trimStart());
+  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
   writeFileSync(join(root, "state.yaml"), state.trimStart());
   writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
   return root;
@@ -44,9 +44,10 @@ status: running
 objective: "Exercise the Goal Pack command surface."
 authority_refs:
   - "goal-diffusion/SKILL.md"
-architecture_standard:
-  - "Command scripts mutate only receipts and deterministic state."
-completion_oracle:
+engineering_guidance:
+  standards:
+    - "Command scripts mutate only receipts and deterministic state."
+completion:
   signal: "CLI can inspect, brief, dispatch, activate, record receipts, advance state, and check packs."
   final_proof: "Node tests pass."
 claim_boundary: "Only proves local script behavior."
@@ -84,7 +85,7 @@ tasks:
 blockers: []
 last_verification:
   result: unknown
-  commands: []
+  checks: []
 next_decision: continue
 `;
 
@@ -94,9 +95,10 @@ status: done
 objective: "Exercise completed Goal Pack summary."
 authority_refs:
   - "goal-diffusion/SKILL.md"
-architecture_standard:
-  - "Command scripts summarize deterministic state."
-completion_oracle:
+engineering_guidance:
+  standards:
+    - "Command scripts summarize deterministic state."
+completion:
   signal: "Summary counts completed packs."
   final_proof: "Node tests pass."
 claim_boundary: "Only proves summary command behavior."
@@ -124,7 +126,7 @@ tasks:
 blockers: []
 last_verification:
   result: pass
-  commands:
+  checks:
     - "bun test packages/cli/test/goal-pack-cli.test.ts"
 next_decision: done
 `;
@@ -137,9 +139,10 @@ objective: >
   from a real Goal Pack.
 authority_refs:
   - "docs/authority.md"
-architecture_standard:
-  - "Stay bounded."
-completion_oracle:
+engineering_guidance:
+  standards:
+    - "Stay bounded."
+completion:
   signal:
     - "Route opens"
     - "List renders"
@@ -180,7 +183,7 @@ tasks:
 blockers: []
 last_verification:
   result: unknown
-commands: []
+checks: []
 next_decision: continue
 `;
 
@@ -198,7 +201,7 @@ const receiptHistoryJsonl = [
     type: "worker",
     result: "done",
     changed_files: ["packages/cli/src/goal-diffusion.ts", "packages/cli/src/render-goal-receipts.ts"],
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
     evidence: ["DO_NOT_DUMP_FULL_EVIDENCE", "compact receipt list"],
     claims: ["receipt list works"],
     summary: "Added compact receipts list.",
@@ -208,7 +211,7 @@ const receiptHistoryJsonl = [
     task_id: "T001",
     type: "worker",
     result: "blocked",
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "fail" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "fail" }],
     blocked_by: ["filter failure"],
     evidence: ["failed command"],
     summary: "Blocked on filter failure.",
@@ -258,8 +261,8 @@ test("inspect --json parses YAML block scalars and nested lists", () => {
     assert.equal(result.status, 0, result.stderr);
     const payload = JSON.parse(result.stdout);
     assert.equal(payload.objective, "Build source connection UI from a real Goal Pack.");
-    assert.deepEqual(payload.oracle.signal, ["Route opens", "List renders"]);
-    assert.deepEqual(payload.oracle.final_proof, ["Checks pass"]);
+    assert.deepEqual(payload.completion.signal, ["Route opens", "List renders"]);
+    assert.deepEqual(payload.completion.final_proof, ["Checks pass"]);
     assert.equal(payload.claim_boundary, "Claims UI route only.");
     assert.equal(payload.current_edge.from, "No product route");
     assert.equal(payload.current_edge.target_delta, "Product route usable");
@@ -441,7 +444,7 @@ test("receipts list defaults to compact recent receipt output", () => {
     assert.match(result.stdout, /filters: limit=5/);
     assert.match(result.stdout, /receipts: total=4 matched=4 shown=4/);
     assert.match(result.stdout, /#1\s+T001\s+pm\s+done\s+next=continue/);
-    assert.match(result.stdout, /#2\s+T001\s+worker\s+done\s+next=continue\s+files=2\s+commands=1\s+evidence=2\s+claims=1/);
+    assert.match(result.stdout, /#2\s+T001\s+worker\s+done\s+next=continue\s+files=2\s+checks=1\s+evidence=2\s+claims=1/);
     assert.match(result.stdout, /#4\s+T002\s+audit\s+done\s+decision=complete\s+oracle=true\s+next=done/);
     assert.doesNotMatch(result.stdout, /DO_NOT_DUMP_FULL_EVIDENCE/);
     assert.doesNotMatch(result.stdout, /changed_files/);
@@ -572,8 +575,8 @@ test("activate moves a queued task into running active state", () => {
   const root = makePack();
   try {
     const statePath = join(root, "state.yaml");
-    const contractPath = join(root, "contract.yaml");
-    writeFileSync(contractPath, contractYaml.replace("status: running", "status: ready").trimStart());
+    const charterPath = join(root, "charter.yaml");
+    writeFileSync(charterPath, contractYaml.replace("status: running", "status: ready").trimStart());
     writeFileSync(statePath, stateYaml
       .replace("status: running", "status: ready")
       .replace("active_task: T001", "active_task: null")
@@ -589,7 +592,7 @@ test("activate moves a queued task into running active state", () => {
     assert.match(readFileSync(statePath, "utf8"), /status: running/);
     assert.match(readFileSync(statePath, "utf8"), /active_task: T001/);
     assert.match(readFileSync(statePath, "utf8"), /id: T001[\s\S]*?status: active/);
-    assert.match(readFileSync(contractPath, "utf8"), /status: running/);
+    assert.match(readFileSync(charterPath, "utf8"), /status: running/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -626,7 +629,7 @@ tasks:
 blockers: []
 last_verification:
   result: unknown
-  commands: []
+  checks: []
 next_decision: plan_required
 `,
   });
@@ -802,7 +805,7 @@ test("receipt rejects out-of-scope changes and appends valid JSONL atomically", 
     type: "worker",
     result: "done",
     changed_files: ["outside.txt"],
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
     evidence: ["test"],
     claims: ["claim"],
     summary: "done",
@@ -813,7 +816,7 @@ test("receipt rejects out-of-scope changes and appends valid JSONL atomically", 
     type: "worker",
     result: "done",
     changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
     evidence: ["test"],
     claims: ["claim"],
     summary: "done",
@@ -844,7 +847,7 @@ test("main CLI record appends receipts", () => {
     type: "worker",
     result: "done",
     changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
     evidence: ["test"],
     claims: ["claim"],
     summary: "done",
@@ -869,7 +872,7 @@ test("main CLI record appends receipts from stdin", () => {
     type: "worker",
     result: "done",
     changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
     evidence: ["stdin receipt"],
     claims: ["record accepts explicit stdin input"],
     summary: "done from stdin",
@@ -907,7 +910,7 @@ test("main CLI record keeps file json and stdin input sources mutually exclusive
     type: "worker",
     result: "done",
     changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    commands: [{ cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
     evidence: ["test"],
     claims: ["claim"],
     summary: "done",
@@ -934,7 +937,7 @@ test("main CLI record keeps file json and stdin input sources mutually exclusive
 
 test("advance turns latest receipt into deterministic state", () => {
   const root = makePack({
-    receipts: `{"task_id":"T001","type":"worker","result":"done","changed_files":["packages/cli/src/goal-diffusion.ts"],"commands":[{"cmd":"bun test packages/cli/test/goal-pack-cli.test.ts","status":"pass"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
+    receipts: `{"task_id":"T001","type":"worker","result":"done","changed_files":["packages/cli/src/goal-diffusion.ts"],"checks":[{"kind":"command","cmd":"bun test packages/cli/test/goal-pack-cli.test.ts","status":"pass"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
   });
   try {
     const result = run(cliScript, ["advance", root]);

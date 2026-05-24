@@ -4,13 +4,13 @@
     {
       "id": 1,
       "prompt": "I need to migrate a medium-sized CLI from scripts into a package and keep progress resumable across sessions.",
-      "expected_output": "Decides a Goal Pack is warranted, identifies protected fields, creates or updates contract/state/receipts, and names the first harnessed edge instead of writing a speculative task tree.",
+      "expected_output": "Decides a Goal Pack is warranted, identifies charter fields that cannot silently change, creates or updates charter/state/receipts, and names the first harnessed edge instead of writing a speculative task tree.",
       "files": []
     },
     {
       "id": 2,
-      "prompt": "Continue this Goal Pack task and stop only if the completion oracle cannot be honestly verified.",
-      "expected_output": "Reads contract and state, runs the largest safe useful slice inside allowed scope, verifies it, records a receipt, advances state, and keeps the original objective intact.",
+      "prompt": "Continue this Goal Pack task and stop only if completion.final_proof cannot be honestly verified.",
+      "expected_output": "Reads charter and state, runs the largest safe useful slice inside allowed scope, verifies it, records a receipt, advances state, and keeps the original objective intact.",
       "files": []
     },
     {

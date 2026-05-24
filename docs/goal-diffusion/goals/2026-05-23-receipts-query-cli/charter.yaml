@@ -12,10 +12,11 @@ authority_refs:
   - "packages/cli/src/lib/goal-pack.ts"
   - "packages/cli/test/goal-pack-cli.test.ts"
 
-architecture_standard:
-  - "CLI commands must map stable natural-language intents to one primary command."
-  - "Default output should be compact and agent-readable; full raw receipt JSON should require an explicit show or JSON path."
-  - "Behavior changes must be covered by failing tests before implementation and verified by the repository check."
+engineering_guidance:
+  architecture_notes:
+    - "CLI commands must map stable natural-language intents to one primary command."
+    - "Default output should be compact and agent-readable; full raw receipt JSON should require an explicit show or JSON path."
+    - "Behavior changes must be covered by failing tests before implementation and verified by the repository check."
 
 constraints:
   - "Do not turn the CLI into a generic JSONL database or jq wrapper."
@@ -30,7 +31,7 @@ non_goals:
   - "No time-range filtering."
   - "No UI or web view."
 
-completion_oracle:
+completion:
   signal: "CLI exposes receipts list/show commands with compact defaults, JSON output, receipt index selection, and filters for task, type, result, decision, next decision, oracle satisfaction, changed file, command status, and contains text."
   final_proof: "Repository check passes; tests prove compact receipts list defaults avoid full raw dumps, filters compose with AND semantics, show returns one selected receipt by index, docs describe the command surface, and a final audit receipt sets oracle_satisfied true."
 
@@ -42,12 +43,12 @@ stop_rules:
   - "Stop if existing command semantics would need a breaking change."
   - "Stop if completion cannot be proved with local tests and the repository check."
 
-autonomy_policy:
+autonomy:
   continue_by_default: true
-  protected_fields:
+  cannot_silently_change:
     - objective
     - authority_refs
-    - architecture_standard
+    - engineering_guidance
     - claim_boundary
   agent_may_revise:
     - next_slice

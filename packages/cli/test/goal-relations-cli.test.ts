@@ -12,7 +12,7 @@ const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
 
 function writePack(root, { contract, state, receipts = "" }) {
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "contract.yaml"), contract.trimStart());
+  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
   writeFileSync(join(root, "state.yaml"), state.trimStart());
   writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
   return root;
@@ -57,9 +57,10 @@ goal_relations:
 ${serializedLinks}
 authority_refs:
   - "README.md"
-architecture_standard:
-  - "Relations are inspection metadata."
-completion_oracle:
+engineering_guidance:
+  standards:
+    - "Relations are inspection metadata."
+completion:
   signal: "Relations CLI can inspect and verify links."
   final_proof: "CLI tests pass."
 claim_boundary: "Only proves relation command behavior."
@@ -114,7 +115,7 @@ ${serializedTasks}
 blockers: []
 last_verification:
   result: unknown
-  commands: []
+  checks: []
 next_decision: ${nextDecision}
 `;
 }
@@ -142,7 +143,7 @@ tasks:
 blockers: []
 last_verification:
   result: pass
-  commands:
+  checks:
     - "bun test packages/cli/test/goal-relations-cli.test.ts"
 next_decision: done
 `;

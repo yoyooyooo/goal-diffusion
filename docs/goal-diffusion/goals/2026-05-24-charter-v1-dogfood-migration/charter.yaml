@@ -1,0 +1,99 @@
+id: "2026-05-24-charter-v1-dogfood-migration"
+status: done
+
+intent:
+  source: "docs/goal-diffusion/sources/2026-05-24-charter-v1-dogfood-migration-handoff.md"
+  interpreted_as: "把已冻结的 future v1 Goal Diffusion 口径转成 dogfood 迁移目标，推动本仓库从旧 contract/oracle/commands schema 收敛到 charter/completion/checks/evidence_map schema。"
+  assumptions:
+    - "本目标允许直接重写本仓库历史 dogfood Goal Pack 文件，以完成方法论自身 schema 收敛。"
+    - "该授权只适用于本仓库 dogfood 迁移，不代表普通用户项目默认可重写历史 evidence。"
+    - "如果迁移公开 npm 兼容性或 release 行为，需升级 evidence_mode 到 strict 或另开 release 目标。"
+  open_questions: []
+
+objective: "Migrate Goal Diffusion repository to the future v1 charter-based schema and strong-agent optimistic workflow across docs, skills, templates, CLI checker/renderer/tests, and historical dogfood Goal Packs."
+north_star: "Goal Diffusion should be a minimal-complete, broad-coverage long-running AI coding workflow for highly capable agents: lightweight by default, evidence-backed at completion, and strict only for high-risk work."
+
+authority_refs:
+  - "AGENTS.md"
+  - "README.zh-CN.md"
+  - "docs/README.md"
+  - "docs/ssot/README.md"
+  - "docs/standards/README.md"
+  - "docs/roadmap/README.md"
+  - "docs/goal-diffusion/sources/2026-05-24-charter-v1-dogfood-migration-handoff.md"
+  - "/Users/yoyo/.agents/skills/ai-coding-project-governance/SKILL.md"
+
+engineering_guidance:
+  standards:
+    - "docs/standards/README.md"
+    - "AGENTS.md"
+  architecture_notes:
+    - "Default workflow is strong-agent optimistic, not weak-agent defensive."
+    - "Goal Pack remains the completion unit."
+    - "implementation-plan.md is exceptional and only for plan_required tasks."
+    - "Future v1 must not introduce machine proof fields on the default path."
+    - "This goal must dogfood Goal Diffusion runtime artifacts: charter.yaml, state.yaml, receipts.jsonl, and implementation-plan.md when plan_required."
+    - "Project-level docs layers provide authority, routing, and evidence references; they must not become the workflow state or task tracker for this goal."
+  quality_bar: "All changed docs, skills, templates, CLI behavior, checker behavior, tests, and dogfood Goal Packs must use future v1 vocabulary as the active path; old terms may appear only in migration/history contexts."
+  preferred_harness: "bun run check plus docs governance audit and static vocabulary scan."
+
+constraints:
+  - "Do not broaden this goal into npm release unless release/versioning is explicitly added to the charter."
+  - "Do not design an external migration tool unless needed to finish this repository migration."
+  - "Do not introduce receipt_id, verify_ref, edge_id, or machine evidence tokens on the default path."
+  - "Do not make implementation-plan.md a default artifact."
+  - "Do not solve unrelated CLI feature requests while doing schema migration."
+  - "Historical dogfood Goal Packs under docs/goal-diffusion/goals/** may be directly rewritten to v1 schema as part of this goal."
+  - "Use this Goal Pack's charter.yaml, state.yaml, receipts.jsonl, and implementation-plan.md as the execution workflow. Do not use docs/roadmap/**, docs/README.md, or other project-level docs as the task tracker."
+  - "Every completed implementation slice must append a receipt that records the check/evidence/claim and the next decision."
+
+non_goals:
+  - "Migrating external user projects."
+  - "Publishing a stable public v1 npm release."
+  - "Maintaining old schema compatibility as a product promise."
+  - "Designing a weak-agent defensive proof system."
+
+completion:
+  signal: "Repository docs, skills, templates, CLI behavior, checker behavior, tests, and dogfood Goal Packs all use future v1 vocabulary and schema as the primary path."
+  final_proof: "bun run check passes; docs governance audit returns zero findings; CLI checker validates v1 Goal Packs; historical dogfood Goal Packs are rewritten to charter/state/receipts v1; README.zh-CN, README.md, AGENTS.md, docs/README.md, skills, templates, and tests agree on charter/completion/checks/evidence_map terminology; receipts show this migration was executed through Goal Pack artifacts rather than project-level docs workflow; final audit receipt maps evidence to this completion proof."
+
+claim_boundary: "This goal claims schema and method migration inside this repository only, plus dogfood validation that the migration was run through Goal Pack artifacts. It does not claim external project migration, published package compatibility, or a stable public v1 release unless release docs and package versioning are updated in the same goal."
+
+stop_rules:
+  - "Stop if migration requires changing release/versioning/public npm compatibility beyond schema and docs alignment."
+  - "Stop if a public CLI rename would break intended current users and requires a product decision."
+  - "Stop if direct rewrite of historical dogfood Goal Packs would destroy evidence needed by another active goal."
+  - "Stop if future v1 field levels cannot be expressed without adding strict proof fields to the default path."
+  - "Stop if docs governance and Goal Diffusion lifecycle ownership conflict and cannot be resolved by docs/README.md conflict order."
+
+autonomy:
+  continue_by_default: true
+  agent_may_revise:
+    - next_slice
+    - task_order
+    - harness_strength
+    - implementation_shape
+    - migration_batching
+  cannot_silently_change:
+    - objective
+    - completion
+    - claim_boundary
+    - stop_rules
+    - authority_refs
+    - evidence_mode
+
+evidence_mode: normal
+
+conditional:
+  interfaces:
+    - "CLI read/render/check behavior for Goal Pack schema."
+  data_policy:
+  security_boundary:
+  migration_guard: "Historical dogfood Goal Pack rewrite is in scope; preserve method-level evidence meaning while rewriting schema."
+  release_gate: "Release/versioning is out of scope unless explicitly added."
+  coordination: "Execution coordination lives in this Goal Pack's state/tasks/receipts. Project-level docs may describe authority and roadmap context but must not own task state."
+
+strict:
+  required_checks: []
+  required_evidence: []
+  provenance: []

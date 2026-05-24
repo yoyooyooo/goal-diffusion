@@ -52,7 +52,7 @@ Create a concrete Goal Pack only when the goal exists:
 
 ```text
 docs/goal-diffusion/goals/<goal-id>/
-  contract.yaml
+  charter.yaml
   state.yaml
   receipts.jsonl
   implementation-plan.md  # only when plan_required
@@ -89,7 +89,7 @@ Diffusion operating loop.
 ## Minimal Goal Pack
 
 ```text
-contract.yaml                 human-owned objective, authority, oracle, claim boundary
+charter.yaml                  objective, authority, completion, claim boundary, autonomy
 state.yaml                    current edge, active task, blockers, next decision
 receipts.jsonl                append-only task and audit receipts
 implementation-plan.md        optional pre-reviewed plan for one plan_required slice
@@ -111,5 +111,5 @@ notes/                        long material only
 - If authority is missing but an honest path exists inside the current claim
   boundary, create the thinnest bridge or harness and continue.
 - If product truth, SSoT, standard, ADR, public protocol/API/schema, security,
-  data handling, or claim boundary must change, stop for a higher-authority
-  decision.
+  data handling, completion, or claim boundary must change, stop for a
+  higher-authority decision.
