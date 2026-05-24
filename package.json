@@ -1,6 +1,6 @@
 {
   "name": "goal-diffusion-monorepo",
-  "version": "0.1.0",
+  "version": "0.1.9",
   "private": true,
   "description": "Goal Diffusion monorepo: agent skill and Bun-built CLI.",
   "type": "module",
