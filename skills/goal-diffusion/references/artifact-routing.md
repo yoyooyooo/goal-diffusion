@@ -37,6 +37,10 @@ equivalent to these roles instead of recreating this exact tree.
 | Notes | Long narrative, final summaries, or source digests | `docs/goal-diffusion/goals/<goal-id>/notes/` |
 | Implementation plan | Detailed plan only for high-risk selected slice | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
 
+The method index may list current Goal Packs and status entry points, but it
+should not maintain a hand-written progress list that competes with Goal Pack
+state, receipts, and CLI output.
+
 ## Flow
 
 ```text

@@ -50,6 +50,9 @@ fields while running.
    standards, ADR, architecture, roadmap, code/tests/evidence.
 2. Decide whether the work stays inline or needs a Goal Pack. If completion
    needs more than one verified receipt, create or repair the Goal Pack.
+   When selecting from existing work, use Goal Pack state, receipts, and CLI
+   output for ready / running / done facts. Roadmap anchors constrain strategy
+   and gates but are not sufficient progress facts.
 3. Write or update `charter.yaml`.
 4. Define `completion.signal` and `completion.final_proof`.
 5. Define `claim_boundary`: what the receipt chain may and may not claim.

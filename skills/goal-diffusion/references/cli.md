@@ -21,6 +21,13 @@ goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 ```
 
+For repo-wide progress questions, prefer direct `list`, `summary`, `tasks`, and
+`receipts list` over hand-written roadmap prose. Use `relations *` for
+thread-scoped continuity, predecessor evidence, and graph checks; it is not a
+replacement for direct repo-wide ready/running/done queries. A roadmap can
+constrain product strategy and launch gates, but Goal Pack state and receipts
+remain the source for ready / running / done and active-task claims.
+
 State commands:
 
 ```bash

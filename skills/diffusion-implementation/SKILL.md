@@ -32,6 +32,11 @@ charter objective, or lists tasks without saying how the next claim will be
 proved or falsified. In that case, return to edge discovery and sharpen the
 current edge before editing production code.
 
+Before activating or running a task, refresh the selected Goal Pack's state,
+receipts, and relevant relation checks. Do not start from a roadmap
+`default_next` or hand-written progress row alone; roadmap material can
+constrain launch policy, but Goal Pack artifacts prove current task state.
+
 ## Core Loop
 
 ```text

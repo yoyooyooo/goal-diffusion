@@ -104,6 +104,15 @@ Goal Diffusion owns inbox/source/Goal Pack/receipt lifecycle. Read
 weak signals, consumed sources, successor Goal Packs, leftover gaps, or retained
 evidence. Do not duplicate this lifecycle in project-level docs.
 
+## Progress Queries
+
+When asked for current progress, next ready work, active task, thread status, or
+completion, treat Goal Pack `state.yaml`, `receipts.jsonl`, relation metadata,
+and CLI output as the progress facts. Roadmaps may constrain product strategy,
+sequencing, launch gates, and evidence links, but they do not prove ready /
+running / done state. If a roadmap disagrees with Goal Pack facts, report the
+drift and continue from the Goal Pack facts.
+
 ## Phases
 
 Use phase skills through this controller unless the user targets a phase:

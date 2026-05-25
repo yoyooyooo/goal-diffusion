@@ -48,6 +48,11 @@ current_edge.failure_inspection
 edge, but it must stay focused on the current claim. Broad harness
 infrastructure is run-phase work only when it proves the current edge.
 
+When a roadmap next-anchor exists, refresh the selected Goal Pack's state and
+receipts before trusting it. A roadmap can suggest route priority, but the
+current edge must be grounded in the selected Goal Pack's own state and
+evidence.
+
 ## Edge Self-Check
 
 Before calling an edge ready, verify it answers these questions in

@@ -96,6 +96,11 @@ method-specific source/evidence layer.
 | `docs/architecture/**` | System maps, module relationships, runtime views, dependency direction | Overriding SSoT or hidden implementation tasks |
 | `docs/roadmap/**` | Sequencing, milestones, gates, coverage matrices, status and evidence links | Step-by-step implementation checklists |
 
+When a project uses Goal Diffusion, roadmap status should remain a route,
+coverage, or evidence index. Goal Pack ready / running / done state, active
+task, receipts, relations, and final audit stay owned by Goal Diffusion
+artifacts and CLI output even when roadmap documents link to them.
+
 `docs/product/**` may be thin, but it should exist for long-term AI coding.
 Libraries, CLIs, infrastructure repositories, and internal tools still have a
 product surface: who it serves, what kind of experience or operating philosophy
@@ -192,6 +197,10 @@ docs/ssot/**
 ```
 
 Projects may adjust the order, but `docs/README.md` must say so.
+
+Method-internal lifecycle facts keep their owning method authority. For example,
+Goal Diffusion progress facts are not promoted into roadmap authority merely
+because a roadmap summarizes or links them.
 
 ## Index Requirements
 

@@ -30,6 +30,10 @@ and authority conflicts.
 | `evidence-record` | Past verified result or audit summary | Keep in reports, spec evidence, or linked handoff |
 | `obsolete` | Superseded and no longer useful | Delete after reference check |
 
+When an active route is backed by Goal Diffusion, keep the roadmap or goal index
+as a route/index artifact. Do not convert it into a parallel hand-written copy
+of Goal Pack ready / running / done state.
+
 ## Retention Gate
 
 Use this gate when auditing old docs, inherited planning trees, stale roadmap

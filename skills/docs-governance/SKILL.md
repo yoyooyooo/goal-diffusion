@@ -120,6 +120,10 @@ protocol/API/schema authority change, or unsafe raw/private data handling.
   Goal Pack completion rules in project-local docs. Thin local adapters may map
   host authority layers, commands, language policy, audit gates, and product
   promotion targets.
+- When a project uses Goal Diffusion, Goal Pack ready / running / blocked /
+  done, active task, receipt chain, and final audit are method facts owned by
+  Goal Diffusion artifacts and CLI output. Roadmaps may link to those facts or
+  record launch policy, but must not become a hand-written progress ledger.
 - Deferred follow-ups that may affect future architecture, harness, product
   scope, or agent handoff should be routed by the active method. For
   `$goal-diffusion` projects, that means an inbox item unless the gap belongs in
@@ -127,6 +131,8 @@ protocol/API/schema authority change, or unsafe raw/private data handling.
 - Reports are evidence summaries, not diaries.
 - Roadmaps carry sequence, gates, coverage, status, and evidence links; they do
   not become task trackers or evidence reports.
+- A roadmap status entry should be a route/index/evidence link, not a duplicate
+  source of Goal Pack progress truth.
 - Artifact graph YAML is judged metadata, not mechanical decoration. Scripts
   generate small views; agents still do semantic review before changing facts.
 - Audit scripts print to stdout. Durable summaries belong in reports only when

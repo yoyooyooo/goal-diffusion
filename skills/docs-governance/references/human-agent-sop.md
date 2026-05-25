@@ -188,6 +188,7 @@ retention and demotion marker
 Goal Relations
 receipt-backed completion
 final audit
+ready / running / blocked / done progress state
 ```
 
 This governance skill owns:
@@ -282,6 +283,9 @@ Keep queues distinct:
 - Decision queue: conflicts, missing authority, and human decisions.
 - Roadmap: sequence, gates, coverage, status, and evidence links.
 - Reports: evidence only.
+
+In a Goal Diffusion project, roadmap status is a route/index/evidence signal.
+Do not use it as a second source of Goal Pack progress truth.
 
 Do not use a roadmap, proposal directory, Goal Diffusion inbox, or
 method-specific queue as a generic planning backlog.

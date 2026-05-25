@@ -50,6 +50,8 @@ autonomy:
 
 Before handing a charter to edge discovery, verify:
 
+Use the same gate before marking a charter `ready`.
+
 - objective is observable;
 - authority refs point to current project truth or standards;
 - engineering guidance is explicit enough to guide execution, or assumptions are
