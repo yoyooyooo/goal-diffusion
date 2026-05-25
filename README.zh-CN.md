@@ -92,6 +92,10 @@ human intent
   -> done
 ```
 
+Goal Pack 不是因为有 task list 就 ready。只有当 charter 边界稳定，并且
+`state.yaml.current_edge` 能证明或证伪下一次推进时，才算 ready。好的 edge
+要说清起点状态、目标变化、输入或 fixture、检查命令或人工 gate、预期正向证据、负向 claim、claim ceiling 和失败后优先检查位置。
+
 默认不做机器级形式化证明。完成 discipline 仍然存在：任何 `done` 都必须说明完成了哪个标准、证据在哪里、没有声明什么、剩余 gap 被路由到哪里。
 
 ## 字段等级
@@ -218,6 +222,9 @@ charter -> edge -> work -> check -> receipt -> continue | plan_required | blocke
 ```
 
 edge phase 找最小可验证路径。run phase 执行最大安全有用 slice。这样不会把任务切成无意义小块，也不会一开始写完整任务树。
+
+charter alignment 和 edge discovery 是一个闭环。若只有 charter，还没有可证伪
+current edge，下一步是找 edge，不是进入实现。
 
 agent 默认继续推进。只有以下情况才停：
 

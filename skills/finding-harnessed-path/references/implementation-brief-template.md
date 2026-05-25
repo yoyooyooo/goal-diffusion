@@ -34,6 +34,14 @@ current_edge:
     - ...
 ```
 
+## Evidence Contract
+
+- Input / fixture / trace / manual gate:
+- Positive evidence:
+- Negative claims / non-claims:
+- Claim ceiling:
+- First failure inspection path:
+
 ## Claim Boundary
 
 - This edge can prove:

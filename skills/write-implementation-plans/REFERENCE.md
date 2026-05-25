@@ -86,6 +86,10 @@ The plan is valid only if it preserves the Goal Pack charter and can return to
 the run phase without changing fields listed in
 `autonomy.cannot_silently_change`.
 
+`ready_for_run: true` also requires `state.yaml.current_edge` to remain
+falsifiable after the plan. If the plan changes the evidence path, update the
+edge before returning to run phase.
+
 For schema, terminology, or command-language migrations, the plan should include
 an active-surface pass: skill bodies, references, templates, agents, evals,
 README/package docs, CLI help/flags, tests/fixtures, and active Goal Pack

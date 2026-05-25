@@ -66,6 +66,10 @@ Use [REFERENCE.md](REFERENCE.md#plan-template) for the full template and
 [EXAMPLES.md](EXAMPLES.md) for an example. The plan must include verification,
 receipt requirements, and handoff back to the run phase.
 
+`ready_for_run: true` requires a falsifiable current edge. If the plan clarifies
+the missing evidence path, update or request an update to `state.yaml.current_edge`
+before handing back to implementation.
+
 ## Output
 
 ```text

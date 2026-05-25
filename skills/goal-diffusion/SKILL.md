@@ -22,6 +22,17 @@ Invariant:
 Goals are connected by harnessed paths and evidence chains, not by speculative task trees.
 ```
 
+Ready gate:
+
+```text
+Goal Pack ready = charter boundary stable + current_edge falsifiable
+```
+
+A task list, roadmap paragraph, or future smoke name does not make a Goal Pack
+ready. If `charter.yaml` exists but `state.yaml.current_edge` cannot yet prove
+or falsify the next movement, keep the next phase as edge discovery rather than
+reporting run readiness.
+
 ## User Phrase Mapping
 
 When a user says "turn this into a Goal Plan", treat "Goal Plan" as a natural
@@ -48,6 +59,10 @@ check -> inspect -> brief -> work -> record -> advance -> check
 Read or create the Goal Pack, keep the charter boundary stable, run the next
 harnessed edge, append one receipt, advance state, and continue by default while
 the charter remains valid.
+
+Before running implementation, check that `state.yaml.current_edge` names:
+source state, target delta, harnessed path, verification, and failure
+inspection. If any of these are only summaries, first sharpen the edge.
 
 ## Goal Pack Shape
 

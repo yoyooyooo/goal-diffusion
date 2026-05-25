@@ -112,6 +112,12 @@ The loop is deliberately narrow. It does not require a full task tree up front.
 It locks the goal and boundaries, finds one verifiable path, does useful work,
 records evidence, and then continues from the next edge.
 
+A Goal Pack is not ready because it has a task list. It is ready when the
+charter boundary is stable and `state.yaml.current_edge` can prove or falsify
+the next movement. A good edge names the starting state, target delta, input or
+fixture, check command or manual gate, expected positive evidence, negative
+claims, claim ceiling, and failure inspection path.
+
 Default work does not require machine-level formal proof. Completion discipline
 still applies: any `done` claim must say which completion criteria were met,
 where the evidence is, what is not claimed, and where remaining gaps went.
@@ -190,6 +196,9 @@ After alignment, the agent finds the first Harness Path and writes it into
 `state.yaml`. If the goal is still too vague, the agent should ask questions. If
 boundaries and acceptance are clear enough, the agent should begin finding a
 verifiable path.
+
+Charter alignment and edge discovery form one closed loop. If only the charter
+exists, the next step is edge discovery, not implementation.
 
 ## Rolling Execution
 

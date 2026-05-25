@@ -48,6 +48,25 @@ current_edge.failure_inspection
 edge, but it must stay focused on the current claim. Broad harness
 infrastructure is run-phase work only when it proves the current edge.
 
+## Edge Self-Check
+
+Before calling an edge ready, verify it answers these questions in
+`state.yaml.current_edge`:
+
+- What concrete current state is this edge starting from?
+- What sharper state will be true if the edge succeeds?
+- What input, fixture, trace, command, UI action, dataset, or manual gate drives
+  the check?
+- What positive evidence tokens, assertions, or observations must appear?
+- What negative claims or non-claims must be recorded?
+- What is the claim ceiling of this proof level?
+- Where should the next agent inspect first if the edge fails?
+
+If the only verification is a future command name, sharpen the edge by defining
+the command contract and evidence envelope. If the command itself is the
+missing product work, make command creation the edge target and still specify
+the tokens or observations it must emit.
+
 ## Quick Workflow
 
 1. Read `charter.yaml`.
@@ -58,6 +77,23 @@ infrastructure is run-phase work only when it proves the current edge.
 5. Select the smallest falsifiable runnable edge.
 6. Record `current_edge` in `state.yaml`.
 7. Seed the first active task only when the next run step is clear.
+
+## Route Choice
+
+Prefer the lowest proof level that can honestly move the goal:
+
+```text
+static/boundary check
+  -> offline fixture
+  -> replay
+  -> adapter/projection smoke
+  -> DB-backed smoke
+  -> real runtime or manual acceptance
+```
+
+Do not jump to a real runtime or broad end-to-end path when an offline fixture
+can prove the current claim. Do not stay at a static check when the claim
+requires behavior.
 
 ## No Honest Path
 

@@ -1,0 +1,30 @@
+{
+  "skill_name": "interface-design-planning",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "已有 headless proof command 证明 workspace、project、run history 三个能力可用。现在我要开始做 Web 控制台界面，请拆 app shell、sidebar、页面、核心区域和第一批 UI slices。",
+      "expected_output": "应进入 headless-to-interface-growth，把 headless capability 映射到 user task、surface、route/page、component boundary、state cases 和 evidence/harness；默认拆到 L4，必要状态到 L5；不重新定义产品事实或后端架构。"
+    },
+    {
+      "id": 2,
+      "prompt": "我要规划一个复杂 SaaS 的界面模块：workspace、projects、members、billing、settings。需要导航、页面结构和视觉拆解，但还没有代码。",
+      "expected_output": "应先要求或总结前置产品规划，产出 interface model、IA、navigation model、route/page map、visual decomposition、frontend handoff 和 verification notes；不默认创建 docs/design，除非用户要求 durable artifact。"
+    },
+    {
+      "id": 3,
+      "prompt": "内核里叫 Goal Pack，产品侧叫目标计划，用户界面上可能叫 Project Run。帮我规划 UI 时怎么处理这些叫法？",
+      "expected_output": "应强制输出 Concept And Label Mapping，区分 canonical concept、product meaning、user-facing label、UI surface/route、frontend name hint 和 authority；不得用 UI label 反向改写 SSoT。"
+    },
+    {
+      "id": 4,
+      "prompt": "已有 React app，想加本地全文搜索界面。现有 sidebar、详情页和设置页都已经有样式了，别重造一套。",
+      "expected_output": "应进入 existing-ui-increment，先 inventory 现有 routes/components/styles，再给 Current UI Inventory、Gap To Target Interface、Incremental Slices；需要读取代码以保持现有 UI 约定。"
+    },
+    {
+      "id": 5,
+      "prompt": "我们要把视觉风格固定下来，方便后续 coding agent 不乱写颜色和间距。这个应该放在哪里，怎么写？",
+      "expected_output": "应把 DESIGN.md 作为一等可选 visual-system artifact，说明可读取或生成 docs/design/DESIGN.md 或 repo 既有 DESIGN.md；覆盖 tokens、layout、components、states、do/don'ts；同时说明 DESIGN.md 不承载 IA、route map、产品事实或架构。"
+    }
+  ]
+}

@@ -57,10 +57,31 @@ fields while running.
    silently.
 7. Route to the edge phase to discover the first harnessed edge.
 
+## Charter-To-Edge Contract
+
+A Goal Plan is not ready because the charter is written or tasks are listed.
+The charter authorizes the goal; the edge makes the next movement falsifiable.
+
+When the user asks to create a Goal Plan, do both unless they explicitly ask for
+only a charter draft:
+
+```text
+charter.yaml protects intent and boundaries
+state.yaml.current_edge proves the next movement can be tested
+receipts.jsonl stays empty until work runs
+```
+
+Use `status: forming` or `next_phase: edge` while the charter exists but the
+first honest edge is missing. Use `status: ready` only when the protected
+charter fields are stable and the current edge can identify the evidence path
+that would prove or falsify the next movement.
+
 ## Charter Rules
 
 - Charter is not a task tree.
 - Charter does not precompute file-by-file implementation.
+- Charter completion tokens are not enough by themselves; the edge must say how
+  the first check will produce, inspect, or falsify those tokens.
 - Charter links authority by path or URL; it does not copy authority content.
 - Charter may reference source material, but consumed source belongs in
   `docs/goal-diffusion/sources/` or `notes/`.

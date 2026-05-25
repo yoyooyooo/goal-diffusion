@@ -32,9 +32,15 @@ current_edge:
     - ...
 ```
 
-6. Seed or update the first task only when execution can start inside the
+6. Check the edge against the evidence contract:
+   - input, fixture, trace, command, UI action, dataset, or manual gate;
+   - expected positive evidence;
+   - negative claims or non-claims;
+   - claim ceiling;
+   - first failure inspection path.
+7. Seed or update the first task only when execution can start inside the
    charter boundary.
-7. Set `next_decision` to `continue`, `plan_required`, or `blocked`.
+8. Set `next_decision` to `continue`, `plan_required`, or `blocked`.
 
 ## Edge Quality
 
@@ -42,6 +48,8 @@ A good edge:
 
 - can be run, observed, or manually checked;
 - proves or falsifies a near movement toward the objective;
+- names the input or fixture and the expected evidence;
+- states negative claims and claim ceiling when the proof could be overread;
 - keeps the charter claim boundary intact;
 - avoids future-only infrastructure;
 - records where to inspect failure.
@@ -49,6 +57,7 @@ A good edge:
 A bad edge:
 
 - is a broad plan without proof;
+- only names a future command without saying what it must prove;
 - creates directories or placeholders as closure;
 - hides missing authority under task language;
 - expands into a full task tree.

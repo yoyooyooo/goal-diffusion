@@ -14,6 +14,24 @@ Internal phase module for `$goal-diffusion`.
 It runs the current harnessed edge. It does not redefine the charter and it
 does not stop merely because one useful slice finished.
 
+## Run Readiness Gate
+
+Do not run from a vague edge. Before implementation, confirm
+`state.yaml.current_edge` contains:
+
+```text
+from
+target_delta
+harnessed_path
+verify
+failure_inspection
+```
+
+The edge is not ready if it only names a future smoke command, repeats the
+charter objective, or lists tasks without saying how the next claim will be
+proved or falsified. In that case, return to edge discovery and sharpen the
+current edge before editing production code.
+
 ## Core Loop
 
 ```text

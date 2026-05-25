@@ -48,7 +48,7 @@ autonomy:
 
 ## Charter Review
 
-Before marking a charter `ready`, verify:
+Before handing a charter to edge discovery, verify:
 
 - objective is observable;
 - authority refs point to current project truth or standards;
@@ -60,6 +60,17 @@ Before marking a charter `ready`, verify:
   destructive boundaries;
 - an edge phase can name at least one honest falsifiable path.
 
+## Goal Pack Ready Gate
+
+A Goal Pack is ready only when both sides are true:
+
+- `charter.yaml` has stable protected fields;
+- `state.yaml.current_edge` records a falsifiable next movement with source
+  state, target delta, harnessed path, verification, and failure inspection.
+
+If the charter is stable but the edge is still missing, keep the next phase as
+edge discovery. Do not use tasks alone as readiness evidence.
+
 ## Human Review Boundary
 
 Humans review charter fields. Agents may propose repairs, but may not silently
@@ -70,7 +81,7 @@ starts.
 
 ```text
 forming  - still compiling target or authority
-ready    - edge can be discovered
+ready    - charter stable and current edge falsifiable
 running  - state has active execution
 blocked  - no safe path inside current charter
 done     - final audit satisfied completion
