@@ -361,8 +361,58 @@ test("relations check validates hard evidence and reports related_to as warnings
     assert.match(payload.errors.join("\n"), /missing-target.*missing target missing-goal/);
     assert.match(payload.errors.join("\n"), /missing-receipt.*missing receipt T123/);
     assert.match(payload.errors.join("\n"), /missing-evidence.*missing evidence absent=true/);
+    assert.match(payload.errors.join("\n"), /nearest evidence: protocol=true/);
     assert.match(payload.warnings.join("\n"), /soft-related.*related_to target missing-related is missing/);
     assert.match(payload.warnings.join("\n"), /soft-related.*related_to evidence absent=true is missing/);
+  } finally {
+    rmSync(project, { recursive: true, force: true });
+  }
+});
+
+test("relations check matches evidence tokens inside structured receipt fields", () => {
+  const project = mkdtempSync(join(tmpdir(), "goal-relations-structured-evidence-test-"));
+  const goalsRoot = join(project, "docs", "goal-diffusion", "goals");
+  const structuredReceipt = `${JSON.stringify({
+    task_id: "T999",
+    type: "audit",
+    result: "done",
+    decision: "complete",
+    oracle_satisfied: true,
+    evidence: ["command_execution_result=executed; exit_code=0"],
+    evidence_map: [
+      {
+        claim: "completion.final_proof",
+        evidence: [{ manual_gate: "pass" }],
+      },
+    ],
+    summary: "Structured receipt fields carry relation evidence.",
+    next_decision: "done",
+  })}\n`;
+
+  writePack(join(goalsRoot, "protocol-goal"), {
+    contract: relationContract({ id: "protocol-goal", status: "done", links: [] }),
+    state: doneRelationState("protocol-goal"),
+    receipts: structuredReceipt,
+  });
+  writePack(join(goalsRoot, "successor-goal"), {
+    contract: relationContract({
+      id: "successor-goal",
+      links: [{
+        goal_id: "protocol-goal",
+        relation: "successor_of",
+        receipt_ref: "T999",
+        evidence: ["command_execution_result=executed", "manual_gate=pass"],
+      }],
+    }),
+    state: relationState({ id: "successor-goal" }),
+  });
+
+  try {
+    const result = run(cliScript, ["relations", "check", project, "--thread", "goal-relations", "--json"]);
+    assert.equal(result.status, 0, result.stderr);
+    const payload = JSON.parse(result.stdout);
+    assert.equal(payload.ok, true);
+    assert.deepEqual(payload.errors, []);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }

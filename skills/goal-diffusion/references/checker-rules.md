@@ -42,6 +42,8 @@ Weak completion fields warn during active work and fail completion.
   `plan_required`.
 - `plan_required` tasks may include `plan: implementation-plan.md`; include the
   plan file in `allowed_scope` when the task writes or updates it.
+- If there is no active task and the first queued task is `plan_required`,
+  `next_decision` should be `plan_required`; mismatches warn but do not fail.
 
 ## Worker Checks
 

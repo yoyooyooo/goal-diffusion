@@ -292,13 +292,33 @@ export function createGoalDiffusionProgram(output: CliOutput = defaultOutput()) 
     .addOption(new Option("--file <path>", "receipt JSON file").conflicts(["json", "stdin"]))
     .addOption(new Option("--json <value>", "receipt JSON string").conflicts(["file", "stdin"]))
     .addOption(new Option("--stdin", "read receipt JSON from stdin").conflicts(["file", "json"]))
-    .action((goalRoot: string, options: { file?: string; json?: string; stdin?: boolean }) => {
+    .option("--advance", "advance deterministic state after recording")
+    .option("--check", "validate the Goal Pack after recording and optional advance")
+    .action((goalRoot: string, options: { file?: string; json?: string; stdin?: boolean; advance?: boolean; check?: boolean }) => {
       const result = runAppendReceipt(goalRoot, {
         file: options.file ?? null,
         json: options.json ?? null,
         stdin: Boolean(options.stdin),
+        advance: Boolean(options.advance),
+        check: Boolean(options.check),
       });
-      emit(JSON.stringify({ ok: result.ok, task_id: result.receipt.task_id, result: result.receipt.result }, null, 2));
+      emit(JSON.stringify({
+        ok: result.ok && (result.check ? result.check.ok : true),
+        task_id: result.receipt.task_id,
+        result: result.receipt.result,
+        advanced: result.advanced ? {
+          status: result.advanced.state.status,
+          active_task: result.advanced.state.active_task,
+          next_decision: result.advanced.state.next_decision,
+          warnings: result.advanced.warnings,
+        } : null,
+        check: result.check ? {
+          ok: result.check.ok,
+          errors: result.check.errors,
+          warnings: result.check.warnings,
+        } : null,
+      }, null, 2));
+      if (result.check && !result.check.ok) throw new CliExit(1);
     });
 
   program

@@ -432,12 +432,95 @@ function validateRelationLink({ item, link, itemByGoalId, packByGoalId, errors, 
     return;
   }
 
-  const receiptEvidence = Array.isArray(receipt.evidence) ? receipt.evidence.map(String) : [];
+  const receiptEvidence = receiptEvidenceIndex(receipt);
   for (const token of link.evidence) {
-    if (!receiptEvidence.includes(token)) {
-      pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} target ${targetId} receipt ${link.receipt_ref} missing evidence ${token}`);
+    if (!matchesReceiptEvidenceToken(receiptEvidence, token)) {
+      const hint = nearestEvidenceHint(receiptEvidence.hints, token);
+      const hintText = hint ? `; nearest evidence: ${hint}` : "";
+      pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} target ${targetId} receipt ${link.receipt_ref} missing evidence ${token}${hintText}`);
     }
   }
+}
+
+function receiptEvidenceIndex(receipt: any) {
+  const candidates = collectReceiptEvidenceStrings(receipt)
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const hints = uniqueStrings([
+    ...collectReceiptEvidenceStrings(receipt?.evidence),
+    ...collectReceiptEvidenceStrings(receipt?.evidence_map),
+    ...collectReceiptEvidenceStrings(receipt?.checks),
+    ...collectReceiptEvidenceStrings(receipt?.summary),
+    ...candidates.filter((value) => /[A-Za-z0-9_.-]=/.test(value)),
+  ])
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return {
+    candidates,
+    hints,
+    normalized: new Set(candidates.map(normalizeEvidenceText)),
+  };
+}
+
+function collectReceiptEvidenceStrings(value: unknown, output: string[] = []): string[] {
+  if (value === null || value === undefined) return output;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    output.push(String(value));
+    return output;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectReceiptEvidenceStrings(item, output);
+    return output;
+  }
+  if (typeof value === "object") {
+    for (const [key, item] of Object.entries(value)) {
+      if (item === null || item === undefined) continue;
+      if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
+        output.push(`${key}=${String(item)}`);
+      }
+      collectReceiptEvidenceStrings(item, output);
+    }
+  }
+  return output;
+}
+
+function matchesReceiptEvidenceToken(index: { normalized: Set<string> }, token: string) {
+  const normalizedToken = normalizeEvidenceText(token);
+  if (index.normalized.has(normalizedToken)) return true;
+  const tokenParts = evidenceKeyValueTokens(token).map(normalizeEvidenceText);
+  const wanted = tokenParts.length > 0 ? tokenParts : [normalizedToken];
+  return [...index.normalized].some((candidate) =>
+    wanted.some((part) => candidate === part || candidate.includes(part)),
+  );
+}
+
+function evidenceKeyValueTokens(value: unknown) {
+  return normalizeEvidenceText(value).match(/[a-z0-9_.-]+=(?:\[[^\]]+\]|[^,\s.;]+)/g) || [];
+}
+
+function nearestEvidenceHint(candidates: string[], token: string) {
+  const tokenParts = evidenceKeyValueTokens(token);
+  const keys = tokenParts
+    .map((part) => part.split("=")[0])
+    .filter(Boolean);
+  if (keys.length === 0) return candidates[0] || "";
+
+  return candidates.find((candidate) => {
+    const normalized = normalizeEvidenceText(candidate);
+    return keys.some((key) => normalized.includes(`${key}=`));
+  }) || candidates[0] || "";
+}
+
+function normalizeEvidenceText(value: unknown) {
+  return String(value)
+    .replaceAll("\\\"", "\"")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([=[\],])\s*/g, "$1")
+    .trim();
+}
+
+function uniqueStrings(values: string[]) {
+  return [...new Set(values)];
 }
 
 function graphEdge(item, link, errors) {

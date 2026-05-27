@@ -363,10 +363,12 @@ goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin)
+goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin) [--advance] [--check]
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
+
+`record` 必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个；常见追加 receipt、确定性 advance、校验路径可用 `--advance --check`。
 
 典型循环：
 

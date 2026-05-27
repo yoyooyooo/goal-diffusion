@@ -42,6 +42,9 @@ choose useful slice
   -> continue / plan_required / blocked / audit
 ```
 
+`goal-diffusion record --advance --check` is the compact path when receipt append,
+state update, and validation should happen together.
+
 ## Allowed Revisions
 
 Inside the current charter, the agent may revise:

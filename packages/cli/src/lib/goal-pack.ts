@@ -326,6 +326,7 @@ export function validateGoalPack(pack) {
   for (const task of state.tasks) {
     validateTask(task, errors);
   }
+  validateStateDecisionHints(state, warnings);
 
   for (const receipt of receipts) {
     for (const error of validateReceipt(pack, receipt)) {
@@ -413,6 +414,15 @@ export function validateReceipt(pack, receipt) {
   }
 
   return errors;
+}
+
+function validateStateDecisionHints(state, warnings) {
+  if (state.active_task) return;
+  const firstQueued = state.tasks.find((task) => task.status === "queued");
+  if (!firstQueued) return;
+  if (firstQueued.type !== "plan_required") return;
+  if (state.next_decision === "plan_required") return;
+  warnings.push(`first queued task ${firstQueued.id} is plan_required but next_decision is ${state.next_decision || "<missing>"}; consider next_decision: plan_required`);
 }
 
 export function appendReceipt(goalRoot, receipt) {

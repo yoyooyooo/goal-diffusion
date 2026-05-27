@@ -32,7 +32,7 @@ State commands:
 
 ```bash
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin)
+goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin) [--advance] [--check]
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
@@ -68,8 +68,9 @@ counts, while `--depth items` nests threaded goal items under `threads` and
 leaves only unthreaded goals in top-level `items`.
 
 For `record`, choose exactly one input source. Use `--stdin` for heredoc receipt
-JSON. `activate` and `advance` are state-transition commands, not payload input
-commands.
+JSON. Use `--advance --check` for the common append, deterministic advance, and
+validation path. `activate` and `advance` are state-transition commands, not
+payload input commands.
 
 Local development:
 

@@ -119,6 +119,52 @@ next_decision: continue
   }
 });
 
+test("warns when first queued plan task disagrees with next decision", () => {
+  const root = makePack();
+  try {
+    writePack(root, {
+      contract: baseContract.replace("status: running", "status: ready"),
+      state: `
+version: 1
+goal_id: cli-checker-goal
+status: ready
+current_edge:
+  from: "Queued plan task"
+  target_delta: "Plan decision is explicit"
+  harnessed_path:
+    - "Run checker"
+  verify:
+    - "bun test packages/cli/test/check-goal-pack.test.ts"
+  failure_inspection:
+    - "goal-diffusion/SKILL.md"
+active_task: null
+tasks:
+  - id: T003
+    type: plan_required
+    status: queued
+    objective: "Plan a high-risk slice."
+    plan: implementation-plan.md
+    allowed_scope:
+      - "implementation-plan.md"
+    verify:
+      - "Review implementation plan"
+    stop_if:
+      - "Need protected field changes."
+blockers: []
+next_decision: continue
+`,
+    });
+
+    const result = runChecker(root);
+    assert.equal(result.status, 0, result.stderr || JSON.stringify(result.stdout));
+    assert.equal(result.stdout.ok, true);
+    assert.match(result.stdout.warnings.join("\n"), /first queued task T003 is plan_required/);
+    assert.match(result.stdout.warnings.join("\n"), /consider next_decision: plan_required/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("rejects done goal packs without a completion-backed final audit receipt", () => {
   const root = makePack();
   try {

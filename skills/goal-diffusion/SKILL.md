@@ -60,6 +60,9 @@ Read or create the Goal Pack, keep the charter boundary stable, run the next
 harnessed edge, append one receipt, advance state, and continue by default while
 the charter remains valid.
 
+Use `record --advance --check` when the receipt should immediately drive the
+deterministic state transition and validation.
+
 Before running implementation, check that `state.yaml.current_edge` names:
 source state, target delta, harnessed path, verification, and failure
 inspection. If any of these are only summaries, first sharpen the edge.

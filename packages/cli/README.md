@@ -54,7 +54,7 @@ goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin)
+goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin) [--advance] [--check]
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
@@ -76,10 +76,12 @@ For `receipts list`, filters compose with AND semantics and output compact
 receipt summaries by default. Use `receipts show --index N` to expand one full
 receipt.
 For `record`, choose exactly one input source. Use `--stdin` for heredoc receipt
-JSON; `activate` and `advance` remain state-transition commands and do not
-accept payload input.
+JSON. Use `--advance --check` for the common append, deterministic advance, and
+validation path; `activate` and `advance` remain state-transition commands and
+do not accept payload input.
 For `relations`, `list` shows relation metadata, `check` validates hard relation
-evidence, and `graph` renders a derived view. `goals` discovers thread-member
+evidence with token-aware matching across receipt evidence fields, and `graph`
+renders a derived view. `goals` discovers thread-member
 Goal Packs. `tasks` discovers thread-member tasks; `--status` filters task
 status, while `--goal-status` and `--goal-completion` filter parent Goal Packs.
 `--thread` filters by `goal_relations.thread_id`; the commands do not create

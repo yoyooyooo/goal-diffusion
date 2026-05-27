@@ -47,7 +47,7 @@ goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
 goal-diffusion brief <goal-pack> [--task T###] [--json]
 goal-diffusion dispatch <goal-pack> [--task T###]
 goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin)
+goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin) [--advance] [--check]
 goal-diffusion advance <goal-pack> [--dry-run]
 goal-diffusion check <goal-pack>
 ```
@@ -58,8 +58,8 @@ goal-diffusion check <goal-pack>
 读类 JSON 命令使用统一输出控制：`--limit` 限制可见集合，`--include path,objective,links` 补回省略字段，`--show-empty` 显示空值和默认值。`summary` 默认 `--depth groups`、`--limit 20`；`--depth items` 把 threaded goals 放在 `threads` 下，顶层 `items` 只放 unthreaded goals。
 对 `tasks`，`--completion todo` 表示 task status 不是 `done`，`--status` 过滤原始 task status。
 对 `receipts list`，多个过滤条件按 AND 组合，默认输出 compact receipt 摘要。需要展开单条完整 receipt 时使用 `receipts show --index N`。
-对 `record`，必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个。`--stdin` 用于 heredoc receipt JSON；`activate` 和 `advance` 仍是状态转移命令，不接收 payload。
-对 `relations`，`list` 显示关系元数据，`check` 校验硬关系证据，`graph` 渲染派生视图。
+对 `record`，必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个。`--stdin` 用于 heredoc receipt JSON；常见追加、确定性 advance、校验路径可用 `--advance --check`；`activate` 和 `advance` 仍是状态转移命令，不接收 payload。
+对 `relations`，`list` 显示关系元数据，`check` 用 token-aware 方式跨 receipt evidence 字段校验硬关系证据，`graph` 渲染派生视图。
 `goals` 发现 thread 成员 Goal Pack。`tasks` 发现 thread 成员 task；`--status`
 过滤 task status，`--goal-status` 和 `--goal-completion` 过滤父 Goal Pack。
 `--thread` 按 `goal_relations.thread_id` 过滤；这些命令不会创建 thread 文件、graph 状态或执行顺序。

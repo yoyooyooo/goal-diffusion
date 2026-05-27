@@ -49,6 +49,9 @@ read charter + state
   -> continue | plan_required | blocked | audit
 ```
 
+Use `goal-diffusion record --advance --check` when no intermediate inspection is
+needed between receipt append, deterministic state update, and validation.
+
 ## Slice Policy
 
 Find path small. Execute slice useful.

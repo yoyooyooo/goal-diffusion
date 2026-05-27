@@ -753,7 +753,7 @@ test("main CLI exposes structured commander help at every command layer", () => 
     },
     {
       args: ["record", "--help"],
-      patterns: [/Usage: goal-diffusion record \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--file <path>/, /--json <value>/, /--stdin/],
+      patterns: [/Usage: goal-diffusion record \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--file <path>/, /--json <value>/, /--stdin/, /--advance/, /--check/],
     },
     {
       args: ["advance", "--help"],
@@ -860,6 +860,41 @@ test("main CLI record appends receipts", () => {
     assert.equal(readReceipts(root).length, 1);
 
     assert.equal(readReceipts(root).length, 1);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("main CLI record can advance and check after append", () => {
+  const root = makePack();
+  const receiptPath = join(root, "receipt.json");
+  writeFileSync(receiptPath, JSON.stringify({
+    task_id: "T001",
+    type: "worker",
+    result: "done",
+    changed_files: ["packages/cli/src/goal-diffusion.ts"],
+    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
+    evidence: ["record_advance_check=true"],
+    claims: ["record advances and checks"],
+    summary: "done",
+    next_decision: "continue",
+  }));
+
+  try {
+    const record = run(cliScript, ["record", root, "--file", receiptPath, "--advance", "--check"]);
+    assert.equal(record.status, 0, record.stderr);
+    const payload = JSON.parse(record.stdout);
+    assert.equal(payload.ok, true);
+    assert.equal(payload.task_id, "T001");
+    assert.equal(payload.advanced.active_task, "T002");
+    assert.equal(payload.advanced.next_decision, "audit");
+    assert.equal(payload.check.ok, true);
+    assert.equal(readReceipts(root).length, 1);
+
+    const state = readFileSync(join(root, "state.yaml"), "utf8");
+    assert.match(state, /active_task: T002/);
+    assert.match(state, /id: T001[\s\S]*?status: done/);
+    assert.match(state, /id: T002[\s\S]*?status: active/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
