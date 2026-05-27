@@ -1,6 +1,6 @@
 {
   "name": "ai-coding-project-os-monorepo",
-  "version": "0.1.0",
+  "version": "0.1.10",
   "private": true,
   "description": "AI Coding Project OS suite with Goal Diffusion skills and CLI.",
   "type": "module",
