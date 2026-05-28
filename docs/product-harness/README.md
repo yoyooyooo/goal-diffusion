@@ -8,7 +8,7 @@
 - `HarnessFixture` 引用：fixture / seed / replay / mock / runtime fixture 的 ID 和位置。
 - `HarnessRoute` / `HarnessComponent` 引用：UI Harness Surface 的运行入口和源码位置。
 - `HarnessEvidence` 引用：evidence record、report、test artifact 或外部证据位置。
-- claim limit、not_claimed / non-claim tokens、not_proven、coverage matrix。
+- `claim_ceiling`、`not_claimed`、`not_proven`、Harness Coverage Matrix。
 - harness lifecycle：`candidate | accepted | regression | retired`。
 - 从 Goal Pack `product-harness.yaml` promote 出来的稳定证明合同。
 
@@ -29,14 +29,14 @@ kind: HarnessScenario
 id: hs.channel.issue-from-message
 covers:
   interface_capability: ic.channel.issue-from-message
-levels:
-  - headless_product
-  - interface_headless
-  - browser_visible
-claim_ceiling: browser_visible_candidate  # claim limit field; schema name kept
-negative_claims:
+claim_ceiling:
+  level: browser_visible
+  headless_sublevel: null
+  environment: local
+not_claimed:
   - final_visual_design_claim=false
   - business_fact_claim=false unless paired with hp.channel.issue-from-message
+not_proven: []
 ```
 
 `InterfaceCapability` 定义放 `docs/interface-capabilities/**`。
@@ -67,7 +67,7 @@ promote | keep-in-goal | split | retire | block
 Promote 后，Goal Pack companion 应只保留 source / promoted_to / evidence
 link，不再作为长期权威。
 
-如果 harness 只证明一次性候选、已被正式测试覆盖、或 claim limit 已失效，
+如果 harness 只证明一次性候选、已被正式测试覆盖、或 `claim_ceiling` 已失效，
 demote 到 Goal Pack source/report，或在本层标记 retired 后删除重复合同。
 
 ## Conflict

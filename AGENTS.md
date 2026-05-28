@@ -50,6 +50,20 @@ notes/                   长材料，不承载当前状态
 
 当前仓库主路径使用 v2 Goal Pack schema：`schema_version: 2`、`goal.yaml`、`progress.yaml`、`evidence.jsonl`、`proof_step`、`work_items`、`evidence_id`、`work_id`、`next_action`、`claim_limit`、`completion review`。新增或重写方法论文档、CLI、checker、template、测试和 dogfood Goal Pack 时，同步更新相关文档和测试。
 
+## Skill 迭代原则
+
+持续优化 skill、schema、artifact 或字段时，默认按这些原则裁决：
+
+- 面向高智能 agent：提供边界、claim、proof path、gap 和 stop rule，不设计弱模型防御式重流程。
+- 非必要不结构化：只有当结构化 artifact 能帮助下一个 agent 执行、验证、审计或交接时才创建。
+- 浅到够用：使用能支撑当前 claim 的最小分解深度；只有权限、状态归属、异步、realtime、可见性或 handoff 会含糊时才加深。
+- DSL 要薄：能从源码、测试、路由、命令输出或现有 authority 推导的内容，不写进长期合同；除非它本身就是 contract。
+- 字段按 claim 触发：不要为了“完整”添加字段；新增字段必须能约束 claim、暴露 gap、避免 overclaim，或改善 agent 执行。
+- ownership 要硬：一个概念只能有一个主 owner；如果像两个 skill 都该管，先收敛边界，不新增混合层。
+- proof level 不是 checklist：按 claim 选择最低诚实 proof level；不要默认跑满所有 harness 层级。
+- 记录不声称的内容：会被误读的相邻 surface 要写 `not_claimed`；没有检查过的写 `not_proven`，不要伪装成已证明。
+- 保持同步诚实：改 skill 口径时区分 repo mirror、Editing SSoT 和 runtime target；未同步前只声明最窄成立状态。
+
 ## 目录结构
 
 - `packages/cli/src/`：CLI 命令和库代码。

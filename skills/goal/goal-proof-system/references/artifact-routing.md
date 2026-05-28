@@ -39,7 +39,7 @@ equivalent to these roles instead of recreating this exact tree.
 | Notes | Long narrative, final summaries, or source digests | `docs/goal-proof/goals/<goal-id>/notes/` |
 | Implementation plan | Detailed plan only for high-risk selected slice | `docs/goal-proof/goals/<goal-id>/plans/<work_id>.md` |
 | Interface capabilities | Optional UI/IA/interaction trace companion; contains InterfaceCapability and InterfaceSurface candidates | `docs/goal-proof/goals/<goal-id>/interface-capabilities.yaml` |
-| Product harness | Optional harness proof companion; contains HarnessScenario, fixture refs, route/component refs, evidence refs, claim limits, lifecycle, and coverage matrix candidates | `docs/goal-proof/goals/<goal-id>/product-harness.yaml` |
+| Product harness | Optional harness proof companion; contains HarnessScenario, fixture refs, route/component refs, evidence refs, claim_ceiling, lifecycle, and Harness Coverage Matrix candidates | `docs/goal-proof/goals/<goal-id>/product-harness.yaml` |
 
 The method index may list current Goal Packs and status entry points, but it
 should not maintain a hand-written progress list that competes with Goal Pack
@@ -85,8 +85,8 @@ interface capability trace
 
 product harness trace
   -> goal pack product-harness.yaml only when the goal needs durable harness
-     scenario, fixture, route/component, evidence ref, claim limit, lifecycle,
-     or coverage matrix planning
+     scenario, fixture, route/component, evidence ref, claim_ceiling, lifecycle,
+     or Harness Coverage Matrix planning
   -> referenced from goal/progress/evidence records by ID, not embedded as the full DSL
 
 external docs or decisions
@@ -107,7 +107,7 @@ material. Route those rules by scope:
 | Consumed proposal, imported planning branch, historical prompt, or source digest | `sources/` or Goal Pack `notes/source-history/` |
 | Detailed work item checklist, trace item list, or local implementation evidence | host implementation artifact such as `specs/**`, unless the Goal Pack has a `needs_plan` slice |
 | UI/IA interaction capability trace for a Goal Pack | `interface-capabilities.yaml` companion artifact |
-| Harness scenario, fixture/route/evidence refs, claim limit, or coverage trace for a Goal Pack | `product-harness.yaml` companion artifact; route concrete UI/headless execution details to the owning harness method |
+| Harness scenario, fixture/route/evidence refs, claim_ceiling, or coverage trace for a Goal Pack | `product-harness.yaml` companion artifact; route concrete UI/headless execution details to the owning harness method |
 
 When a project has duplicated this method-level doctrine locally, converge by
 moving the generic rule here and reducing the project document to a thin local
@@ -255,7 +255,7 @@ CLI-only goals unless a user-visible interface path is part of the claim.
 
 Create `docs/goal-proof/goals/<goal-id>/product-harness.yaml` only when a
 Goal Pack needs durable traceability for harness scenarios, fixtures, route or
-component refs, evidence refs, claim limits, lifecycle, or coverage matrix.
+component refs, evidence refs, claim_ceiling, lifecycle, or Harness Coverage Matrix.
 
 The companion artifact may contain thin `HarnessScenario`, `HarnessFixture` ref,
 `HarnessRoute` ref, `HarnessComponent` ref, `HarnessEvidence` ref, and coverage

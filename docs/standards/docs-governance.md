@@ -69,7 +69,7 @@ docs/ssot/**
 | 实际代码行为 | code + tests + generated evidence |
 | Goal Pack 状态、active work item、completion review | `docs/goal-proof/goals/<goal-id>/**` 与 `goal-proof` CLI 输出 |
 | InterfaceCapability 语义和 surface trace | `docs/interface-capabilities/**`，但不得覆盖 SSoT / standards / ADR |
-| HarnessScenario、claim limit、coverage matrix、evidence refs | `docs/product-harness/**`，但不得重定义 InterfaceCapability 或产品事实 |
+| HarnessScenario、`claim_ceiling`、Harness Coverage Matrix、evidence refs | `docs/product-harness/**`，但不得重定义 InterfaceCapability 或产品事实 |
 | 迁移顺序、当前 gate、证据链接 | `docs/roadmap/**` |
 
 代码和测试能证明“实际行为”，但不能静默重定义 SSoT、standard 或 ADR。发生冲突时，

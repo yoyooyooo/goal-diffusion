@@ -132,7 +132,7 @@ Choose one documented home or map the relationship in `docs/README.md`.
 | `docs/features/**` | Requirements, user stories, capability tracking, acceptance scope | Current architecture authority or work item execution status |
 | `docs/design/**` | UX, UI, visual system, interaction model, asset index | Product facts, engineering gates, or roadmap status |
 | `docs/interface-capabilities/**` | Project-level InterfaceCapability and InterfaceSurface contracts: user work item, entrypoint, interaction contract, state/data ownership, coverage intent | Harness scenarios, fixtures, routes, test steps, evidence results, product facts, or Goal Pack runtime state |
-| `docs/product-harness/**` | Project-level HarnessScenario, HarnessFixture refs, HarnessRoute/Component refs, HarnessEvidence refs, claim limits, non-claims, coverage matrix, lifecycle | InterfaceCapability semantics, product truth, final design, executable tests, raw evidence records, or Goal Pack runtime state |
+| `docs/product-harness/**` | Project-level HarnessScenario, HarnessFixture refs, HarnessRoute/Component refs, HarnessEvidence refs, claim_ceiling, not_claimed, Harness Coverage Matrix, lifecycle | InterfaceCapability semantics, product truth, final design, executable tests, raw evidence records, or Goal Pack runtime state |
 
 `docs/features/**` and `docs/design/**` are useful for product-heavy projects.
 Library, infrastructure, or research projects may omit them.

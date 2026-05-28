@@ -2,7 +2,7 @@
 name: product-harness-system
 description: >-
   Defines the shared Product Harness System for high-capability coding agents:
-  harness artifact types, claim limits, lifecycle, placement, coverage
+  harness artifact types, claim ceilings, lifecycle, placement, coverage
   matrix, and trace links across headless product proof and UI harness proof.
   Use when designing a project-wide verification architecture, deciding where
   harness components/routes/fixtures/scenarios/evidence belong, aligning
@@ -20,20 +20,21 @@ headless commands or concrete frontend tests.
 ## Collaboration Contract
 
 ```text
-Owns: shared harness artifact vocabulary, trace spine, lifecycle, claim limit,
-coverage matrix, gaps, and placement rules.
+Owns: shared harness artifact vocabulary, trace spine, lifecycle,
+claim_ceiling, Harness Coverage Matrix, gaps, and placement rules.
 Does not own: product truth, concrete CLI/xtask/smoke code, concrete React /
 router / Playwright code, Goal Pack evidence records, or docs-layer authority.
 Inputs: capability refs, desired claim, proof surfaces, fixture/seed needs,
 headless/UI proof refs, and evidence refs.
-Outputs: Harness Scenario, Harness Fixture/Seed, Harness Surface, coverage
-matrix, claim limit, non-claims, gaps, and placement guidance.
+Outputs: Harness Scenario, Harness Fixture/Seed, Harness Surface, Harness
+Coverage Matrix, claim_ceiling, not_claimed, not_proven, gaps, and placement
+guidance.
 Handoff: unnamed user-facing capability -> interface capability
 workflow; command proof -> headless harness workflow; browser-visible proof ->
 UI harness workflow; docs-layer decision -> governance workflow; multi-evidence record
 execution -> goal flow.
 Stop: continuing needs product truth, public API/schema/protocol,
-security/private-data, destructive behavior, docs authority, or claim_limit
+security/private-data, destructive behavior, docs authority, or claim_ceiling
 choice.
 ```
 
@@ -61,7 +62,7 @@ grid-like coverage; do not introduce metaphorical names as formal terms.
 3. Define shared artifacts: scenario, fixture/seed, surface, evidence, and trace
    links.
 4. Pick lifecycle state: `candidate`, `accepted`, `regression`, or `retired`.
-5. Write claim limits and non-claims before implementation.
+5. Write `claim_ceiling`, `not_claimed`, and `not_proven` before implementation.
 6. Place durable trace in project docs or a Goal Pack companion only when
    traceability matters.
 
@@ -69,7 +70,7 @@ Read:
 
 - [Artifact Model](references/artifact-model.md)
 - [Lifecycle And Placement](references/lifecycle-and-placement.md)
-- [Claim Limits](references/claim-ceilings.md)
+- [Claim Ceilings](references/claim-ceilings.md)
 - [Trace Contract](references/trace-contract.md)
 
 ## Ownership
@@ -79,7 +80,7 @@ This skill owns:
 - shared harness artifact vocabulary;
 - cross-layer trace from capability to proof and evidence;
 - lifecycle states and promotion/retirement policy;
-- claim limits and non-claim discipline;
+- `claim_ceiling`, `not_claimed`, and `not_proven` discipline;
 - placement rules for harness docs, runtime support code, and evidence.
 
 This skill does not own:
@@ -104,4 +105,4 @@ This skill does not own:
 
 Ask only when continuing would change product truth, public protocol/API/schema
 posture, security/private-data rules, destructive behavior, or the desired
-claim_limit. Missing harness detail is implementation scope.
+claim_ceiling. Missing harness detail is implementation scope.

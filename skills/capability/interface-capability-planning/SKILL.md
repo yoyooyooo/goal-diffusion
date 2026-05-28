@@ -38,7 +38,7 @@ Inputs: product intent, SSoT/architecture/standards, known headless proof,
 existing UI/design docs, and user mental model constraints.
 Outputs: InterfaceCapability contract, InterfaceSurface map, state/data owner
 contract, harness needs, trace refs, and explicit gaps.
-Handoff: shared coverage / claim limit -> harness system workflow;
+Handoff: shared coverage / claim_ceiling -> harness system workflow;
 browser-visible or render proof -> UI harness workflow; product-fact proof ->
 headless harness workflow; durable placement -> governance workflow; multi-step
 execution -> goal flow.

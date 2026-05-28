@@ -15,7 +15,7 @@ Classify every UI-related state into one of these categories:
 | Realtime event state | decoded event, cursor, connection, dedupe, gap detection | business truth by itself |
 | URL/navigation state | resource identity, shareable view state, deep link | transient draft, hover, non-shareable UI detail |
 | Derived view model | display-ready projection from accepted inputs | wire contract or product authority |
-| Render wiring | controls, roles, labels, work brief, visible state | business logic |
+| Render wiring | controls, roles, labels, intent wiring, visible state | business logic |
 | Browser-visible proof | actual reachability, layout, console/network, reload, focus | domain proof without paired headless evidence |
 
 ## Boundary Rules
@@ -27,7 +27,7 @@ Classify every UI-related state into one of these categories:
   backfill. If continuity is uncertain, do not invent missing facts.
 - View models are derived projections. They may be pure-function tested, but
   they do not define the backend contract.
-- Components should render and work brief intent. Put long-lived state,
+- Components should render and wire intent. Put long-lived state,
   side-effects, query/cache logic, and realtime reducers outside thin render
   components where the host architecture allows.
 
@@ -43,7 +43,7 @@ remote data state:
   TanStack Query | Apollo | SWR | RTK Query | custom repository
 
 async command state:
-  mutation hook | action work briefer | command service | Effect program
+  mutation hook | action adapter | command service | Effect program
 
 URL/navigation state:
   TanStack Router | React Router | Next router | native route model

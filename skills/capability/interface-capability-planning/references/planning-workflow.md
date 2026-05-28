@@ -96,7 +96,7 @@ Headless Capability -> User Work Item -> Interface Capability -> Surface
 -> Interaction Contract -> State Cases -> UI Harness -> Evidence
 ```
 
-Preserve headless claim limits. A headless proof can prove facts; it does not
+Preserve headless `claim_ceiling`. A headless proof can prove facts; it does not
 prove projection consumption, render wiring, or browser-visible behavior.
 
 ### existing-interface-increment
@@ -220,7 +220,7 @@ coverage_intent:
   required_levels:
     - interface_headless
     - render_wiring
-    - browser_reload
+    - browser_visible
   optional_levels:
     - realtime_patch
     - mobile_layout
@@ -240,11 +240,38 @@ promotion_gate:
   accepted_when:
     - headless proof passes
     - browser harness proves visible success and reload consistency
-    - non-claims recorded
+    - not_claimed recorded
 ```
 
 Keep the DSL thin. If a field can be derived from source, tests, or route code,
 do not encode it unless it is part of the contract.
+
+## Optional Context Blocks
+
+Use these as claim-triggered additions, not default template fields. Add one only
+when the current claim depends on it:
+
+```text
+execution_context
+  Known role, tenant, auth, flags, environment, or data mode.
+  If authority is missing, record a gap or stop; do not invent permission rules.
+
+render_runtime_context
+  SSR, RSC, hydration, loader, or server/client cache boundary.
+  Use when rendering mode changes what the frontend can honestly prove.
+
+client_persistence_state
+  Local DB, draft persistence, offline queue, conflict, tab concurrency, or retry
+  after reload. Pair durable sync or conflict facts with headless/product proof.
+
+visibility_assertions_or_refs
+  Sensitive fields, redaction, role-visible fields, or hidden internal terms.
+  Reference authority where security or privacy policy is involved.
+
+performance_claim
+  Interaction readiness, mutation feedback, realtime latency, or large lists.
+  Use only when the claim includes responsiveness or throughput expectations.
+```
 
 ## Concept And Label Mapping
 

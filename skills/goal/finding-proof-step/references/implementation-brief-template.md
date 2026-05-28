@@ -38,7 +38,7 @@ proof_step:
 
 - Input / fixture / trace / manual gate:
 - Positive evidence:
-- Negative claims / non-claims:
+- Not claimed:
 - Claim limit:
 - First failure inspection path:
 

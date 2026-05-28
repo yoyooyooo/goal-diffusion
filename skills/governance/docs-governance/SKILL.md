@@ -29,7 +29,7 @@ language policy, and evidence links.
 Outputs: placement decision, retention verdict, README/index update, cleanup
 plan, audit finding, and method handoff note.
 Handoff: Goal Pack lifecycle -> goal flow; interface trace -> interface
-capability workflow; shared harness placement / claim limit -> harness system
+capability workflow; shared harness placement / claim_ceiling -> harness system
 workflow; command proof -> headless harness workflow; browser-visible proof ->
 UI harness workflow.
 Stop: highest authority is ambiguous, deletion risks unlinked evidence,

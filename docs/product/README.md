@@ -53,7 +53,7 @@ strong-agent optimistic workflow
 | `goal-proof` | 目标计划和滚动执行；Goal Pack 是规划与延续载体 |
 | `docs-governance` | 文档层、SSoT、standards、ADR、roadmap 的治理 |
 | `interface-capability-planning` | UI/IA 交互能力、状态/数据归属和 testability contract 的规划 |
-| `product-harness-system` | 通用 harness artifact、生命周期、claim limit、coverage matrix 和 trace 规范 |
+| `product-harness-system` | 通用 harness artifact、生命周期、`claim_ceiling`、Harness Coverage Matrix 和 trace 规范 |
 | `ui-product-harness` | 界面能力的 interface-headless、render wiring、browser-visible 和 production-near proof |
 | `headless-product-harness` | proof command、smoke check、fixture/replay、evidence envelope |
 

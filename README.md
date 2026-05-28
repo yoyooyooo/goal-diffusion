@@ -30,7 +30,7 @@ gaps remain visible
 ```
 
 This is not a formal proof system. It is an optimistic workflow for strong
-agents, with strict honesty around evidence, non-claims, stop signals, and
+agents, with strict honesty around evidence, `not_claimed`, stop signals, and
 completion claims.
 
 ## Skill Suite
@@ -45,7 +45,7 @@ completion claims.
 | `goal/` | `write-work-plans` | Write `plans/<work_id>.md` for high-risk work items |
 | `governance/` | `docs-governance` | Docs layers, SSoT, standards, ADRs, roadmaps, cleanup, audit |
 | `capability/` | `interface-capability-planning` | UI/IA capability contracts, surfaces, state/data ownership, harness handoff |
-| `harness/` | `product-harness-system` | Harness artifact model, claim limits, coverage matrix, trace lifecycle |
+| `harness/` | `product-harness-system` | Harness artifact model, `claim_ceiling`, Harness Coverage Matrix, trace lifecycle |
 | `harness/` | `ui-product-harness` | Interface-headless, render wiring, browser-visible, production-near UI proof |
 | `harness/` | `headless-product-harness` | Proof commands, smoke checks, fixture/replay, evidence envelope |
 
@@ -216,7 +216,7 @@ UI proof:
 ```text
 Use $ui-product-harness:
 Plan interface-headless, render wiring, browser-visible proof, evidence, gaps,
-and claim limits for this InterfaceCapability.
+and claim_ceiling for this InterfaceCapability.
 ```
 
 Headless proof:

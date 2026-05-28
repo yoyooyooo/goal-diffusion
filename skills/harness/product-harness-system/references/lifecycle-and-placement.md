@@ -45,7 +45,7 @@ tests/interface-headless/**
   Store/cache/router/realtime/view-model tests without full UI rendering.
 
 tests/render-wiring/**
-  Thin component tests for work brief, roles, pending/error/success wiring.
+  Thin component tests for intent wiring, roles, pending/error/success wiring.
 
 tests/browser-visible/**
   Playwright or equivalent browser scenarios.
@@ -55,8 +55,25 @@ docs/interface-capabilities/** or Goal Pack interface-capabilities.yaml
 
 docs/product-harness/** or Goal Pack product-harness.yaml
   Durable HarnessScenario, fixture refs, route/component refs, evidence refs,
-  claim limits, lifecycle, and coverage matrix.
+  claim_ceiling, lifecycle, and Harness Coverage Matrix.
 ```
+
+## Runtime Evidence Artifacts
+
+Keep raw run artifacts outside durable docs unless they are summarized or
+redacted:
+
+```text
+artifacts/harness/<scenario-id>/<run-id>/
+  summary.json
+  console.log
+  network.json
+  screenshot.png
+  trace.zip
+```
+
+Durable docs should reference these artifacts only when the path is stable enough
+for later agents to inspect.
 
 ## Harness Route Rules
 

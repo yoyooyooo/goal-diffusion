@@ -7,7 +7,7 @@ language, a workflow engine, or a replacement for tests.
 
 - connect IA, interaction capability, UI harness, headless proof, and evidence;
 - let high-capability agents infer concrete test paths from semantic contracts;
-- support future coverage matrix and gap inspection;
+- support Harness Coverage Matrix and gap inspection;
 - avoid encoding low-level DOM steps or framework-specific implementation.
 
 ## Object References
@@ -96,15 +96,19 @@ inline.
 kind: HarnessEvidence
 id: uh.<domain>.<scenario>
 covers: ic.<domain>.<action>
-level: interface_headless | render_wiring | browser_visible | production_near
 status: candidate | accepted | regression | retired
+
+claim_ceiling:
+  level: interface_headless | render_wiring | browser_visible | production_near
+  headless_sublevel: null
+  environment: local
 
 seed: {}
 steps_intent: []
 assertions: []
 positive_tokens: []
-negative_claims: []
-non_claims: []
+not_claimed: []
+not_proven: []
 artifacts: []
 ```
 
@@ -117,8 +121,12 @@ browser scripts may choose exact selectors later.
 kind: HarnessEvidence
 id: uh.issue-intake.browser
 covers: ic.issue-intake.from-channel-message
-level: browser_visible
 status: candidate
+
+claim_ceiling:
+  level: browser_visible
+  headless_sublevel: null
+  environment: local
 
 seed:
   headless_proof: hp.channel-message.seeded
@@ -138,9 +146,10 @@ assertions:
   - console has no framework error
   - network has no failed mutation
 
-negative_claims:
+not_claimed:
   - production_auth=false
-  - db_persistence=false unless paired with hp.issue-source-link.db-backed
+  - db_persistence=false unless paired with hp.issue-source-link.db_backed
+not_proven: []
 ```
 
 ## Rules

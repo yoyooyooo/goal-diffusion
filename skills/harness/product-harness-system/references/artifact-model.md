@@ -35,8 +35,8 @@ Harness Evidence
   which claims remain forbidden.
 
 Harness Coverage Matrix
-  Optional coverage view that maps capability IDs to harness levels, evidence,
-  lifecycle state, and gaps.
+  Coverage view that maps capability IDs to harness levels, evidence,
+  coverage status, and gaps.
 ```
 
 ## Trace Spine
@@ -73,3 +73,5 @@ hp.<domain>.<case>     Headless Product Harness Evidence
   real business fact unless paired with a headless/product proof that establishes
   the fact.
 - Keep scenario steps semantic. Avoid low-level selectors in trace artifacts.
+- Use canonical fields: `claim_ceiling`, `not_claimed`, `not_proven`, and
+  `status`. Do not introduce parallel claim-limit fields.

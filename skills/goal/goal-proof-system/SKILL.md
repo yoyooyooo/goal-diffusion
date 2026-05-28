@@ -45,7 +45,7 @@ proof_path refs, evidence refs, relation refs, and gaps from prior work.
 Outputs: goal.yaml, progress.yaml, evidence.jsonl, completion review evidence,
 and optional companion refs for interface or harness traces.
 Handoff: docs placement -> docs-governance; missing interface trace ->
-interface-capability-planning; shared coverage / claim limit ->
+interface-capability-planning; shared coverage / claim_ceiling ->
 product-harness-system; concrete command proof -> headless-product-harness;
 browser-visible proof -> ui-product-harness.
 Stop: protected goal field must change, no honest falsifiable proof path

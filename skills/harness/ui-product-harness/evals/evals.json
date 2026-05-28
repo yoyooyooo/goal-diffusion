@@ -1,0 +1,20 @@
+{
+  "skill_name": "ui-product-harness",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Plan tests for a React Query mutation with optimistic UI, ack reconciliation, error rollback, and reload consistency.",
+      "expected_output": "Splits interface_headless mutation/cache proof, render_wiring pending/error/success proof, and browser_visible reload proof; pairs business fact claims with headless product evidence; emits not_claimed and not_proven."
+    },
+    {
+      "id": 2,
+      "prompt": "A realtime UI sometimes receives duplicate events, cursor gaps, and reconnects. Decide which proof belongs in browser tests and which belongs below rendering.",
+      "expected_output": "Routes decode/dedupe/gap/reconnect state to interface_headless proof; keeps browser_visible for reachability and visible recovery only; avoids claiming realtime event authority from UI evidence."
+    },
+    {
+      "id": 3,
+      "prompt": "A Playwright test passes for creating an issue from a message, but there is no paired headless proof for persistence or accepted business facts.",
+      "expected_output": "Reports browser_visible success only; records business_fact_claim=false or db_persistence=false in not_claimed; lists missing headless_product evidence in not_proven or gaps."
+    }
+  ]
+}

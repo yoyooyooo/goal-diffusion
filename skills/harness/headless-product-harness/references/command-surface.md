@@ -35,7 +35,8 @@ authority_used:
 input:
 output_format:
 evidence_tokens:
-negative_claims:
+not_claimed:
+not_proven:
 failure_codes:
 default_ci:
 opt_in_env:

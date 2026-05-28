@@ -37,7 +37,7 @@ business_fact_claim=false unless paired with headless proof
 
 Thin component or render test. Use for:
 
-- button/input/menu work briefes the right UI intent;
+- button/input/menu wires the right UI intent;
 - accessible name / role exists;
 - pending, disabled, error, empty, success states render;
 - local state resets on subject switch;
@@ -47,7 +47,7 @@ Thin component or render test. Use for:
 Typical evidence:
 
 ```text
-intent_work brief_wired=true
+intent_command_wired=true
 accessible_affordance_present=true
 pending_state_visible=true
 error_recovery_visible=true
@@ -58,7 +58,7 @@ Claim ceiling:
 
 ```text
 render_wiring_passed=true
-browser_reload_claim=false
+reload_consistency_claim=false
 production_near_claim=false
 ```
 
@@ -112,9 +112,9 @@ Claim ceiling must name the environment and exclusions. Do not infer
 production deployment, production auth, distribution, or public availability
 from a local production-near harness.
 
-## Promotion
+## Lifecycle
 
-Use promotion statuses:
+Use the shared lifecycle statuses:
 
 ```text
 candidate    useful but not a regression gate

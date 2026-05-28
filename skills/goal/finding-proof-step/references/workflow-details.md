@@ -35,7 +35,7 @@ proof_step:
 6. Check the proof step against the evidence contract:
    - input, fixture, trace, command, UI action, dataset, or manual gate;
    - expected positive evidence;
-   - non-claims;
+   - `not_claimed`;
    - claim_limit;
    - first failure inspection path.
 7. Seed or update the first work item only when execution can start inside the
@@ -49,7 +49,7 @@ A good proof step:
 - can be run, observed, or manually checked;
 - proves or falsifies a near movement toward the objective;
 - names the input or fixture and the expected evidence;
-- states non-claims and claim_limit when the proof could be overread;
+- states `not_claimed` and claim_limit when the proof could be overread;
 - keeps the goal contract claim_limit intact;
 - avoids future-only infrastructure;
 - records where to inspect failure.

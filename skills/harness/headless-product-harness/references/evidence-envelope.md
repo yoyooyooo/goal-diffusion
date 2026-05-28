@@ -9,14 +9,20 @@ Use this reference when defining JSON/JSONL output for headless proof commands.
   "ok": true,
   "command": "smoke offline-import",
   "target_slice": "offline-import-core",
-  "evidence": {
-    "profile_loaded": true,
-    "normalized_evidence_records_created": true
+  "claim_ceiling": {
+    "level": "headless_product",
+    "headless_sublevel": "offline_fixture",
+    "environment": "local"
   },
-  "claims": {
-    "browser_ui_claim": false,
-    "real_runtime_claim": false
-  }
+  "positive_tokens": [
+    "profile_loaded=true",
+    "normalized_evidence_records_created=true"
+  ],
+  "not_claimed": [
+    "browser_ui_claim=false",
+    "real_runtime_claim=false"
+  ],
+  "not_proven": []
 }
 ```
 
@@ -40,7 +46,8 @@ HTML, color logs, or mixed human prose as the default agent-facing output.
 ## JSONL Long Runs
 
 Use JSONL only when the command streams progress. The final line must be a
-terminal summary with `ok`, `command`, `target_slice`, `evidence`, and `claims`.
+terminal summary with `ok`, `command`, `target_slice`, `claim_ceiling`,
+`positive_tokens`, `not_claimed`, and `not_proven`.
 
 ## Evidence Tokens
 
@@ -59,11 +66,11 @@ actually executed by the command.
 
 Positive tokens require an executed path. Do not print a token for a state that
 was assumed, skipped, hardcoded, or only described in a report. If a check is
-manual, mark it as manual evidence and keep the claim_limit explicit.
+manual, mark it as manual evidence and keep `claim_ceiling` explicit.
 
 ## Not Claimed
 
-Include non-claim tokens whenever adjacent surfaces are easy to overclaim:
+Include `not_claimed` tokens whenever adjacent surfaces are easy to overclaim:
 
 ```text
 browser_ui_claim=false
@@ -74,12 +81,11 @@ real_runtime_claim=false
 product_completion_claim=false
 ```
 
-Non-claim tokens are not decoration. Emit one only when the command
+`not_claimed` tokens are not decoration. Emit one only when the command
 actually checked or structurally bounded that surface. If the command did not
 check the boundary, put it in `not_proven` or the report boundary instead of
 printing a false token.
 
-A non-claim limits what later agents may inherit from the evidence. It does not
+`not_claimed` limits what later agents may inherit from the evidence. It does not
 prove product failure; it only says the current command did not prove that
-surface. Existing schema fields may still be named `negative_claims`; the
-human-facing concept is `not_claimed`.
+surface.

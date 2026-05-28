@@ -10,24 +10,24 @@ Use this reference when deciding how much harness is enough.
 3. Normalized replay
 4. Adapter/source import smoke
 5. Projection/facts smoke
-6. DB-backed restart/rebuild smoke
+6. DB backed restart/rebuild smoke
 7. Real external runtime opt-in smoke
 ```
 
 Start at the lowest level that can falsify the claim. Move up only when the
 current claim requires integration behavior.
 
-## Claim Limit
+## Claim Ceiling
 
 | Level | Can prove | Must not claim |
 |---|---|---|
 | `boundary` | Structure, imports, dependency direction, schema drift | Business behavior completion |
-| `offline-fixture` | Deterministic input through product/core logic | Real runtime compatibility |
+| `offline_fixture` | Deterministic input through product/core logic | Real runtime compatibility |
 | `replay` | Sanitized or normalized trace handling | Raw capture authority |
 | `adapter` | External/source mapping into canonical candidates | Persisted domain facts |
 | `projection` | Product facts exposed through view/query/read surfaces | Mutation authority |
-| `db-backed` | Persistence, restart, rebuild, migration path | Production deploy readiness |
-| `real-runtime-opt-in` | Explicit external process/API path | Default CI safety or whole-product completion |
+| `db_backed` | Persistence, restart, rebuild, migration path | Production deploy readiness |
+| `real_runtime_opt_in` | Explicit external process/API path | Default CI safety or whole-product completion |
 
 ## Fixture Rules
 

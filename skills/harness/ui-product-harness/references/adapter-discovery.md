@@ -14,7 +14,7 @@ What owns async command/mutation lifecycle?
 What owns realtime events, cursor, dedupe, gap, reconnect?
 What owns URL/resource state?
 Where are view models or mappers derived?
-What component layer work briefes intent?
+What component layer wires intent?
 What browser tool or E2E harness already exists?
 What headless proof command proves the same product facts?
 ```

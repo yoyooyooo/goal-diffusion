@@ -24,7 +24,7 @@
 | `goal/` | `goal-proof`, `goal-contracts`, `finding-proof-step`, `proof-step-implementation`, `write-work-plans` | Goal Pack、目标授权、当前验证步、执行、证据记录和高风险实施计划 |
 | `governance/` | `docs-governance` | 文档分层、权威放置、cleanup、audit |
 | `capability/` | `interface-capability-planning` | UI/IA、交互能力、前端状态/数据归属和 trace artifact |
-| `harness/` | `product-harness-system`, `ui-product-harness`, `headless-product-harness` | harness artifact、claim limit、coverage matrix、UI/headless proof |
+| `harness/` | `product-harness-system`, `ui-product-harness`, `headless-product-harness` | harness artifact、`claim_ceiling`、Harness Coverage Matrix、UI/headless proof |
 
 Goal Proof System 主路径已使用 v2 Goal Pack 口径：
 
@@ -52,7 +52,7 @@ plans/<work_id>.md
 | `docs/architecture/**` | 系统结构、模块关系、运行时视图 | 覆盖 SSoT 或隐藏任务 |
 | `docs/roadmap/**` | 顺序、状态、证据链接、迁移波次 | 逐步实施任务清单 |
 | `docs/interface-capabilities/**` | 项目级 InterfaceCapability / InterfaceSurface trace artifact，当项目选择集中管理 UI 能力追溯时使用 | 业务事实、测试代码、Goal Pack 运行状态 |
-| `docs/product-harness/**` | 项目级 HarnessScenario / HarnessFixture refs / HarnessRoute refs / evidence refs / claim limit / coverage matrix | 用户能力语义、产品事实、测试代码、Goal Pack 运行状态 |
+| `docs/product-harness/**` | 项目级 HarnessScenario / HarnessFixture refs / HarnessRoute refs / evidence refs / `claim_ceiling` / Harness Coverage Matrix | 用户能力语义、产品事实、测试代码、Goal Pack 运行状态 |
 | `docs/goal-proof/**` | Goal Pack、inbox、sources、evidence records、Goal Relations | 项目级 docs 治理或产品权威 |
 
 ## 冲突顺序
@@ -84,7 +84,7 @@ docs/ssot/**
 - 结构视图 -> `docs/architecture/**`
 - 顺序/状态/证据链接 -> `docs/roadmap/**`
 - 项目级界面能力 trace -> `docs/interface-capabilities/**`
-- 项目级 harness 证明合同、coverage matrix 和 evidence refs -> `docs/product-harness/**`
+- 项目级 harness 证明合同、Harness Coverage Matrix 和 evidence refs -> `docs/product-harness/**`
 - Goal Pack 生命周期 -> `docs/goal-proof/**`
 - 实施任务和本地证据 -> root `specs/**`，不要放 `docs/specs/**`
 

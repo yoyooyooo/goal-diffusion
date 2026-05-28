@@ -63,7 +63,7 @@ Before calling a proof step ready, check that it answers these questions in
 - What input, fixture, trace, command, UI action, dataset, or manual gate drives
   the check?
 - What positive evidence tokens, assertions, or observations must appear?
-- What non-claims must be recorded?
+- What `not_claimed` entries must be recorded?
 - What is the claim limit of this proof level?
 - Where should the next agent inspect first if the proof step fails?
 
@@ -92,7 +92,7 @@ static/boundary check
   -> offline fixture
   -> replay
   -> adapter/projection smoke
-  -> DB-backed smoke
+  -> db_backed smoke
   -> real runtime or manual acceptance
 ```
 

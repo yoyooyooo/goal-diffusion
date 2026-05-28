@@ -1,4 +1,4 @@
-# Harness Claim Limits
+# Harness Claim Ceilings
 
 A harness may support a claim only up to the level it actually exercised.
 
@@ -26,10 +26,22 @@ production_near
   when paired with the needed backend/runtime evidence.
 ```
 
+## Claim Ceiling Shape
+
+Use this shape in durable harness artifacts and evidence records:
+
+```yaml
+claim_ceiling:
+  level: headless_product | interface_headless | render_wiring | browser_visible | production_near
+  headless_sublevel: null | boundary | offline_fixture | replay | adapter | projection | db_backed | real_runtime_opt_in
+  environment: local | test | staged | production
+```
+
+`headless_sublevel` is set only when `level: headless_product`.
+
 ## Not Claimed
 
-Use non-claim tokens to prevent over-reporting. Existing schema fields may still
-be named `negative_claims`; the human-facing concept is `not_claimed`.
+Use `not_claimed` tokens to prevent over-reporting.
 
 ```text
 business_fact_claim=false unless paired with headless product proof
@@ -51,9 +63,9 @@ Every closeout or evidence record should include:
 ```text
 claim_ceiling:
 positive_tokens:
-negative_claims:  # not_claimed / non-claim tokens
+not_claimed:
 not_proven:
-promotion_status:
+status:
 ```
 
 If a stronger claim is desired, route to the harness layer that can honestly

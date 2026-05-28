@@ -20,7 +20,7 @@ interface trace semantics, harness lifecycle, or concrete proof commands.
 Inputs: user intent, host instructions, authority signals, repo state, and
 available verification paths.
 Outputs: route decision, orchestration order, inline execution boundary, and
-claim / non-claim summary.
+claim / not_claimed summary.
 Handoff: durable plan -> goal flow; docs placement -> governance;
 interface trace -> interface capability workflow; harness model ->
 harness system workflow; browser-visible proof -> UI harness workflow; command
@@ -50,7 +50,7 @@ to the owning method:
   frontend handoff, headless-to-interface growth, or InterfaceCapability trace
   artifacts -> `$interface-capability-planning`;
 - workspace-level harness architecture, Harness Scenario/Fixture/Surface/Evidence
-  vocabulary, claim limits, coverage matrix, lifecycle, or placement rules ->
+  vocabulary, claim_ceiling, Harness Coverage Matrix, lifecycle, or placement rules ->
   `$product-harness-system`;
 - frontend state/data/cache/mutation/realtime/router testing, UI dogfood,
   browser-visible proof, Playwright/agent-browser harnesses,
@@ -76,15 +76,15 @@ Otherwise route by intent:
   capability, frontend handoff, headless-to-interface growth, or interface
   trace contracts -> `$interface-capability-planning`;
 - asks for harness architecture, proof surface taxonomy, Harness Components /
-  Routes / Fixtures / Scenarios / Evidence, coverage matrix, lifecycle,
-  placement, claim limits, or alignment between headless and UI proof ->
+  Routes / Fixtures / Scenarios / Evidence, Harness Coverage Matrix, lifecycle,
+  placement, claim_ceiling, or alignment between headless and UI proof ->
   `$product-harness-system`;
 - asks for frontend state/data/cache/mutation/realtime/router testing, UI
   product proof, browser-visible acceptance, agent-browser/Playwright dogfood,
   interface-headless tests, render wiring, or UI evidence envelopes ->
   `$ui-product-harness`;
 - asks for xtask / just / pnpm command surfaces, smoke checks, headless proof,
-  fixture replay, boundary checks, evidence envelope, or non-claims ->
+  fixture replay, boundary checks, evidence envelope, or not_claimed ->
   `$headless-product-harness`;
 - asks for high-risk execution planning inside a Goal Pack -> route through
   `$goal-proof` to `write-work-plans`;
@@ -105,7 +105,7 @@ themselves.
 Ground final claims in host instructions, local repository files, source
 authority, code, tests, command output, or method-owned evidence. If a
 conclusion still depends only on a provider summary or unverified signal, report
-it as a candidate understanding or non-claim.
+it as candidate understanding or `not_claimed`.
 
 ## Gap Routing
 
@@ -117,8 +117,8 @@ A gap is not automatically blocked. First classify the missing piece by owner:
   `$docs-governance`;
 - missing interface capability, IA surface, interaction contract, state/data
   ownership, or testability planning -> `$interface-capability-planning`;
-- missing shared harness artifact model, trace spine, coverage matrix,
-  lifecycle, placement, or claim limit -> `$product-harness-system`;
+- missing shared harness artifact model, trace spine, Harness Coverage Matrix,
+  lifecycle, placement, or claim_ceiling -> `$product-harness-system`;
 - missing frontend harness, interface-headless reducer/store/query proof,
   render wiring test, browser-visible proof, or UI evidence envelope ->
   `$ui-product-harness`;
@@ -127,7 +127,7 @@ A gap is not automatically blocked. First classify the missing piece by owner:
 - small local defect with one clear proof path -> inline.
 
 Continue when an honest minimum path can be named inside current authority and
-claim_limit. Stop only when the gap requires a human / higher-authority
+claim boundary. Stop only when the gap requires a human / higher-authority
 decision, product-truth change, public API/schema/protocol posture change,
 security or private-data decision, destructive action, or no honest falsifiable
 path exists.
@@ -140,7 +140,7 @@ read host instructions
 -> identify authority and verification boundary
 -> route to inline work or an owning method
 -> execute until the current intent naturally closes, blocks, or needs a user decision
--> report only proven claims and explicit non-claims
+-> report only proven claims and explicit not_claimed
 ```
 
 ## Non-Ownership Rules

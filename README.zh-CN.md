@@ -42,7 +42,7 @@ gap 显式留下
 | `goal/` | `write-work-plans` | 为高风险 work item 写 `plans/<work_id>.md` |
 | `governance/` | `docs-governance` | docs layer、SSoT、standards、ADR、roadmap、cleanup、audit |
 | `capability/` | `interface-capability-planning` | UI/IA、InterfaceCapability、surface、state/data ownership、harness handoff |
-| `harness/` | `product-harness-system` | harness artifact model、claim limit、coverage matrix、trace lifecycle |
+| `harness/` | `product-harness-system` | harness artifact model、`claim_ceiling`、Harness Coverage Matrix、trace lifecycle |
 | `harness/` | `ui-product-harness` | interface-headless、render wiring、browser-visible、production-near UI proof |
 | `harness/` | `headless-product-harness` | proof command、smoke、fixture/replay、evidence envelope |
 
@@ -202,7 +202,7 @@ UI proof：
 
 ```text
 使用 $ui-product-harness：
-规划 interface-headless、render wiring、browser-visible proof、evidence、gap 和 claim limit。
+规划 interface-headless、render wiring、browser-visible proof、evidence、gap 和 `claim_ceiling`。
 ```
 
 Headless proof：
@@ -260,7 +260,7 @@ check -> inspect -> work brief -> work -> evidence add -> apply -> check
 | `docs/adr/**` | 已采纳取舍 |
 | `docs/roadmap/**` | 顺序、状态、证据链接、迁移波次 |
 | `docs/interface-capabilities/**` | 项目级 InterfaceCapability / InterfaceSurface trace |
-| `docs/product-harness/**` | 项目级 harness scenario、claim limit、coverage matrix、evidence refs |
+| `docs/product-harness/**` | 项目级 harness scenario、`claim_ceiling`、Harness Coverage Matrix、evidence refs |
 | `docs/goal-proof/**` | Goal Pack、inbox、sources、evidence records、Goal Relations |
 | `skills/**` | AI Coding OS 公开 skill suite 源码视图 |
 | `packages/cli/**` | `goal-proof` CLI |

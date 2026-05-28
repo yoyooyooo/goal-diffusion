@@ -1,0 +1,20 @@
+{
+  "skill_name": "product-harness-system",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Given mixed headless and UI evidence for one user-facing capability, design the durable HarnessScenario and Harness Coverage Matrix.",
+      "expected_output": "Uses HarnessScenario with claim_ceiling, not_claimed, not_proven, evidence refs, and remaining_gaps; separates headless_product from interface_headless/render_wiring/browser_visible coverage; uses headless_sublevel only under headless_product."
+    },
+    {
+      "id": 2,
+      "prompt": "Audit a harness plan that treats fixture data and a browser screenshot as proof of accepted business facts.",
+      "expected_output": "Rejects overclaiming; states that fixtures and browser-visible proof do not own product truth; requires paired headless product evidence or records business_fact_claim=false in not_claimed."
+    },
+    {
+      "id": 3,
+      "prompt": "Review a retired Harness Route that was replaced by final product UI and regression tests.",
+      "expected_output": "Requires replacement evidence or recorded remaining_gaps before retirement; keeps raw run artifacts out of durable docs unless summarized or redacted; preserves trace refs."
+    }
+  ]
+}

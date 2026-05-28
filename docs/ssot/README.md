@@ -38,7 +38,7 @@ standards 可以规定怎么执行；roadmap 可以说明何时迁移；Goal Pac
 - 命名裁决由 [ADR: AI Coding OS 命名与边界](../adr/2026-05-28-ai-coding-os-naming-and-boundary.md) 固化。
 - `docs-governance` 独立公开，拥有文档分层、权威放置、cleanup 和 audit。
 - `interface-capability-planning` 独立公开，拥有 UI/IA 交互能力合同、状态/数据归属、testability planning 和 harness handoff。
-- `product-harness-system` 独立公开，拥有通用 Harness artifact、生命周期、claim limit、coverage matrix 和 trace 规范。
+- `product-harness-system` 独立公开，拥有通用 Harness artifact、生命周期、`claim_ceiling`、Harness Coverage Matrix 和 trace 规范。
 - `ui-product-harness` 独立公开，拥有 interface-headless、render wiring、browser-visible 和 production-near UI proof 方法。
 - `headless-product-harness` 独立公开，拥有 headless proof command、smoke evidence、fixture/replay 和 evidence envelope。
 - `goal-proof` 独立公开，拥有 Goal Pack 目标计划、滚动执行和跨会话延续。
