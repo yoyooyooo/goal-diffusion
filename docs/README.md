@@ -6,40 +6,40 @@
 
 1. 先读仓库根目录 [AGENTS.md](../AGENTS.md)，确认协作语言、开发命令和当前方法论口径。
 2. 读本文件，确定文档放置层。
-3. 读 [docs/product/README.md](product/README.md)，理解 AI Coding Project OS 项目定位。
-4. 读 [docs/ssot/README.md](ssot/README.md) 和 [docs/standards/README.md](standards/README.md)，确认当前事实和可执行规则。
-5. 需要查看长期目标状态时，读 [docs/goal-diffusion/README.md](goal-diffusion/README.md)。
+3. 读 [docs/product/README.md](product/README.md)，理解 AI Coding OS 方法论定位和 workspace 落地边界。
+4. 读 [docs/ssot/README.md](ssot/README.md)、[docs/standards/README.md](standards/README.md) 和
+   [Docs Governance](standards/docs-governance.md)，确认当前事实、可执行规则和文档放置边界。
+5. 需要查看长期目标状态时，读 [docs/goal-proof/README.md](goal-proof/README.md)。
+6. 需要判断命名或分发边界时，读 [docs/adr/2026-05-28-ai-coding-os-naming-and-boundary.md](adr/2026-05-28-ai-coding-os-naming-and-boundary.md) 和 [docs/standards/skill-source-distribution.md](standards/skill-source-distribution.md)。
 
 ## 当前状态
 
-本仓库是 AI Coding Project OS 项目仓：一组平铺公开 skill、一个轻量 OS 入口，以及仍以 `goal-diffusion` 发布的 Goal Pack CLI。默认入口是 `$ai-coding-project-os`；它不拥有持久 artifact，只负责把项目级 AI coding 意图路由到拥有方法和 artifact 的 skill。
+本仓库是 AI Coding OS 方法套件仓：一组按决策面分组的公开 skill、一个轻量 OS 入口，以及仍以 `goal-proof` 发布的 Goal Pack CLI。默认落地边界是 workspace/repo；默认入口仍是 `$ai-coding-os`，它不拥有持久 artifact，只负责把 AI coding 意图路由到拥有方法和 artifact 的 skill。
 
-当前平铺 skill：
+当前 skill suite 见 [skills/README.md](../skills/README.md)。逻辑分组：
 
-| Skill | 定位 |
-| --- | --- |
-| `ai-coding-project-os` | 用户默认入口，轻量路由和编排 |
-| `docs-governance` | 文档分层、权威放置、cleanup、audit |
-| `interface-capability-planning` | UI/IA、交互能力、前端状态/数据归属和 trace artifact |
-| `product-harness-system` | 通用 harness artifact、claim ceiling、coverage matrix、生命周期和 trace |
-| `ui-product-harness` | interface-headless、render wiring、browser-visible、production-near UI proof |
-| `headless-product-harness` | headless proof command 与证据 envelope |
-| `goal-diffusion` | Goal Pack 方法总入口 |
-| `goal-plans` | `charter.yaml` 生成/修复 |
-| `finding-harnessed-path` | current edge / harness path |
-| `diffusion-implementation` | 执行、验证、receipt、advance |
-| `write-implementation-plans` | `plan_required` 高风险 slice 的实施计划 |
+| Group | Skills | 定位 |
+| --- | --- | --- |
+| `router/` | `ai-coding-os` | 用户默认入口，轻量路由和编排 |
+| `goal/` | `goal-proof`, `goal-contracts`, `finding-proof-step`, `proof-step-implementation`, `write-work-plans` | Goal Pack、目标授权、当前验证步、执行、证据记录和高风险实施计划 |
+| `governance/` | `docs-governance` | 文档分层、权威放置、cleanup、audit |
+| `capability/` | `interface-capability-planning` | UI/IA、交互能力、前端状态/数据归属和 trace artifact |
+| `harness/` | `product-harness-system`, `ui-product-harness`, `headless-product-harness` | harness artifact、claim limit、coverage matrix、UI/headless proof |
 
-Goal Diffusion 主路径已使用 v1 Goal Pack 口径：
+Goal Proof System 主路径已使用 v2 Goal Pack 口径：
 
 ```text
-charter.yaml
-state.yaml
-receipts.jsonl
-implementation-plan.md
+goal.yaml
+progress.yaml
+evidence.jsonl
+plans/<work_id>.md
 ```
 
-后续 schema 或 skill 口径变更仍应同步更新 skills、templates、checker、README、测试和 dogfood Goal Pack。
+后续 schema、docs layer 或 skill 口径变更仍应同步更新 skills、templates、checker、README、测试和 dogfood Goal Pack。
+涉及 skill source、mirror、runtime 分发或旧入口退役时，按
+[Skill Source And Distribution](standards/skill-source-distribution.md) 执行。
+涉及 docs layer 准入、promotion / demotion、旧材料清理或审计门时，按
+[Docs Governance](standards/docs-governance.md) 执行。
 
 ## 文档层
 
@@ -52,27 +52,29 @@ implementation-plan.md
 | `docs/architecture/**` | 系统结构、模块关系、运行时视图 | 覆盖 SSoT 或隐藏任务 |
 | `docs/roadmap/**` | 顺序、状态、证据链接、迁移波次 | 逐步实施任务清单 |
 | `docs/interface-capabilities/**` | 项目级 InterfaceCapability / InterfaceSurface trace artifact，当项目选择集中管理 UI 能力追溯时使用 | 业务事实、测试代码、Goal Pack 运行状态 |
-| `docs/product-harness/**` | 项目级 HarnessScenario / HarnessFixture refs / HarnessRoute refs / evidence refs / claim ceiling / coverage matrix | 用户能力语义、产品事实、测试代码、Goal Pack 运行状态 |
-| `docs/goal-diffusion/**` | Goal Pack、inbox、sources、receipts、Goal Relations | 项目级 docs 治理或产品权威 |
+| `docs/product-harness/**` | 项目级 HarnessScenario / HarnessFixture refs / HarnessRoute refs / evidence refs / claim limit / coverage matrix | 用户能力语义、产品事实、测试代码、Goal Pack 运行状态 |
+| `docs/goal-proof/**` | Goal Pack、inbox、sources、evidence records、Goal Relations | 项目级 docs 治理或产品权威 |
 
 ## 冲突顺序
 
-默认冲突顺序：
+默认意图权威顺序：
 
 ```text
 docs/ssot/**
   -> docs/standards/**
-  -> code + tests + generated evidence
   -> docs/adr/**
-  -> docs/architecture/**
+  -> code + tests + generated evidence
+  -> docs/protocols/** when the question is wire/schema compatibility
   -> docs/interface-capabilities/**
   -> docs/product-harness/**
+  -> docs/architecture/**
   -> docs/roadmap/**
-  -> docs/goal-diffusion/**
+  -> docs/goal-proof/**
   -> README / research / external notes
 ```
 
-如果某次迁移发现两层都可能是最高权威，先记录决策项，不要把冲突埋进 prose。
+代码和测试能证明实际行为，但不能静默重定义更高层的当前事实、规则或已采纳取舍。
+如果某次迁移发现两层都可能是最高权威，先记录 decision/gap，不要把冲突埋进 prose。
 
 ## 放置规则
 
@@ -83,7 +85,7 @@ docs/ssot/**
 - 顺序/状态/证据链接 -> `docs/roadmap/**`
 - 项目级界面能力 trace -> `docs/interface-capabilities/**`
 - 项目级 harness 证明合同、coverage matrix 和 evidence refs -> `docs/product-harness/**`
-- Goal Pack 生命周期 -> `docs/goal-diffusion/**`
+- Goal Pack 生命周期 -> `docs/goal-proof/**`
 - 实施任务和本地证据 -> root `specs/**`，不要放 `docs/specs/**`
 
 ## 语言策略
@@ -95,3 +97,5 @@ docs/ssot/**
 - 产品/方法论定位：[docs/product/README.md](product/README.md)
 - 当前事实：[docs/ssot/README.md](ssot/README.md)
 - 可执行规则：[docs/standards/README.md](standards/README.md)
+- 文档治理：[docs/standards/docs-governance.md](standards/docs-governance.md)
+- Skill source / distribution：[docs/standards/skill-source-distribution.md](standards/skill-source-distribution.md)

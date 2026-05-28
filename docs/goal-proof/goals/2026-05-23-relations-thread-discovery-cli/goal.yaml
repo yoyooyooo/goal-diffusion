@@ -1,0 +1,88 @@
+schema_version: 2
+id: "2026-05-23-relations-thread-discovery-cli"
+status: done
+
+objective: "Converge the relations CLI so agents can quickly discover and filter Goal Pack and work item candidates by thread without modeling a thread as an execution queue, scheduler, or independent state object."
+guiding_principle: "When an agent knows a thread_id, it can use a small stable relations command surface to find relevant goals and tasks, then use inspect, tasks, evidence records, and brief for deeper implementation context."
+
+relations:
+  thread_id: goal-relations
+  links:
+    - goal_id: 2026-05-23-goal-relations-cli-verification
+      relation: successor_of
+      evidence_ref: E999
+      evidence:
+        - "W001 evidence record proves relations list/check/graph CLI implementation and dogfood verification."
+        - "Tests prove thread filtering."
+        - "Dogfood graph rendered derived thread view with successor_of edge and evidence=ok."
+        - "completion_satisfied=true"
+
+authority_refs:
+  - "Current conversation freeze: relations only discovers and filters candidates; it does not create an execution queue."
+  - "packages/cli/src/goal-proof.ts"
+  - "packages/cli/src/render-goal-relations.ts"
+  - "packages/cli/src/summarize-goal-packs.ts"
+  - "packages/cli/src/render-goal-tasks.ts"
+  - "packages/cli/test/goal-relations-cli.test.ts"
+  - "packages/cli/test/goal-pack-cli.test.ts"
+  - "packages/cli/README.md"
+  - "packages/cli/README.zh-CN.md"
+  - "README.md"
+  - "README.zh-CN.md"
+  - "skills/goal/goal-proof-system/SKILL.md"
+  - "/Users/yoyo/Documents/code/personal/fermi.worktrees/planning"
+
+engineering_guidance:
+  architecture_notes:
+    - "The relations namespace is for Goal Relations derived discovery, filtering, validation, and graph inspection only."
+    - "thread_id is a label, not a queue, worklist, scheduler, plan order, registry, or lifecycle object."
+    - "New relations commands must find candidate goals and work items quickly; they must not choose execution order or next action."
+    - "Deep implementation context stays in inspect, tasks, evidence records, and brief."
+    - "The command surface may remove or avoid anything that conflicts with this frozen principle; compatibility is not required for nonconforming proposals."
+
+constraints:
+  - "Do not add a top-level thread or threads namespace."
+  - "Do not add relations queue."
+  - "Do not add relations worklist."
+  - "Do not add priority, rank, order_confidence, execution_order, or other ordering-promise fields."
+  - "Do not add include-linked-targets; avoid mixing thread members with externally referenced targets in discovery filters."
+  - "Do not add --thread to top-level summary, list, or work items."
+  - "relations graph must remain a derived relation graph and must not imply execution order."
+  - "relations list remains relation metadata; do not turn it into a goal or work item list."
+
+non_goals:
+  - "No scheduler."
+  - "No inferred execution order."
+  - "No thread-owned state, evidence record stream, work item list, graph file, registry, queue, or worklist."
+  - "No automatic successor generation."
+  - "No UI."
+  - "No compatibility preservation for command shapes that violate the frozen principle."
+
+completion:
+  signal: "The CLI exposes relations goals and relations tasks; agents can filter thread-member Goal Packs and work items by completion and status without any queue or worklist semantics; existing relations list/check/graph keep their narrower metadata, evidence validation, and derived graph meanings."
+  required_evidence: "bun run check passes; tests prove thread goal discovery, unfinished goal filtering, unfinished work item filtering, work item status filtering, parent goal filtering, goal-id filtering, invalid filter rejection, unchanged list/check/graph behavior, and docs coverage; fermi.worktrees/planning is usable as an external validation target; the completion review evidence record sets completion_satisfied=true."
+
+claim_limit: "This Goal Pack may claim only the relations CLI thread discovery and filtering surface plus command-surface convergence. It may not claim an execution queue, scheduler, automatic priority, inferred work order, or thread lifecycle."
+
+stop_rules:
+  - "Stop if implementation requires thread-owned state, a queue, a worklist, a scheduler, a registry, or stored graph state."
+  - "Stop if a proposed output field implies execution priority or order."
+  - "Stop if relation discovery cannot stay read-only over existing Goal Pack files."
+  - "Stop if validation against fermi.worktrees/planning would require modifying that external worktree."
+  - "Stop if the command surface cannot keep relations list/check/graph semantically narrow."
+
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - authority_refs
+    - engineering_guidance
+    - constraints
+    - completion
+    - claim_limit
+    - stop_rules
+  agent_may_revise:
+    - next_slice
+    - work_order
+    - harness_strength
+    - implementation_shape

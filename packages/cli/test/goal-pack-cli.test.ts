@@ -8,982 +8,383 @@ import assert from "node:assert/strict";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = resolve(packageRoot, "../..");
-const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
+const cliScript = join(packageRoot, "src", "goal-proof.ts");
 
-function makePack({ contract = contractYaml, state = stateYaml, receipts = "" } = {}) {
-  const root = mkdtempSync(join(tmpdir(), "goal-pack-cli-test-"));
-  return writePack(root, { contract, state, receipts });
+function makePack({ goal = goalYaml(), progress = progressYaml(), evidence = "" } = {}) {
+  const root = mkdtempSync(join(tmpdir(), "goal-proof-cli-"));
+  return writePack(root, { goal, progress, evidence });
 }
 
 function makeProjectPack(goalId = "cli-test-goal", options = {}) {
-  const project = mkdtempSync(join(tmpdir(), "goal-pack-project-test-"));
-  const root = join(project, "docs", "goal-diffusion", "goals", goalId);
+  const project = mkdtempSync(join(tmpdir(), "goal-proof-project-"));
+  const root = join(project, "docs", "goal-proof", "goals", goalId);
   writePack(root, options);
   return { project, root };
 }
 
-function writePack(root, { contract = contractYaml, state = stateYaml, receipts = "" } = {}) {
+function writePack(root, { goal = goalYaml(), progress = progressYaml(), evidence = "" } = {}) {
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
-  writeFileSync(join(root, "state.yaml"), state.trimStart());
-  writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
+  mkdirSync(join(root, "plans"), { recursive: true });
+  writeFileSync(join(root, "goal.yaml"), goal.trimStart());
+  writeFileSync(join(root, "progress.yaml"), progress.trimStart());
+  writeFileSync(join(root, "evidence.jsonl"), evidence.trimStart());
   return root;
 }
 
-function run(script, args, options: { cwd?: string; input?: string } = {}) {
-  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8", cwd: options.cwd, input: options.input });
+function run(args, options: { cwd?: string; input?: string } = {}) {
+  return spawnSync(process.execPath, [cliScript, ...args], { encoding: "utf8", cwd: options.cwd, input: options.input });
 }
 
-function readReceipts(root) {
-  return readFileSync(join(root, "receipts.jsonl"), "utf8").trim().split(/\r?\n/).filter(Boolean);
-}
-
-const contractYaml = `
-id: cli-test-goal
-status: running
-objective: "Exercise the Goal Pack command surface."
-authority_refs:
-  - "goal-diffusion/SKILL.md"
+function goalYaml({ id = "cli-test-goal", status = "running", thread = null, links = "" } = {}) {
+  const relations = thread === null ? "" : `
+relations:
+  thread_id: ${thread}
+  links:
+${links || "    []"}
+`;
+  return `
+schema_version: 2
+id: ${id}
+status: ${status}
+objective: "Exercise the Goal Proof command surface."
+guiding_principle: "Progress is evidence-backed."
+${relations}authority_refs:
+  - "skills/goal/goal-proof-system/SKILL.md"
 engineering_guidance:
   standards:
-    - "Command scripts mutate only receipts and deterministic state."
+    - "Command scripts mutate only evidence and deterministic progress."
 completion:
-  signal: "CLI can inspect, brief, dispatch, activate, record receipts, advance state, and check packs."
-  final_proof: "Node tests pass."
-claim_boundary: "Only proves local script behavior."
+  signal: "CLI can inspect, brief, activate, add evidence, apply progress, and check packs."
+  required_evidence: "Bun tests pass."
+claim_limit: "Only proves local CLI behavior."
+stop_rules:
+  - "Stop on schema mismatch."
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - completion
+    - claim_limit
+  agent_may_revise:
+    - proof_step
+    - work_items
+evidence_mode: normal
 `;
+}
 
-const stateYaml = `
-version: 1
-goal_id: cli-test-goal
-status: running
-current_edge:
+function progressYaml({ id = "cli-test-goal", status = "running", active = "W001", workStatus = "active", nextAction = "continue", includeReview = true } = {}) {
+  return `
+schema_version: 2
+goal_id: ${id}
+status: ${status}
+proof_step:
   from: "No command surface"
   target_delta: "Agent-readable command surface"
-  harnessed_path:
+  proof_path:
     - "Run CLI tests"
-  verify:
+  checks:
     - "bun test packages/cli/test/goal-pack-cli.test.ts"
   failure_inspection:
     - "packages/cli/src/"
-active_task: T001
-tasks:
-  - id: T001
-    type: worker
-    status: active
+active_work_item: ${active ?? "null"}
+work_items:
+  - id: W001
+    type: implementation
+    status: ${workStatus}
     objective: "Implement command scripts."
     allowed_scope:
       - "packages/cli/**"
-    verify:
+    checks:
       - "bun test packages/cli/test/goal-pack-cli.test.ts"
     stop_if:
       - "Need package manager changes."
-  - id: T002
-    type: audit
+${includeReview ? `  - id: W002
+    type: review
     status: queued
-    objective: "Audit command scripts."
+    objective: "Review command scripts."
+` : ""}
 blockers: []
-last_verification:
+last_check:
   result: unknown
   checks: []
-next_decision: continue
+next_action: ${nextAction}
 `;
+}
 
-const doneSummaryContractYaml = `
-id: cli-done-goal
+function doneProgressYaml(id = "cli-done-goal") {
+  return `
+schema_version: 2
+goal_id: ${id}
 status: done
-objective: "Exercise completed Goal Pack summary."
-authority_refs:
-  - "goal-diffusion/SKILL.md"
-engineering_guidance:
-  standards:
-    - "Command scripts summarize deterministic state."
-completion:
-  signal: "Summary counts completed packs."
-  final_proof: "Node tests pass."
-claim_boundary: "Only proves summary command behavior."
-`;
-
-const doneSummaryStateYaml = `
-version: 1
-goal_id: cli-done-goal
-status: done
-current_edge:
+proof_step:
   from: "Summary missing"
   target_delta: "Summary available"
-  harnessed_path:
+  proof_path:
     - "Run CLI summary tests"
-  verify:
+  checks:
     - "bun test packages/cli/test/goal-pack-cli.test.ts"
   failure_inspection:
     - "packages/cli/src/summarize-goal-packs.ts"
-active_task: null
-tasks:
-  - id: T999
-    type: audit
+active_work_item: null
+work_items:
+  - id: W999
+    type: review
     status: done
-    objective: "Audit summary command."
+    objective: "Completion review."
 blockers: []
-last_verification:
+last_check:
   result: pass
   checks:
     - "bun test packages/cli/test/goal-pack-cli.test.ts"
-next_decision: done
+next_action: done
 `;
+}
 
-const blockScalarContractYaml = `
-id: block-scalar-goal
-status: running
-objective: >
-  Build source connection UI
-  from a real Goal Pack.
-authority_refs:
-  - "docs/authority.md"
-engineering_guidance:
-  standards:
-    - "Stay bounded."
-completion:
-  signal:
-    - "Route opens"
-    - "List renders"
-  final_proof:
-    - "Checks pass"
-claim_boundary: >
-  Claims UI route only.
-`;
-
-const blockScalarStateYaml = `
-version: 1
-goal_id: block-scalar-goal
-status: running
-current_edge:
-  from: >
-    No product route
-  target_delta: >
-    Product route usable
-  harnessed_path:
-    - "Create route"
-  verify:
-    - "bun test packages/cli/test/goal-pack-cli.test.ts"
-  failure_inspection:
-    - "packages/cli/src/"
-active_task: T001
-tasks:
-  - id: T001
-    type: worker
-    status: active
-    objective: >
-      Implement product route
-    allowed_scope:
-      - "packages/cli/**"
-    verify:
-      - "bun test packages/cli/test/goal-pack-cli.test.ts"
-    stop_if:
-      - "Need authority change."
-blockers: []
-last_verification:
-  result: unknown
-checks: []
-next_decision: continue
-`;
-
-const receiptHistoryJsonl = [
-  {
-    task_id: "T001",
-    type: "pm",
+function implementationEvidence({ evidenceId = "E001", workId = "W001", nextAction = "continue", changedFiles = ["packages/cli/src/goal-proof.ts"] } = {}) {
+  return {
+    schema_version: 2,
+    evidence_id: evidenceId,
+    work_id: workId,
+    type: "implementation",
     result: "done",
-    evidence: ["seed context"],
-    summary: "Seeded the command surface.",
-    next_decision: "continue",
-  },
-  {
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["packages/cli/src/goal-diffusion.ts", "packages/cli/src/render-goal-receipts.ts"],
+    recorded_at: "2026-05-28T00:00:00Z",
+    changed_files: changedFiles,
     checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["DO_NOT_DUMP_FULL_EVIDENCE", "compact receipt list"],
-    claims: ["receipt list works"],
-    summary: "Added compact receipts list.",
-    next_decision: "continue",
-  },
-  {
-    task_id: "T001",
-    type: "worker",
-    result: "blocked",
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "fail" }],
-    blocked_by: ["filter failure"],
-    evidence: ["failed command"],
-    summary: "Blocked on filter failure.",
-    next_decision: "blocked",
-  },
-  {
-    task_id: "T002",
-    type: "audit",
+    evidence: ["compact_evidence_list=true"],
+    claims: ["implementation evidence recorded"],
+    not_claimed: [],
+    summary: "Implementation evidence recorded.",
+    next_action: nextAction,
+  };
+}
+
+function reviewEvidence({ evidenceId = "E999", workId = "W999" } = {}) {
+  return {
+    schema_version: 2,
+    evidence_id: evidenceId,
+    work_id: workId,
+    type: "review",
     result: "done",
     decision: "complete",
-    oracle_satisfied: true,
-    evidence: ["audit proof"],
-    claims: ["complete"],
-    summary: "Audit complete.",
-    next_decision: "done",
-  },
-].map((receipt) => JSON.stringify(receipt)).join("\n");
+    completion_satisfied: true,
+    recorded_at: "2026-05-28T00:00:00Z",
+    claim_evidence: [{ claim: "completion.required_evidence", evidence: ["tests_passed=true"] }],
+    not_claimed: [],
+    remaining_gaps: [],
+    summary: "Completion review passed.",
+    next_action: "done",
+  };
+}
 
-test("inspect --json returns compact agent-readable state", () => {
-  const root = makePack({
-    receipts: `{"task_id":"T000","type":"pm","result":"done","summary":"DO_NOT_DUMP_FULL_RECEIPTS","evidence":["seed"],"next_decision":"continue"}\n`,
-  });
+function jsonl(records) {
+  return `${records.map((record) => JSON.stringify(record)).join("\n")}\n`;
+}
+
+test("inspect and check read Goal Proof v2 artifacts", () => {
+  const root = makePack({ evidence: jsonl([{ ...implementationEvidence(), evidence_id: "E000", work_id: "W001" }]) });
   try {
-    const result = run(cliScript, ["inspect", root, "--json"]);
+    const result = run(["inspect", root, "--json"]);
     assert.equal(result.status, 0, result.stderr);
     const payload = JSON.parse(result.stdout);
     assert.equal(payload.goal_id, "cli-test-goal");
     assert.equal(payload.status, "running");
-    assert.equal(payload.active_task.id, "T001");
-    assert.equal(payload.task_count, 2);
-    assert.equal(payload.receipt_count, 1);
-    assert.equal(payload.last_receipt.task_id, "T000");
+    assert.equal(payload.active_work_item.id, "W001");
+    assert.equal(payload.work_item_count, 2);
+    assert.equal(payload.evidence_count, 1);
+    assert.equal(payload.last_evidence_record.evidence_id, "E000");
     assert.equal(payload.can_continue, true);
-    assert.equal(JSON.stringify(payload).includes("DO_NOT_DUMP_FULL_RECEIPTS"), false);
+
+    const check = run(["check", root]);
+    assert.equal(check.status, 0, check.stderr);
+    assert.equal(JSON.parse(check.stdout).ok, true);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test("inspect --json parses YAML block scalars and nested lists", () => {
-  const root = makePack({
-    contract: blockScalarContractYaml,
-    state: blockScalarStateYaml,
-  });
-  try {
-    const result = run(cliScript, ["inspect", root, "--json"]);
-    assert.equal(result.status, 0, result.stderr);
-    const payload = JSON.parse(result.stdout);
-    assert.equal(payload.objective, "Build source connection UI from a real Goal Pack.");
-    assert.deepEqual(payload.completion.signal, ["Route opens", "List renders"]);
-    assert.deepEqual(payload.completion.final_proof, ["Checks pass"]);
-    assert.equal(payload.claim_boundary, "Claims UI route only.");
-    assert.equal(payload.current_edge.from, "No product route");
-    assert.equal(payload.current_edge.target_delta, "Product route usable");
-    assert.equal(payload.active_task.objective, "Implement product route");
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("commands resolve bare goal id under docs/goal-diffusion/goals from project subdirectories", () => {
+test("commands resolve bare goal id under docs/goal-proof/goals", () => {
   const { project } = makeProjectPack();
-  const nested = join(project, "apps", "web-start", "src");
+  const nested = join(project, "apps", "web", "src");
   mkdirSync(nested, { recursive: true });
   try {
-    const inspect = run(cliScript, ["inspect", "cli-test-goal", "--json"], { cwd: nested });
+    const inspect = run(["inspect", "cli-test-goal", "--json"], { cwd: nested });
     assert.equal(inspect.status, 0, inspect.stderr);
-    const payload = JSON.parse(inspect.stdout);
-    assert.equal(payload.goal_id, "cli-test-goal");
-    assert.equal(payload.active_task.id, "T001");
-
-    const check = run(cliScript, ["check", "cli-test-goal"], { cwd: project });
-    assert.equal(check.status, 0, check.stderr);
-    assert.equal(JSON.parse(check.stdout).goal_pack, "cli-test-goal");
+    assert.equal(JSON.parse(inspect.stdout).goal_id, "cli-test-goal");
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
 });
 
-test("summary counts Goal Pack and task completion under a project root", () => {
+test("summary and list count goals, work items, and evidence", () => {
   const { project } = makeProjectPack("cli-active-goal");
-  const doneRoot = join(project, "docs", "goal-diffusion", "goals", "cli-done-goal");
+  const doneRoot = join(project, "docs", "goal-proof", "goals", "cli-done-goal");
   writePack(doneRoot, {
-    contract: doneSummaryContractYaml,
-    state: doneSummaryStateYaml,
-    receipts: `{"task_id":"T999","type":"audit","result":"done","decision":"complete","oracle_satisfied":true,"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"done"}\n`,
+    goal: goalYaml({ id: "cli-done-goal", status: "done" }),
+    progress: doneProgressYaml("cli-done-goal"),
+    evidence: jsonl([reviewEvidence()]),
   });
 
   try {
-    const json = run(cliScript, ["summary", project, "--depth", "items", "--json"]);
-    assert.equal(json.status, 0, json.stderr);
-    const payload = JSON.parse(json.stdout);
+    const summary = run(["summary", project, "--depth", "items", "--json"]);
+    assert.equal(summary.status, 0, summary.stderr);
+    const payload = JSON.parse(summary.stdout);
     assert.equal(payload.goals.total, 2);
     assert.equal(payload.goals.done, 1);
-    assert.equal(payload.goals.todo, 1);
-    assert.equal(payload.goals.by_status.running, 1);
-    assert.equal(payload.goals.by_status.done, 1);
-    assert.equal(payload.tasks.total, 3);
-    assert.equal(payload.tasks.done, 1);
-    assert.equal(payload.tasks.todo, 2);
-    assert.equal(payload.tasks.by_status.active, 1);
-    assert.equal(payload.tasks.by_status.queued, 1);
-    assert.equal(payload.problem_count, 0);
+    assert.equal(payload.work_items.total, 3);
+    assert.equal(payload.work_items.done, 1);
+    assert.equal(payload.evidence_count, 1);
 
-    const todo = run(cliScript, ["summary", project, "--completion", "todo", "--depth", "items", "--json"]);
-    assert.equal(todo.status, 0, todo.stderr);
-    const todoPayload = JSON.parse(todo.stdout);
-    assert.equal(todoPayload.filters.completion, "todo");
-    assert.equal(todoPayload.goals.total, 1);
-    assert.equal(todoPayload.goals.done, 0);
-    assert.equal(todoPayload.goals.todo, 1);
-    assert.equal(todoPayload.items[0].goal_id, "cli-test-goal");
+    const list = run(["list", project, "--completion", "done", "--json"]);
+    assert.equal(list.status, 0, list.stderr);
+    assert.equal(JSON.parse(list.stdout).items[0].goal_id, "cli-done-goal");
 
-    const done = run(cliScript, ["summary", project, "--completion", "done", "--depth", "items", "--json"]);
-    assert.equal(done.status, 0, done.stderr);
-    const donePayload = JSON.parse(done.stdout);
-    assert.equal(donePayload.goals.total, 1);
-    assert.equal(donePayload.goals.done, 1);
-    assert.equal(donePayload.items[0].goal_id, "cli-done-goal");
-
-    const ready = run(cliScript, ["summary", project, "--status", "running", "--depth", "items", "--json"]);
-    assert.equal(ready.status, 0, ready.stderr);
-    const readyPayload = JSON.parse(ready.stdout);
-    assert.equal(readyPayload.filters.status, "running");
-    assert.equal(readyPayload.goals.total, 1);
-    assert.equal(readyPayload.items[0].status, "running");
-
-    const text = run(cliScript, ["summary", join(project, "docs", "goal-diffusion", "goals")]);
-    assert.equal(text.status, 0, text.stderr);
-    assert.match(text.stdout, /goals: total=2 done=1 todo=1 retired=0/);
-    assert.match(text.stdout, /tasks: total=3 done=1 todo=2/);
+    const text = run(["summary", join(project, "docs", "goal-proof", "goals")]);
+    assert.match(text.stdout, /work_items: total=3 done=1 todo=2/);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
 });
 
-test("list filters Goal Packs by completion and status", () => {
-  const { project } = makeProjectPack("cli-active-goal");
-  const doneRoot = join(project, "docs", "goal-diffusion", "goals", "cli-done-goal");
-  writePack(doneRoot, {
-    contract: doneSummaryContractYaml,
-    state: doneSummaryStateYaml,
-    receipts: `{"task_id":"T999","type":"audit","result":"done","decision":"complete","oracle_satisfied":true,"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"done"}\n`,
-  });
-
-  try {
-    const todo = run(cliScript, ["list", project, "--completion", "todo"]);
-    assert.equal(todo.status, 0, todo.stderr);
-    assert.match(todo.stdout, /goals: 1/);
-    assert.match(todo.stdout, /cli-test-goal  status=running/);
-    assert.doesNotMatch(todo.stdout, /cli-done-goal/);
-
-    const done = run(cliScript, ["list", project, "--completion", "done", "--json"]);
-    assert.equal(done.status, 0, done.stderr);
-    const donePayload = JSON.parse(done.stdout);
-    assert.equal(donePayload.count, 1);
-    assert.equal(donePayload.items[0].goal_id, "cli-done-goal");
-
-    const impossible = run(cliScript, ["list", project, "--completion", "todo", "--status", "done", "--json"]);
-    assert.equal(impossible.status, 0, impossible.stderr);
-    assert.equal(JSON.parse(impossible.stdout).count, 0);
-
-    const badCompletion = run(cliScript, ["list", project, "--completion", "finished"]);
-    assert.equal(badCompletion.status, 1);
-    assert.match(badCompletion.stderr, /completion must be all, todo, done/);
-
-    const badStatus = run(cliScript, ["summary", project, "--status", "todo"]);
-    assert.equal(badStatus.status, 1);
-    assert.match(badStatus.stderr, /status must be forming, ready, running, blocked, done, retired/);
-  } finally {
-    rmSync(project, { recursive: true, force: true });
-  }
-});
-
-test("tasks lists unfinished tasks by default", () => {
+test("work list, work brief, and work activate use work item vocabulary", () => {
   const root = makePack();
   try {
-    const result = run(cliScript, ["tasks", root]);
-    assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /goal_id: cli-test-goal/);
-    assert.match(result.stdout, /filters: completion=todo status=all/);
-    assert.match(result.stdout, /tasks: 2/);
-    assert.match(result.stdout, /T001\s+active\s+worker\s+Implement command scripts\./);
-    assert.match(result.stdout, /T002\s+queued\s+audit\s+Audit command scripts\./);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
+    const list = run(["work", "list", root]);
+    assert.equal(list.status, 0, list.stderr);
+    assert.match(list.stdout, /work_items: 2/);
+    assert.match(list.stdout, /W001\s+active\s+implementation\s+Implement command scripts\./);
 
-test("tasks filters by completion and status with JSON output", () => {
-  const root = makePack();
-  try {
-    const queued = run(cliScript, ["tasks", root, "--status", "queued", "--json"]);
-    assert.equal(queued.status, 0, queued.stderr);
-    const queuedPayload = JSON.parse(queued.stdout);
-    assert.equal(queuedPayload.goal_id, "cli-test-goal");
-    assert.equal(queuedPayload.filters.completion, "todo");
-    assert.equal(queuedPayload.filters.status, "queued");
-    assert.equal(queuedPayload.count, 1);
-    assert.equal(queuedPayload.items[0].id, "T002");
-    assert.equal(queuedPayload.items[0].status, "queued");
-    assert.equal(queuedPayload.items[0].type, "audit");
-
-    const done = run(cliScript, ["tasks", root, "--completion", "done", "--json"]);
-    assert.equal(done.status, 0, done.stderr);
-    assert.equal(JSON.parse(done.stdout).count, 0);
-
-    const all = run(cliScript, ["tasks", root, "--completion", "all", "--json"]);
-    assert.equal(all.status, 0, all.stderr);
-    assert.equal(JSON.parse(all.stdout).count, 2);
-
-    const badCompletion = run(cliScript, ["tasks", root, "--completion", "finished"]);
-    assert.equal(badCompletion.status, 1);
-    assert.match(badCompletion.stderr, /completion must be all, todo, done/);
-
-    const badStatus = run(cliScript, ["tasks", root, "--status", "waiting"]);
-    assert.equal(badStatus.status, 1);
-    assert.match(badStatus.stderr, /status must be queued, active, blocked, done/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("receipts list defaults to compact recent receipt output", () => {
-  const root = makePack({ receipts: receiptHistoryJsonl });
-  try {
-    const result = run(cliScript, ["receipts", "list", root]);
-    assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /goal_id: cli-test-goal/);
-    assert.match(result.stdout, /filters: limit=5/);
-    assert.match(result.stdout, /receipts: total=4 matched=4 shown=4/);
-    assert.match(result.stdout, /#1\s+T001\s+pm\s+done\s+next=continue/);
-    assert.match(result.stdout, /#2\s+T001\s+worker\s+done\s+next=continue\s+files=2\s+checks=1\s+evidence=2\s+claims=1/);
-    assert.match(result.stdout, /#4\s+T002\s+audit\s+done\s+decision=complete\s+oracle=true\s+next=done/);
-    assert.doesNotMatch(result.stdout, /DO_NOT_DUMP_FULL_EVIDENCE/);
-    assert.doesNotMatch(result.stdout, /changed_files/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("receipts list composes filters with JSON output", () => {
-  const root = makePack({ receipts: receiptHistoryJsonl });
-  try {
-    const worker = run(cliScript, [
-      "receipts",
-      "list",
-      root,
-      "--task",
-      "T001",
-      "--type",
-      "worker",
-      "--result",
-      "done",
-      "--next-decision",
-      "continue",
-      "--changed-file",
-      "packages/cli/src/**",
-      "--command-status",
-      "pass",
-      "--contains",
-      "compact receipt list",
-      "--json",
-    ]);
-    assert.equal(worker.status, 0, worker.stderr);
-    const workerPayload = JSON.parse(worker.stdout);
-    assert.equal(workerPayload.total, 4);
-    assert.equal(workerPayload.matched, 1);
-    assert.equal(workerPayload.shown, 1);
-    assert.equal(workerPayload.items[0].index, 2);
-    assert.equal(workerPayload.items[0].task_id, "T001");
-    assert.equal(workerPayload.items[0].type, "worker");
-    assert.equal(workerPayload.items[0].counts.changed_files, 2);
-    assert.equal(JSON.stringify(workerPayload).includes("DO_NOT_DUMP_FULL_EVIDENCE"), false);
-
-    const audit = run(cliScript, [
-      "receipts",
-      "list",
-      root,
-      "--type",
-      "audit",
-      "--decision",
-      "complete",
-      "--oracle-satisfied",
-      "true",
-      "--json",
-    ]);
-    assert.equal(audit.status, 0, audit.stderr);
-    const auditPayload = JSON.parse(audit.stdout);
-    assert.equal(auditPayload.matched, 1);
-    assert.equal(auditPayload.items[0].index, 4);
-    assert.equal(auditPayload.items[0].oracle_satisfied, true);
-
-    const failed = run(cliScript, ["receipts", "list", root, "--command-status", "fail", "--json"]);
-    assert.equal(failed.status, 0, failed.stderr);
-    const failedPayload = JSON.parse(failed.stdout);
-    assert.equal(failedPayload.matched, 1);
-    assert.equal(failedPayload.items[0].result, "blocked");
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("receipts show returns one full receipt by index", () => {
-  const root = makePack({ receipts: receiptHistoryJsonl });
-  try {
-    const result = run(cliScript, ["receipts", "show", root, "--index", "2", "--json"]);
-    assert.equal(result.status, 0, result.stderr);
-    const payload = JSON.parse(result.stdout);
-    assert.equal(payload.goal_id, "cli-test-goal");
-    assert.equal(payload.index, 2);
-    assert.equal(payload.receipt.task_id, "T001");
-    assert.deepEqual(payload.receipt.evidence, ["DO_NOT_DUMP_FULL_EVIDENCE", "compact receipt list"]);
-
-    const missing = run(cliScript, ["receipts", "show", root, "--index", "99"]);
-    assert.equal(missing.status, 1);
-    assert.match(missing.stderr, /receipt index out of range: 99/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("brief renders active task without dumping receipt history", () => {
-  const root = makePack({
-    receipts: `{"task_id":"T000","type":"pm","result":"done","summary":"DO_NOT_DUMP_FULL_RECEIPTS","evidence":["seed"],"next_decision":"continue"}\n`,
-  });
-  try {
-    const result = run(cliScript, ["brief", root]);
-    assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /Task: T001/);
-    assert.match(result.stdout, /allowed_scope/);
-    assert.match(result.stdout, /packages\/cli\/\*\*/);
-    assert.match(result.stdout, /Receipt JSON/);
-    assert.doesNotMatch(result.stdout, /DO_NOT_DUMP_FULL_RECEIPTS/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("dispatch renders a paste-ready goal handoff without mutating state", () => {
-  const root = makePack();
-  try {
-    const before = readFileSync(join(root, "state.yaml"), "utf8");
-    const result = run(cliScript, ["dispatch", root]);
-    assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /^\/goal 实施这个 Goal Pack task。/);
-    assert.match(result.stdout, /goal-diffusion brief .* --task T001/);
-    assert.match(result.stdout, /goal-diffusion activate .* --task T001/);
-    assert.match(result.stdout, /Goal Pack Task Brief/);
-    assert.equal(readFileSync(join(root, "state.yaml"), "utf8"), before);
-
-    const explicit = run(cliScript, ["dispatch", root, "--task", "T001"]);
-    assert.equal(explicit.status, 0, explicit.stderr);
-    assert.match(explicit.stdout, /goal-diffusion brief .* --task T001/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("activate moves a queued task into running active state", () => {
-  const root = makePack();
-  try {
-    const statePath = join(root, "state.yaml");
-    const charterPath = join(root, "charter.yaml");
-    writeFileSync(charterPath, contractYaml.replace("status: running", "status: ready").trimStart());
-    writeFileSync(statePath, stateYaml
-      .replace("status: running", "status: ready")
-      .replace("active_task: T001", "active_task: null")
-      .replace("status: active", "status: queued")
-      .trimStart());
-
-    const result = run(cliScript, ["activate", root, "--task", "T001"]);
-    assert.equal(result.status, 0, result.stderr);
-    const payload = JSON.parse(result.stdout);
-    assert.equal(payload.status, "running");
-    assert.equal(payload.active_task, "T001");
-    assert.equal(payload.next_decision, "continue");
-    assert.match(readFileSync(statePath, "utf8"), /status: running/);
-    assert.match(readFileSync(statePath, "utf8"), /active_task: T001/);
-    assert.match(readFileSync(statePath, "utf8"), /id: T001[\s\S]*?status: active/);
-    assert.match(readFileSync(charterPath, "utf8"), /status: running/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("plan_required tasks keep implementation plan reference through activate", () => {
-  const root = makePack({
-    state: `
-version: 1
-goal_id: cli-test-goal
-status: ready
-current_edge:
-  from: "High-risk slice needs review"
-  target_delta: "Reviewed implementation plan"
-  harnessed_path:
-    - "Write implementation plan"
-  verify:
-    - "Review implementation plan"
-  failure_inspection:
-    - "docs/goal-diffusion/goals/cli-test-goal/implementation-plan.md"
-active_task: null
-tasks:
-  - id: T003
-    type: plan_required
-    status: queued
-    objective: "Plan a high-risk implementation slice."
-    plan: implementation-plan.md
-    allowed_scope:
-      - "docs/goal-diffusion/goals/cli-test-goal/implementation-plan.md"
-    verify:
-      - "Review implementation plan"
-    stop_if:
-      - "Plan needs protected contract changes."
-blockers: []
-last_verification:
-  result: unknown
-  checks: []
-next_decision: plan_required
-`,
-  });
-  try {
-    const statePath = join(root, "state.yaml");
-    const result = run(cliScript, ["activate", root, "--task", "T003"]);
-    assert.equal(result.status, 0, result.stderr);
-    const payload = JSON.parse(result.stdout);
-    assert.equal(payload.active_task, "T003");
-    assert.equal(payload.next_decision, "plan_required");
-    assert.match(readFileSync(statePath, "utf8"), /plan: implementation-plan\.md/);
-
-    const brief = run(cliScript, ["brief", root, "--task", "T003", "--json"]);
+    const brief = run(["work", "brief", root, "--work", "W001"]);
     assert.equal(brief.status, 0, brief.stderr);
-    assert.equal(JSON.parse(brief.stdout).task.plan, "implementation-plan.md");
+    assert.match(brief.stdout, /Goal Pack Work Brief/);
+    assert.match(brief.stdout, /Proof Step/);
+    assert.match(brief.stdout, /Evidence JSON/);
+
+    const readyRoot = makePack({
+      goal: goalYaml({ status: "ready" }),
+      progress: progressYaml({ status: "ready", active: null, workStatus: "queued" }),
+    });
+    const activated = run(["work", "activate", readyRoot, "--work", "W001"]);
+    assert.equal(activated.status, 0, activated.stderr);
+    const payload = JSON.parse(activated.stdout);
+    assert.equal(payload.active_work_item, "W001");
+    assert.equal(payload.next_action, "continue");
+    assert.match(readFileSync(join(readyRoot, "progress.yaml"), "utf8"), /active_work_item: W001/);
+    rmSync(readyRoot, { recursive: true, force: true });
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test("main CLI exposes only official command names", () => {
+test("evidence list/show/add and apply update progress", () => {
+  const evidence = jsonl([
+    { ...implementationEvidence(), evidence_id: "E001", evidence: ["DO_NOT_DUMP_FULL_EVIDENCE", "compact evidence list"] },
+    {
+      schema_version: 2,
+      evidence_id: "E002",
+      work_id: "W001",
+      type: "implementation",
+      result: "blocked",
+      recorded_at: "2026-05-28T00:00:00Z",
+      checks: [{ kind: "command", cmd: "bun test", status: "fail" }],
+      blocked_by: ["filter failure"],
+      evidence: ["failed command"],
+      summary: "Blocked on filter failure.",
+      next_action: "blocked",
+    },
+  ]);
+  const root = makePack({ evidence });
+  try {
+    const list = run(["evidence", "list", root]);
+    assert.equal(list.status, 0, list.stderr);
+    assert.match(list.stdout, /evidence_records: total=2 matched=2 shown=2/);
+    assert.match(list.stdout, /#1\s+E001\s+W001\s+implementation\s+done/);
+    assert.doesNotMatch(list.stdout, /DO_NOT_DUMP_FULL_EVIDENCE/);
+
+    const filtered = run(["evidence", "list", root, "--work", "W001", "--type", "implementation", "--command-status", "pass", "--json"]);
+    assert.equal(filtered.status, 0, filtered.stderr);
+    assert.equal(JSON.parse(filtered.stdout).matched, 1);
+
+    const show = run(["evidence", "show", root, "--index", "1", "--json"]);
+    assert.equal(show.status, 0, show.stderr);
+    assert.equal(JSON.parse(show.stdout).evidence_record.evidence_id, "E001");
+
+    const addRoot = makePack();
+    const record = implementationEvidence({ evidenceId: "E003", nextAction: "review" });
+    const add = run(["evidence", "add", addRoot, "--stdin", "--apply", "--check"], { input: JSON.stringify(record) });
+    assert.equal(add.status, 0, add.stderr);
+    const payload = JSON.parse(add.stdout);
+    assert.equal(payload.evidence_id, "E003");
+    assert.equal(payload.applied.active_work_item, "W002");
+    assert.equal(payload.applied.next_action, "review");
+    assert.match(readFileSync(join(addRoot, "progress.yaml"), "utf8"), /id: W001[\s\S]*?status: done/);
+    assert.match(readFileSync(join(addRoot, "progress.yaml"), "utf8"), /id: W002[\s\S]*?status: active/);
+    rmSync(addRoot, { recursive: true, force: true });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("main CLI exposes the Goal Proof command surface without old aliases", () => {
   const root = makePack();
   try {
-    const help = run(cliScript, ["help"]);
+    const help = run(["--help"]);
     assert.equal(help.status, 0, help.stderr);
-    assert.match(help.stdout, /summary \[options\] \[target\]/);
-    assert.match(help.stdout, /list \[options\] \[target\]/);
-    assert.match(help.stdout, /tasks \[options\] <goal-pack>/);
-    assert.match(help.stdout, /receipts\s+Inspect receipt history/);
-    assert.match(help.stdout, /relations\s+Inspect and verify Goal Pack relations/);
-    assert.match(help.stdout, /brief \[options\] <goal-pack>/);
-    assert.match(help.stdout, /dispatch \[options\] <goal-pack>/);
-    assert.match(help.stdout, /activate \[options\] <goal-pack>/);
-    assert.match(help.stdout, /record \[options\] <goal-pack>/);
-    assert.doesNotMatch(help.stdout, /brief\|prompt/);
-    assert.doesNotMatch(help.stdout, /record\|receipt/);
+    assert.match(help.stdout, /Usage: goal-proof \[options\] \[command\]/);
+    assert.match(help.stdout, /work\s+List, brief, and activate work items/);
+    assert.match(help.stdout, /evidence\s+Inspect and append evidence records/);
+    assert.match(help.stdout, /apply \[options\] <goal-pack>/);
+    assert.doesNotMatch(help.stdout, /receipts/);
+    assert.doesNotMatch(help.stdout, /tasks/);
+    assert.doesNotMatch(help.stdout, /^\s+record\b/m);
+    assert.doesNotMatch(help.stdout, /advance/);
+    assert.doesNotMatch(help.stdout, /dispatch/);
 
-    const brief = run(cliScript, ["brief", root, "--task", "T001"]);
-    assert.equal(brief.status, 0, brief.stderr);
-    assert.match(brief.stdout, /Goal Pack Task Brief/);
-
-    const promptAlias = run(cliScript, ["prompt", root, "--task", "T001"]);
-    assert.notEqual(promptAlias.status, 0);
-
-    const receiptAlias = run(cliScript, ["receipt", root, "--file", "receipt.json"]);
-    assert.notEqual(receiptAlias.status, 0);
+    const oldBrief = run(["brief", root, "--work", "W001"]);
+    assert.notEqual(oldBrief.status, 0);
+    const oldRecord = run(["record", root, "--stdin"], { input: "{}" });
+    assert.notEqual(oldRecord.status, 0);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test("main CLI exposes structured commander help at every command layer", () => {
+test("help is structured at every official command layer", () => {
   const helpCases = [
-    {
-      args: ["--help"],
-      patterns: [/Usage: goal-diffusion \[options\] \[command\]/, /Options:/, /Commands:/, /inspect/, /relations/, /brief/, /record/],
-    },
-    {
-      args: ["summary", "--help"],
-      patterns: [/Usage: goal-diffusion summary \[options\] \[target\]/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
-    },
-    {
-      args: ["list", "--help"],
-      patterns: [/Usage: goal-diffusion list \[options\] \[target\]/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
-    },
-    {
-      args: ["tasks", "--help"],
-      patterns: [/Usage: goal-diffusion tasks \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--completion <value>/, /--status <value>/, /--json/],
-    },
-    {
-      args: ["receipts", "--help"],
-      patterns: [/Usage: goal-diffusion receipts \[options\] \[command\]/, /Commands:/, /list/, /show/],
-    },
-    {
-      args: ["receipts", "list", "--help"],
-      patterns: [/Usage: goal-diffusion receipts list \[options\] <goal-pack>/, /--limit <number>/, /--task <id>/, /--type <value>/, /--result <value>/, /--decision <value>/, /--next-decision <value>/, /--oracle-satisfied <value>/, /--changed-file <glob>/, /--command-status <value>/, /--contains <text>/, /--json/],
-    },
-    {
-      args: ["receipts", "show", "--help"],
-      patterns: [/Usage: goal-diffusion receipts show \[options\] <goal-pack>/, /--index <number>/, /--json/],
-    },
-    {
-      args: ["relations", "--help"],
-      patterns: [/Usage: goal-diffusion relations \[options\] \[command\]/, /Commands:/, /list/, /goals/, /tasks/, /check/, /graph/],
-    },
-    {
-      args: ["relations", "list", "--help"],
-      patterns: [/Usage: goal-diffusion relations list \[options\] \[target\]/, /--thread <id>/, /--json/],
-    },
-    {
-      args: ["relations", "goals", "--help"],
-      patterns: [/Usage: goal-diffusion relations goals \[options\] \[target\]/, /--thread <id>/, /--completion <value>/, /--status <value>/, /--next-decision <value>/, /--json/],
-    },
-    {
-      args: ["relations", "tasks", "--help"],
-      patterns: [/Usage: goal-diffusion relations tasks \[options\] \[target\]/, /--thread <id>/, /--completion <value>/, /--status <value>/, /--goal-completion <value>/, /--goal-status <value>/, /--goal <goal-id>/, /--json/],
-    },
-    {
-      args: ["relations", "check", "--help"],
-      patterns: [/Usage: goal-diffusion relations check \[options\] \[target\]/, /--thread <id>/, /--json/],
-    },
-    {
-      args: ["relations", "graph", "--help"],
-      patterns: [/Usage: goal-diffusion relations graph \[options\] \[target\]/, /--thread <id>/, /--json/],
-    },
-    {
-      args: ["inspect", "--help"],
-      patterns: [/Usage: goal-diffusion inspect \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--json/],
-    },
-    {
-      args: ["brief", "--help"],
-      patterns: [/Usage: goal-diffusion brief \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--task <id>/, /--json/],
-    },
-    {
-      args: ["dispatch", "--help"],
-      patterns: [/Usage: goal-diffusion dispatch \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--task <id>/],
-    },
-    {
-      args: ["activate", "--help"],
-      patterns: [/Usage: goal-diffusion activate \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--task <id>/, /--dry-run/],
-    },
-    {
-      args: ["record", "--help"],
-      patterns: [/Usage: goal-diffusion record \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--file <path>/, /--json <value>/, /--stdin/, /--advance/, /--check/],
-    },
-    {
-      args: ["advance", "--help"],
-      patterns: [/Usage: goal-diffusion advance \[options\] <goal-pack>/, /Arguments:/, /Options:/, /--dry-run/],
-    },
-    {
-      args: ["check", "--help"],
-      patterns: [/Usage: goal-diffusion check \[options\] <goal-pack>/, /Arguments:/, /Options:/],
-    },
+    { args: ["summary", "--help"], patterns: [/Usage: goal-proof summary \[options\] \[target\]/, /--completion <value>/, /--json/] },
+    { args: ["list", "--help"], patterns: [/Usage: goal-proof list \[options\] \[target\]/, /--completion <value>/, /--json/] },
+    { args: ["work", "--help"], patterns: [/Usage: goal-proof work \[options\] \[command\]/, /list/, /brief/, /activate/] },
+    { args: ["work", "list", "--help"], patterns: [/Usage: goal-proof work list \[options\] <goal-pack>/, /--completion <value>/, /--status <value>/] },
+    { args: ["work", "brief", "--help"], patterns: [/Usage: goal-proof work brief \[options\] <goal-pack>/, /--work <id>/, /--json/] },
+    { args: ["work", "activate", "--help"], patterns: [/Usage: goal-proof work activate \[options\] <goal-pack>/, /--work <id>/, /--dry-run/] },
+    { args: ["evidence", "--help"], patterns: [/Usage: goal-proof evidence \[options\] \[command\]/, /list/, /show/, /add/] },
+    { args: ["evidence", "list", "--help"], patterns: [/Usage: goal-proof evidence list \[options\] <goal-pack>/, /--work <id>/, /--next-action <value>/, /--completion-satisfied <value>/] },
+    { args: ["evidence", "show", "--help"], patterns: [/Usage: goal-proof evidence show \[options\] <goal-pack>/, /--index <number>/] },
+    { args: ["evidence", "add", "--help"], patterns: [/Usage: goal-proof evidence add \[options\] <goal-pack>/, /--stdin/, /--apply/, /--check/] },
+    { args: ["relations", "work", "--help"], patterns: [/Usage: goal-proof relations work \[options\] \[target\]/, /--goal-status <value>/] },
+    { args: ["apply", "--help"], patterns: [/Usage: goal-proof apply \[options\] <goal-pack>/, /--dry-run/] },
+    { args: ["check", "--help"], patterns: [/Usage: goal-proof check \[options\] <goal-pack>/] },
   ];
 
-  for (const helpCase of helpCases) {
-    const result = run(cliScript, helpCase.args);
-    assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stderr, "");
-    for (const pattern of helpCase.patterns) {
-      assert.match(result.stdout, pattern, `${helpCase.args.join(" ")} missing ${pattern}`);
-    }
+  for (const item of helpCases) {
+    const result = run(item.args);
+    assert.equal(result.status, 0, `${item.args.join(" ")}\n${result.stderr}`);
+    for (const pattern of item.patterns) assert.match(result.stdout, pattern, item.args.join(" "));
   }
 });
 
-test("relations discovery command surface is documented without queue commands", () => {
+test("relations command family is documented in root, package, and skill docs", () => {
   const docs = [
     readFileSync(join(repoRoot, "README.md"), "utf8"),
     readFileSync(join(repoRoot, "README.zh-CN.md"), "utf8"),
     readFileSync(join(packageRoot, "README.md"), "utf8"),
     readFileSync(join(packageRoot, "README.zh-CN.md"), "utf8"),
-    readFileSync(join(repoRoot, "skills/goal-diffusion/SKILL.md"), "utf8"),
+    readFileSync(join(repoRoot, "skills/goal/goal-proof-system/SKILL.md"), "utf8"),
   ].join("\n");
 
-  assert.match(docs, /goal-diffusion relations list/);
-  assert.match(docs, /goal-diffusion relations goals/);
-  assert.match(docs, /goal-diffusion relations tasks/);
-  assert.match(docs, /goal-diffusion relations check/);
-  assert.match(docs, /goal-diffusion relations graph/);
-  assert.match(docs, /goal_relations\.thread_id/);
-  assert.doesNotMatch(docs, /goal-diffusion relations queue/);
-  assert.doesNotMatch(docs, /goal-diffusion relations worklist/);
-  assert.doesNotMatch(docs, /goal-diffusion threads?\b/);
-  assert.doesNotMatch(docs, /execution_order|queue_position|order_confidence/);
-});
-
-test("receipt rejects out-of-scope changes and appends valid JSONL atomically", () => {
-  const root = makePack();
-  const badReceiptPath = join(root, "bad-receipt.json");
-  const goodReceiptPath = join(root, "good-receipt.json");
-  writeFileSync(badReceiptPath, JSON.stringify({
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["outside.txt"],
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["test"],
-    claims: ["claim"],
-    summary: "done",
-    next_decision: "continue",
-  }));
-  writeFileSync(goodReceiptPath, JSON.stringify({
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["test"],
-    claims: ["claim"],
-    summary: "done",
-    next_decision: "continue",
-  }));
-
-  try {
-    const bad = run(cliScript, ["record", root, "--file", badReceiptPath]);
-    assert.equal(bad.status, 1);
-    assert.match(bad.stderr, /outside allowed_scope/i);
-    assert.equal(readReceipts(root).length, 0);
-
-    const good = run(cliScript, ["record", root, "--file", goodReceiptPath]);
-    assert.equal(good.status, 0, good.stderr);
-    const lines = readReceipts(root);
-    assert.equal(lines.length, 1);
-    assert.deepEqual(JSON.parse(lines[0]).changed_files, ["packages/cli/src/goal-diffusion.ts"]);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("main CLI record appends receipts", () => {
-  const root = makePack();
-  const receiptPath = join(root, "receipt.json");
-  writeFileSync(receiptPath, JSON.stringify({
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["test"],
-    claims: ["claim"],
-    summary: "done",
-    next_decision: "continue",
-  }));
-
-  try {
-    const record = run(cliScript, ["record", root, "--file", receiptPath]);
-    assert.equal(record.status, 0, record.stderr);
-    assert.equal(readReceipts(root).length, 1);
-
-    assert.equal(readReceipts(root).length, 1);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("main CLI record can advance and check after append", () => {
-  const root = makePack();
-  const receiptPath = join(root, "receipt.json");
-  writeFileSync(receiptPath, JSON.stringify({
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["record_advance_check=true"],
-    claims: ["record advances and checks"],
-    summary: "done",
-    next_decision: "continue",
-  }));
-
-  try {
-    const record = run(cliScript, ["record", root, "--file", receiptPath, "--advance", "--check"]);
-    assert.equal(record.status, 0, record.stderr);
-    const payload = JSON.parse(record.stdout);
-    assert.equal(payload.ok, true);
-    assert.equal(payload.task_id, "T001");
-    assert.equal(payload.advanced.active_task, "T002");
-    assert.equal(payload.advanced.next_decision, "audit");
-    assert.equal(payload.check.ok, true);
-    assert.equal(readReceipts(root).length, 1);
-
-    const state = readFileSync(join(root, "state.yaml"), "utf8");
-    assert.match(state, /active_task: T002/);
-    assert.match(state, /id: T001[\s\S]*?status: done/);
-    assert.match(state, /id: T002[\s\S]*?status: active/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("main CLI record appends receipts from stdin", () => {
-  const root = makePack();
-  const receipt = JSON.stringify({
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["stdin receipt"],
-    claims: ["record accepts explicit stdin input"],
-    summary: "done from stdin",
-    next_decision: "continue",
-  });
-
-  try {
-    const record = run(cliScript, ["record", root, "--stdin"], { input: receipt });
-    assert.equal(record.status, 0, record.stderr);
-    const lines = readReceipts(root);
-    assert.equal(lines.length, 1);
-    assert.equal(JSON.parse(lines[0]).summary, "done from stdin");
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("main CLI record rejects empty stdin", () => {
-  const root = makePack();
-  try {
-    const record = run(cliScript, ["record", root, "--stdin"], { input: "" });
-    assert.equal(record.status, 1);
-    assert.match(record.stderr, /--stdin requires JSON input on stdin/);
-    assert.equal(readReceipts(root).length, 0);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("main CLI record keeps file json and stdin input sources mutually exclusive", () => {
-  const root = makePack();
-  const receiptPath = join(root, "receipt.json");
-  const receipt = JSON.stringify({
-    task_id: "T001",
-    type: "worker",
-    result: "done",
-    changed_files: ["packages/cli/src/goal-diffusion.ts"],
-    checks: [{ kind: "command", cmd: "bun test packages/cli/test/goal-pack-cli.test.ts", status: "pass" }],
-    evidence: ["test"],
-    claims: ["claim"],
-    summary: "done",
-    next_decision: "continue",
-  });
-  writeFileSync(receiptPath, receipt);
-
-  try {
-    const json = run(cliScript, ["record", root, "--json", receipt]);
-    assert.equal(json.status, 0, json.stderr);
-    assert.equal(readReceipts(root).length, 1);
-
-    const fileAndStdin = run(cliScript, ["record", root, "--file", receiptPath, "--stdin"], { input: receipt });
-    assert.equal(fileAndStdin.status, 1);
-    assert.match(fileAndStdin.stderr, /cannot be used with option/i);
-
-    const jsonAndStdin = run(cliScript, ["record", root, "--json", receipt, "--stdin"], { input: receipt });
-    assert.equal(jsonAndStdin.status, 1);
-    assert.match(jsonAndStdin.stderr, /cannot be used with option/i);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("advance turns latest receipt into deterministic state", () => {
-  const root = makePack({
-    receipts: `{"task_id":"T001","type":"worker","result":"done","changed_files":["packages/cli/src/goal-diffusion.ts"],"checks":[{"kind":"command","cmd":"bun test packages/cli/test/goal-pack-cli.test.ts","status":"pass"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
-  });
-  try {
-    const result = run(cliScript, ["advance", root]);
-    assert.equal(result.status, 0, result.stderr);
-    const state = readFileSync(join(root, "state.yaml"), "utf8");
-    assert.match(state, /active_task: T002/);
-    assert.match(state, /id: T001[\s\S]*?status: done/);
-    assert.match(state, /id: T002[\s\S]*?status: active/);
-    assert.match(state, /last_verification:\n  result: pass/);
-    assert.match(state, /next_decision: audit/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
+  assert.match(docs, /goal-proof relations list/);
+  assert.match(docs, /goal-proof relations goals/);
+  assert.match(docs, /goal-proof relations work/);
+  assert.match(docs, /goal-proof relations check/);
+  assert.match(docs, /goal-proof relations graph/);
+  assert.match(docs, /relations\.thread_id/);
 });

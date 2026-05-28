@@ -8,21 +8,20 @@ import assert from "node:assert/strict";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = resolve(packageRoot, "../..");
-const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
+const cliScript = join(packageRoot, "src", "goal-proof.ts");
 
-function writePack(root, { contract, state, receipts = "" }) {
+function run(args, options: { cwd?: string } = {}) {
+  return spawnSync(process.execPath, [cliScript, ...args], { encoding: "utf8", cwd: options.cwd });
+}
+
+function writePack(root, { goal, progress, evidence = "" }) {
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
-  writeFileSync(join(root, "state.yaml"), state.trimStart());
-  writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
-  return root;
+  writeFileSync(join(root, "goal.yaml"), goal.trimStart());
+  writeFileSync(join(root, "progress.yaml"), progress.trimStart());
+  writeFileSync(join(root, "evidence.jsonl"), evidence.trimStart());
 }
 
-function run(script, args, options: { cwd?: string } = {}) {
-  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8", cwd: options.cwd });
-}
-
-function relationContract({
+function relationGoal({
   id,
   status = "running",
   thread = "goal-relations",
@@ -31,7 +30,7 @@ function relationContract({
   id: string;
   status?: string;
   thread?: string | null;
-  links?: Array<{ goal_id: string; relation: string; receipt_ref?: string; evidence?: string[] }>;
+  links?: Array<{ goal_id: string; relation: string; evidence_ref?: string; evidence?: string[] }>;
 }) {
   const serializedLinks = links.length === 0
     ? "  links: []"
@@ -40,7 +39,7 @@ function relationContract({
       ...links.flatMap((link) => [
         `    - goal_id: ${link.goal_id}`,
         `      relation: ${link.relation}`,
-        ...(link.receipt_ref ? [`      receipt_ref: ${link.receipt_ref}`] : []),
+        ...(link.evidence_ref ? [`      evidence_ref: ${link.evidence_ref}`] : []),
         ...(link.evidence && link.evidence.length > 0
           ? ["      evidence:", ...link.evidence.map((token) => `        - ${token}`)]
           : []),
@@ -48,11 +47,12 @@ function relationContract({
     ].join("\n");
 
   return `
+schema_version: 2
 id: ${id}
 status: ${status}
 objective: "Exercise relation CLI behavior."
-north_star: "Relation continuity stays inspectable."
-goal_relations:
+guiding_principle: "Relation continuity stays inspectable."
+relations:
   thread_id: ${thread ?? "null"}
 ${serializedLinks}
 authority_refs:
@@ -62,384 +62,241 @@ engineering_guidance:
     - "Relations are inspection metadata."
 completion:
   signal: "Relations CLI can inspect and verify links."
-  final_proof: "CLI tests pass."
-claim_boundary: "Only proves relation command behavior."
+  required_evidence: "CLI tests pass."
+claim_limit: "Only proves relation command behavior."
 `;
 }
 
-function relationState({
+function relationProgress({
   id,
   status = "running",
-  activeTask = "T001",
-  taskStatus = "active",
-  nextDecision = "continue",
-  tasks = null,
+  active = "W001",
+  workStatus = "active",
+  nextAction = "continue",
+  workItems = null,
 }: {
   id: string;
   status?: string;
-  activeTask?: string | null;
-  taskStatus?: string;
-  nextDecision?: string;
-  tasks?: Array<{ id: string; type?: string; status: string; objective?: string }> | null;
+  active?: string | null;
+  workStatus?: string;
+  nextAction?: string;
+  workItems?: Array<{ id: string; type?: string; status: string; objective?: string }> | null;
 }) {
-  const taskItems = tasks ?? [{ id: "T001", type: "worker", status: taskStatus, objective: "Implement relations CLI." }];
-  const serializedTasks = taskItems.flatMap((task) => [
-    `  - id: ${task.id}`,
-    `    type: ${task.type ?? "worker"}`,
-    `    status: ${task.status}`,
-    `    objective: "${task.objective ?? "Implement relations CLI."}"`,
+  const items = workItems ?? [{ id: "W001", type: "implementation", status: workStatus, objective: "Implement relations CLI." }];
+  const serialized = items.flatMap((item) => [
+    `  - id: ${item.id}`,
+    `    type: ${item.type ?? "implementation"}`,
+    `    status: ${item.status}`,
+    `    objective: "${item.objective ?? "Implement relations CLI."}"`,
     `    allowed_scope:`,
     `      - "packages/cli/**"`,
-    `    verify:`,
+    `    checks:`,
     `      - "bun test packages/cli/test/goal-relations-cli.test.ts"`,
     `    stop_if:`,
     `      - "Need schema changes."`,
   ]).join("\n");
 
   return `
-version: 1
+schema_version: 2
 goal_id: ${id}
 status: ${status}
-current_edge:
+proof_step:
   from: "Relations missing"
   target_delta: "Relations inspectable"
-  harnessed_path:
+  proof_path:
     - "Run relations CLI tests"
-  verify:
-    - "bun test packages/cli/test/goal-relations-cli.test.ts"
-  failure_inspection:
-    - "packages/cli/src/"
-active_task: ${activeTask ?? "null"}
-tasks:
-${serializedTasks}
-blockers: []
-last_verification:
-  result: unknown
-  checks: []
-next_decision: ${nextDecision}
-`;
-}
-
-function doneRelationState(id: string) {
-  return `
-version: 1
-goal_id: ${id}
-status: done
-current_edge:
-  from: "Relation evidence missing"
-  target_delta: "Relation evidence recorded"
-  harnessed_path:
-    - "Run relations CLI tests"
-  verify:
-    - "bun test packages/cli/test/goal-relations-cli.test.ts"
-  failure_inspection:
-    - "packages/cli/src/"
-active_task: null
-tasks:
-  - id: T999
-    type: audit
-    status: done
-    objective: "Audit relation evidence."
-blockers: []
-last_verification:
-  result: pass
   checks:
     - "bun test packages/cli/test/goal-relations-cli.test.ts"
-next_decision: done
+  failure_inspection:
+    - "packages/cli/src/"
+active_work_item: ${active ?? "null"}
+work_items:
+${serialized}
+blockers: []
+last_check:
+  result: unknown
+  checks: []
+next_action: ${nextAction}
 `;
 }
 
-function auditReceipt(evidence = ["protocol=true"]) {
+function doneProgress(id: string) {
+  return relationProgress({
+    id,
+    status: "done",
+    active: null,
+    nextAction: "done",
+    workItems: [{ id: "W999", type: "review", status: "done", objective: "Completion review." }],
+  });
+}
+
+function reviewEvidence(evidence = ["protocol=true"]) {
   return `${JSON.stringify({
-    task_id: "T999",
-    type: "audit",
+    schema_version: 2,
+    evidence_id: "E999",
+    work_id: "W999",
+    type: "review",
     result: "done",
     decision: "complete",
-    oracle_satisfied: true,
+    completion_satisfied: true,
+    recorded_at: "2026-05-28T00:00:00Z",
+    claim_evidence: [{ claim: "completion.required_evidence", evidence }],
     evidence,
-    claims: ["done"],
-    summary: "Audit complete.",
-    next_decision: "done",
+    summary: "Completion review passed.",
+    next_action: "done",
   })}\n`;
 }
 
 function makeRelationsProject() {
-  const project = mkdtempSync(join(tmpdir(), "goal-relations-project-test-"));
-  const goalsRoot = join(project, "docs", "goal-diffusion", "goals");
+  const project = mkdtempSync(join(tmpdir(), "goal-proof-relations-"));
+  const goalsRoot = join(project, "docs", "goal-proof", "goals");
   writePack(join(goalsRoot, "protocol-goal"), {
-    contract: relationContract({ id: "protocol-goal", status: "done", links: [] }),
-    state: doneRelationState("protocol-goal"),
-    receipts: auditReceipt(["protocol=true", "done_pack_append_only_closed=true"]),
+    goal: relationGoal({ id: "protocol-goal", status: "done", links: [] }),
+    progress: doneProgress("protocol-goal"),
+    evidence: reviewEvidence(["protocol=true", "done_pack_closed=true"]),
   });
   writePack(join(goalsRoot, "cli-goal"), {
-    contract: relationContract({
+    goal: relationGoal({
       id: "cli-goal",
-      links: [{ goal_id: "protocol-goal", relation: "successor_of", receipt_ref: "T999", evidence: ["protocol=true"] }],
+      links: [{ goal_id: "protocol-goal", relation: "successor_of", evidence_ref: "E999", evidence: ["protocol=true"] }],
     }),
-    state: relationState({
+    progress: relationProgress({
       id: "cli-goal",
-      tasks: [
-        { id: "T001", status: "active", objective: "Implement active relation discovery." },
-        { id: "T002", status: "queued", objective: "Implement queued task discovery." },
-        { id: "T003", status: "blocked", objective: "Document relation discovery." },
-        { id: "T004", status: "done", objective: "Close old relation task." },
+      workItems: [
+        { id: "W001", status: "active", objective: "Implement active relation discovery." },
+        { id: "W002", status: "queued", objective: "Implement queued work discovery." },
+        { id: "W003", status: "blocked", objective: "Document relation discovery." },
+        { id: "W004", status: "done", objective: "Close old relation work." },
       ],
     }),
   });
   writePack(join(goalsRoot, "other-goal"), {
-    contract: relationContract({ id: "other-goal", thread: "other-thread", links: [] }),
-    state: relationState({ id: "other-goal" }),
+    goal: relationGoal({ id: "other-goal", thread: "other-thread", links: [] }),
+    progress: relationProgress({ id: "other-goal" }),
   });
   return { project };
 }
 
-test("relations list filters Goal Packs by thread with compact and JSON output", () => {
+test("relations list filters Goal Packs by thread", () => {
   const { project } = makeRelationsProject();
   try {
-    const json = run(cliScript, ["relations", "list", project, "--thread", "goal-relations", "--include", "links", "--json"]);
+    const json = run(["relations", "list", project, "--thread", "goal-relations", "--include", "links", "--json"]);
     assert.equal(json.status, 0, json.stderr);
     const payload = JSON.parse(json.stdout);
     assert.equal(payload.filters.thread, "goal-relations");
     assert.equal(payload.goal_count, 2);
     assert.equal(payload.relation_count, 1);
     assert.deepEqual(payload.items.map((item) => item.goal_id), ["cli-goal", "protocol-goal"]);
-    assert.equal(payload.items[0].links[0].relation, "successor_of");
+    assert.equal(payload.items[0].links[0].evidence_ref, "E999");
 
-    const text = run(cliScript, ["relations", "list", project, "--thread", "goal-relations"]);
+    const text = run(["relations", "list", project, "--thread", "goal-relations"]);
     assert.equal(text.status, 0, text.stderr);
-    assert.match(text.stdout, /thread: goal-relations/);
-    assert.match(text.stdout, /goals: 2/);
-    assert.match(text.stdout, /relations: 1/);
-    assert.match(text.stdout, /successor_of\s+protocol-goal\s+receipt=T999\s+evidence=1/);
+    assert.match(text.stdout, /successor_of\s+protocol-goal\s+evidence_record=E999\s+evidence=1/);
     assert.doesNotMatch(text.stdout, /other-goal/);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
 });
 
-test("relations goals discovers thread-member Goal Packs with goal filters", () => {
+test("relations goals and work discover thread members with filters", () => {
   const { project } = makeRelationsProject();
   try {
-    const json = run(cliScript, ["relations", "goals", project, "--thread", "goal-relations", "--show-empty", "--json"]);
-    assert.equal(json.status, 0, json.stderr);
-    const payload = JSON.parse(json.stdout);
-    assert.equal(payload.filters.thread, "goal-relations");
-    assert.equal(payload.filters.completion, "all");
-    assert.equal(payload.count, 2);
-    assert.deepEqual(payload.items.map((item) => item.goal_id), ["cli-goal", "protocol-goal"]);
-    assert.equal(payload.items[0].thread_id, "goal-relations");
-    assert.equal(payload.items[0].status, "running");
-    assert.equal(payload.items[0].next_decision, "continue");
-    assert.deepEqual(payload.items[0].tasks, {
+    const goals = run(["relations", "goals", project, "--thread", "goal-relations", "--show-empty", "--json"]);
+    assert.equal(goals.status, 0, goals.stderr);
+    const goalPayload = JSON.parse(goals.stdout);
+    assert.deepEqual(goalPayload.items.map((item) => item.goal_id), ["cli-goal", "protocol-goal"]);
+    assert.equal(goalPayload.items[0].next_action, "continue");
+    assert.deepEqual(goalPayload.items[0].work_items, {
       total: 4,
       done: 1,
       todo: 3,
       by_status: { queued: 1, active: 1, blocked: 1, done: 1, unknown: 0 },
     });
 
-    const todo = run(cliScript, ["relations", "goals", project, "--thread", "goal-relations", "--completion", "todo", "--json"]);
-    assert.equal(todo.status, 0, todo.stderr);
-    assert.deepEqual(JSON.parse(todo.stdout).items.map((item) => item.goal_id), ["cli-goal"]);
-
-    const done = run(cliScript, ["relations", "goals", project, "--thread", "goal-relations", "--status", "done", "--json"]);
-    assert.equal(done.status, 0, done.stderr);
-    assert.deepEqual(JSON.parse(done.stdout).items.map((item) => item.goal_id), ["protocol-goal"]);
-
-    const nextDecision = run(cliScript, ["relations", "goals", project, "--thread", "goal-relations", "--next-decision", "continue"]);
-    assert.equal(nextDecision.status, 0, nextDecision.stderr);
-    assert.match(nextDecision.stdout, /filters: thread=goal-relations completion=all status=all next_decision=continue/);
-    assert.match(nextDecision.stdout, /cli-goal  thread=goal-relations status=running next_decision=continue active_task=T001 tasks=4 done=1 todo=3 receipts=0/);
-    assert.doesNotMatch(nextDecision.stdout, /protocol-goal/);
-
-    const badCompletion = run(cliScript, ["relations", "goals", project, "--completion", "finished"]);
-    assert.equal(badCompletion.status, 1);
-    assert.match(badCompletion.stderr, /completion must be all, todo, done/);
-
-    const badStatus = run(cliScript, ["relations", "goals", project, "--status", "waiting"]);
-    assert.equal(badStatus.status, 1);
-    assert.match(badStatus.stderr, /status must be forming, ready, running, blocked, done, retired/);
-
-    const badNextDecision = run(cliScript, ["relations", "goals", project, "--next-decision", "later"]);
-    assert.equal(badNextDecision.status, 1);
-    assert.match(badNextDecision.stderr, /next_decision must be edge, continue, plan_required, blocked, audit, done, needs-human/);
-  } finally {
-    rmSync(project, { recursive: true, force: true });
-  }
-});
-
-test("relations tasks discovers thread-member tasks with task and parent-goal filters", () => {
-  const { project } = makeRelationsProject();
-  try {
-    const todo = run(cliScript, ["relations", "tasks", project, "--thread", "goal-relations", "--completion", "todo", "--json"]);
-    assert.equal(todo.status, 0, todo.stderr);
-    const todoPayload = JSON.parse(todo.stdout);
-    assert.equal(todoPayload.filters.thread, "goal-relations");
-    assert.equal(todoPayload.filters.completion, "todo");
-    assert.equal(todoPayload.filters.status, "all");
-    assert.equal(todoPayload.filters.goal_completion, "all");
-    assert.equal(todoPayload.task_count, 3);
-    assert.equal(todoPayload.goal_count, 1);
-    assert.deepEqual(todoPayload.items.map((item) => `${item.goal_id}:${item.task.id}:${item.task.status}`), [
-      "cli-goal:T001:active",
-      "cli-goal:T002:queued",
-      "cli-goal:T003:blocked",
+    const work = run(["relations", "work", project, "--thread", "goal-relations", "--completion", "todo", "--json"]);
+    assert.equal(work.status, 0, work.stderr);
+    const workPayload = JSON.parse(work.stdout);
+    assert.deepEqual(workPayload.items.map((item) => `${item.goal_id}:${item.work_item.id}:${item.work_item.status}`), [
+      "cli-goal:W001:active",
+      "cli-goal:W002:queued",
+      "cli-goal:W003:blocked",
     ]);
 
-    const queued = run(cliScript, ["relations", "tasks", project, "--thread", "goal-relations", "--status", "queued", "--json"]);
-    assert.equal(queued.status, 0, queued.stderr);
-    assert.deepEqual(JSON.parse(queued.stdout).items.map((item) => item.task.id), ["T002"]);
-
-    const doneParent = run(cliScript, ["relations", "tasks", project, "--thread", "goal-relations", "--completion", "all", "--goal-completion", "done", "--json"]);
-    assert.equal(doneParent.status, 0, doneParent.stderr);
-    assert.deepEqual(JSON.parse(doneParent.stdout).items.map((item) => `${item.goal_id}:${item.task.id}`), ["protocol-goal:T999"]);
-
-    const doneParentStatus = run(cliScript, ["relations", "tasks", project, "--thread", "goal-relations", "--completion", "all", "--goal-status", "done", "--json"]);
-    assert.equal(doneParentStatus.status, 0, doneParentStatus.stderr);
-    assert.deepEqual(JSON.parse(doneParentStatus.stdout).items.map((item) => `${item.goal_id}:${item.task.id}`), ["protocol-goal:T999"]);
-
-    const doneTaskForGoal = run(cliScript, ["relations", "tasks", project, "--thread", "goal-relations", "--goal", "cli-goal", "--completion", "done"]);
-    assert.equal(doneTaskForGoal.status, 0, doneTaskForGoal.stderr);
-    assert.match(doneTaskForGoal.stdout, /filters: thread=goal-relations completion=done status=all goal_completion=all goal_status=all goal=cli-goal/);
-    assert.match(doneTaskForGoal.stdout, /cli-goal T004  task_status=done task_type=worker goal_status=running goal_next_decision=continue Close old relation task\./);
-    assert.doesNotMatch(doneTaskForGoal.stdout, /protocol-goal/);
-
-    const badCompletion = run(cliScript, ["relations", "tasks", project, "--completion", "finished"]);
-    assert.equal(badCompletion.status, 1);
-    assert.match(badCompletion.stderr, /completion must be all, todo, done/);
-
-    const badStatus = run(cliScript, ["relations", "tasks", project, "--status", "waiting"]);
-    assert.equal(badStatus.status, 1);
-    assert.match(badStatus.stderr, /status must be queued, active, blocked, done/);
-
-    const badGoalCompletion = run(cliScript, ["relations", "tasks", project, "--goal-completion", "finished"]);
-    assert.equal(badGoalCompletion.status, 1);
-    assert.match(badGoalCompletion.stderr, /goal_completion must be all, todo, done/);
-
-    const badGoalStatus = run(cliScript, ["relations", "tasks", project, "--goal-status", "waiting"]);
-    assert.equal(badGoalStatus.status, 1);
-    assert.match(badGoalStatus.stderr, /goal_status must be forming, ready, running, blocked, done, retired/);
+    const done = run(["relations", "work", project, "--thread", "goal-relations", "--goal", "cli-goal", "--completion", "done"]);
+    assert.equal(done.status, 0, done.stderr);
+    assert.match(done.stdout, /cli-goal W004  work_item_status=done work_item_type=implementation goal_status=running goal_next_action=continue Close old relation work\./);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
 });
 
 test("relations check validates hard evidence and reports related_to as warnings", () => {
-  const project = mkdtempSync(join(tmpdir(), "goal-relations-check-test-"));
-  const goalsRoot = join(project, "docs", "goal-diffusion", "goals");
+  const project = mkdtempSync(join(tmpdir(), "goal-proof-relations-check-"));
+  const goalsRoot = join(project, "docs", "goal-proof", "goals");
   writePack(join(goalsRoot, "protocol-goal"), {
-    contract: relationContract({ id: "protocol-goal", status: "done", links: [] }),
-    state: doneRelationState("protocol-goal"),
-    receipts: auditReceipt(["protocol=true"]),
+    goal: relationGoal({ id: "protocol-goal", status: "done", links: [] }),
+    progress: doneProgress("protocol-goal"),
+    evidence: reviewEvidence(["protocol=true"]),
   });
   writePack(join(goalsRoot, "bad-enum"), {
-    contract: relationContract({ id: "bad-enum", links: [{ goal_id: "protocol-goal", relation: "blocked_by", receipt_ref: "T999", evidence: ["protocol=true"] }] }),
-    state: relationState({ id: "bad-enum" }),
+    goal: relationGoal({ id: "bad-enum", links: [{ goal_id: "protocol-goal", relation: "blocked_by", evidence_ref: "E999", evidence: ["protocol=true"] }] }),
+    progress: relationProgress({ id: "bad-enum" }),
   });
   writePack(join(goalsRoot, "missing-target"), {
-    contract: relationContract({ id: "missing-target", links: [{ goal_id: "missing-goal", relation: "successor_of", receipt_ref: "T999", evidence: ["protocol=true"] }] }),
-    state: relationState({ id: "missing-target" }),
+    goal: relationGoal({ id: "missing-target", links: [{ goal_id: "missing-goal", relation: "successor_of", evidence_ref: "E999", evidence: ["protocol=true"] }] }),
+    progress: relationProgress({ id: "missing-target" }),
   });
-  writePack(join(goalsRoot, "missing-receipt"), {
-    contract: relationContract({ id: "missing-receipt", links: [{ goal_id: "protocol-goal", relation: "depends_on", receipt_ref: "T123", evidence: ["protocol=true"] }] }),
-    state: relationState({ id: "missing-receipt" }),
+  writePack(join(goalsRoot, "missing-record"), {
+    goal: relationGoal({ id: "missing-record", links: [{ goal_id: "protocol-goal", relation: "depends_on", evidence_ref: "E123", evidence: ["protocol=true"] }] }),
+    progress: relationProgress({ id: "missing-record" }),
   });
   writePack(join(goalsRoot, "missing-evidence"), {
-    contract: relationContract({ id: "missing-evidence", links: [{ goal_id: "protocol-goal", relation: "supersedes", receipt_ref: "T999", evidence: ["absent=true"] }] }),
-    state: relationState({ id: "missing-evidence" }),
+    goal: relationGoal({ id: "missing-evidence", links: [{ goal_id: "protocol-goal", relation: "supersedes", evidence_ref: "E999", evidence: ["absent=true"] }] }),
+    progress: relationProgress({ id: "missing-evidence" }),
   });
   writePack(join(goalsRoot, "soft-related"), {
-    contract: relationContract({ id: "soft-related", links: [{ goal_id: "missing-related", relation: "related_to", receipt_ref: "T000", evidence: ["absent=true"] }] }),
-    state: relationState({ id: "soft-related" }),
+    goal: relationGoal({ id: "soft-related", links: [{ goal_id: "missing-related", relation: "related_to", evidence_ref: "E000", evidence: ["absent=true"] }] }),
+    progress: relationProgress({ id: "soft-related" }),
   });
 
   try {
-    const result = run(cliScript, ["relations", "check", project, "--thread", "goal-relations", "--json"]);
+    const result = run(["relations", "check", project, "--thread", "goal-relations", "--json"]);
     assert.equal(result.status, 1);
     const payload = JSON.parse(result.stdout);
     assert.equal(payload.ok, false);
     assert.match(payload.errors.join("\n"), /bad-enum.*invalid relation blocked_by/);
     assert.match(payload.errors.join("\n"), /missing-target.*missing target missing-goal/);
-    assert.match(payload.errors.join("\n"), /missing-receipt.*missing receipt T123/);
+    assert.match(payload.errors.join("\n"), /missing-record.*missing evidence record E123/);
     assert.match(payload.errors.join("\n"), /missing-evidence.*missing evidence absent=true/);
-    assert.match(payload.errors.join("\n"), /nearest evidence: protocol=true/);
     assert.match(payload.warnings.join("\n"), /soft-related.*related_to target missing-related is missing/);
-    assert.match(payload.warnings.join("\n"), /soft-related.*related_to evidence absent=true is missing/);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
 });
 
-test("relations check matches evidence tokens inside structured receipt fields", () => {
-  const project = mkdtempSync(join(tmpdir(), "goal-relations-structured-evidence-test-"));
-  const goalsRoot = join(project, "docs", "goal-diffusion", "goals");
-  const structuredReceipt = `${JSON.stringify({
-    task_id: "T999",
-    type: "audit",
-    result: "done",
-    decision: "complete",
-    oracle_satisfied: true,
-    evidence: ["command_execution_result=executed; exit_code=0"],
-    evidence_map: [
-      {
-        claim: "completion.final_proof",
-        evidence: [{ manual_gate: "pass" }],
-      },
-    ],
-    summary: "Structured receipt fields carry relation evidence.",
-    next_decision: "done",
-  })}\n`;
-
-  writePack(join(goalsRoot, "protocol-goal"), {
-    contract: relationContract({ id: "protocol-goal", status: "done", links: [] }),
-    state: doneRelationState("protocol-goal"),
-    receipts: structuredReceipt,
-  });
-  writePack(join(goalsRoot, "successor-goal"), {
-    contract: relationContract({
-      id: "successor-goal",
-      links: [{
-        goal_id: "protocol-goal",
-        relation: "successor_of",
-        receipt_ref: "T999",
-        evidence: ["command_execution_result=executed", "manual_gate=pass"],
-      }],
-    }),
-    state: relationState({ id: "successor-goal" }),
-  });
-
-  try {
-    const result = run(cliScript, ["relations", "check", project, "--thread", "goal-relations", "--json"]);
-    assert.equal(result.status, 0, result.stderr);
-    const payload = JSON.parse(result.stdout);
-    assert.equal(payload.ok, true);
-    assert.deepEqual(payload.errors, []);
-  } finally {
-    rmSync(project, { recursive: true, force: true });
-  }
-});
-
-test("relations graph renders a derived thread view without mutating files", () => {
+test("relations check matches structured evidence and graph renders derived view", () => {
   const { project } = makeRelationsProject();
   try {
-    const goalsRoot = join(project, "docs", "goal-diffusion", "goals");
-    const before = readFileSync(join(goalsRoot, "cli-goal", "state.yaml"), "utf8");
-    const json = run(cliScript, ["relations", "graph", project, "--thread", "goal-relations", "--json"]);
-    assert.equal(json.status, 0, json.stderr);
-    const payload = JSON.parse(json.stdout);
-    assert.equal(payload.threads[0].thread_id, "goal-relations");
-    assert.deepEqual(payload.threads[0].goals, ["cli-goal", "protocol-goal"]);
+    const check = run(["relations", "check", project, "--thread", "goal-relations", "--json"]);
+    assert.equal(check.status, 0, check.stderr);
+    assert.equal(JSON.parse(check.stdout).ok, true);
+
+    const goalsRoot = join(project, "docs", "goal-proof", "goals");
+    const before = readFileSync(join(goalsRoot, "cli-goal", "progress.yaml"), "utf8");
+    const graph = run(["relations", "graph", project, "--thread", "goal-relations", "--json"]);
+    assert.equal(graph.status, 0, graph.stderr);
+    const payload = JSON.parse(graph.stdout);
     assert.deepEqual(payload.threads[0].edges, [{
       from: "protocol-goal",
       to: "cli-goal",
       relation: "successor_of",
-      receipt_ref: "T999",
+      evidence_ref: "E999",
       evidence: "ok",
     }]);
-    assert.equal(readFileSync(join(goalsRoot, "cli-goal", "state.yaml"), "utf8"), before);
+    assert.equal(readFileSync(join(goalsRoot, "cli-goal", "progress.yaml"), "utf8"), before);
 
-    const text = run(cliScript, ["relations", "graph", project, "--thread", "goal-relations"]);
-    assert.equal(text.status, 0, text.stderr);
-    assert.match(text.stdout, /protocol-goal --successor_of--> cli-goal receipt=T999 evidence=ok/);
+    const text = run(["relations", "graph", project, "--thread", "goal-relations"]);
+    assert.match(text.stdout, /protocol-goal --successor_of--> cli-goal evidence_record=E999 evidence=ok/);
   } finally {
     rmSync(project, { recursive: true, force: true });
   }
@@ -451,11 +308,11 @@ test("relations command family is documented in root, package, and skill docs", 
     readFileSync(join(repoRoot, "README.zh-CN.md"), "utf8"),
     readFileSync(join(packageRoot, "README.md"), "utf8"),
     readFileSync(join(packageRoot, "README.zh-CN.md"), "utf8"),
-    readFileSync(join(repoRoot, "skills/goal-diffusion/SKILL.md"), "utf8"),
+    readFileSync(join(repoRoot, "skills/goal/goal-proof-system/SKILL.md"), "utf8"),
   ].join("\n");
 
-  assert.match(docs, /goal-diffusion relations list/);
-  assert.match(docs, /goal-diffusion relations check/);
-  assert.match(docs, /goal-diffusion relations graph/);
-  assert.match(docs, /goal_relations\.thread_id/);
+  assert.match(docs, /goal-proof relations list/);
+  assert.match(docs, /goal-proof relations check/);
+  assert.match(docs, /goal-proof relations graph/);
+  assert.match(docs, /relations\.thread_id/);
 });

@@ -1,0 +1,81 @@
+schema_version: 2
+goal_id: 2026-05-23-evidence-add-stdin-input-cli
+status: done
+
+proof_step:
+  from: "The evidence add command can append evidence records from --file or --json only. Agent heredoc usage currently requires a temporary file or shell-quoted JSON, while activate and apply are already explicit state transitions."
+  target_delta: "The evidence add command has a first-class explicit --stdin input source for evidence record JSON, with tests and docs proving heredoc-safe agent usage and preserving other write commands' semantics."
+  proof_path:
+    - "Add failing CLI tests for evidence add --stdin append behavior, input-source conflicts, empty stdin rejection, existing --file/--json compatibility, and help output."
+    - "Implement an explicit --stdin option on evidence record and read full evidence record JSON from stdin only when that flag is present."
+    - "Synchronize root docs, package docs, goal-proof skill command surface, dispatch hint, and changelog."
+    - "Dogfood evidence add --stdin by appending the implementation evidence record for this Goal Pack."
+  checks:
+    - "bun test packages/cli/test/goal-pack-cli.test.ts"
+    - "bun run check"
+    - "bun packages/cli/src/goal-proof.ts check docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli"
+    - "bun packages/cli/src/goal-proof.ts evidence record docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli --stdin <<'JSON'"
+  failure_inspection:
+    - packages/cli/src/goal-proof.ts
+    - packages/cli/src/append-evidence.ts
+    - packages/cli/src/lib/goal-pack.ts
+    - packages/cli/test/goal-pack-cli.test.ts
+    - packages/cli/src/render-goal-task-dispatch.ts
+    - README.md
+    - packages/cli/README.md
+    - skills/goal/goal-proof-system/SKILL.md
+
+active_work_item: null
+
+work_items:
+  - id: W001
+    type: implementation
+    status: done
+    objective: "Implement explicit evidence add --stdin evidence record input and synchronize command-surface docs."
+    allowed_scope:
+      - packages/cli/src/goal-proof.ts
+      - packages/cli/src/append-evidence.ts
+      - packages/cli/src/lib/goal-pack.ts
+      - packages/cli/src/render-goal-task-dispatch.ts
+      - packages/cli/test/goal-pack-cli.test.ts
+      - README.md
+      - README.zh-CN.md
+      - packages/cli/README.md
+      - packages/cli/README.zh-CN.md
+      - skills/goal/goal-proof-system/SKILL.md
+      - CHANGELOG.md
+      - docs/goal-proof/README.md
+      - docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli/**
+    checks:
+      - "bun test packages/cli/test/goal-pack-cli.test.ts"
+      - "bun run check"
+      - "bun packages/cli/src/goal-proof.ts check docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli"
+    stop_if:
+      - "Reading stdin must become implicit or interactive."
+      - "Existing --file or --json behavior would need a breaking change."
+      - "Evidence Record validation or evidence.jsonl format would need to change."
+      - "The implementation would add payload stdin to activate or apply."
+  - id: W999
+    type: review
+    status: done
+    objective: "Audit evidence add --stdin against the completion standard and completion proof."
+    allowed_scope:
+      - docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli/**
+    checks:
+      - "bun run check"
+      - "bun packages/cli/src/goal-proof.ts check docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli"
+      - "bun packages/cli/src/goal-proof.ts evidence show docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli --index 1 --json"
+    stop_if:
+      - "Any completion-standard field lacks evidence-backed evidence."
+
+blockers:
+
+last_check:
+  result: pass
+  checks:
+    - "rtk bun run check [pass]"
+    - "rtk bun packages/cli/src/goal-proof.ts check docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli [pass]"
+    - "rtk bun packages/cli/src/goal-proof.ts evidence show docs/goal-proof/goals/2026-05-23-evidence-add-stdin-input-cli --index 2 --json [pass]"
+    - "rtk bun packages/cli/src/goal-proof.ts relations check docs/goal-proof/goals --thread evidence-cli --json [pass]"
+
+next_action: done

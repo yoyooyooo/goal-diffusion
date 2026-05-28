@@ -1,0 +1,36 @@
+schema_version: 2
+goal_id: "<goal-id>"
+status: forming # forming | ready | running | blocked | done | retired
+
+proof_step:
+  from: "<current goal state>"
+  target_delta: "<what gets sharper if this proof step succeeds>"
+  proof_path:
+    - "<run, smoke, repro, fixture, UI route, browser flow, or observation step>"
+  checks:
+    - "<command or manual check>"
+  failure_inspection:
+    - "<first path, log, screen, or artifact to inspect on failure>"
+
+active_work_item: null
+
+work_items:
+  - id: W001
+    type: implementation # discovery | decision | implementation | coordination | review | planning
+    status: queued # queued | active | blocked | done
+    objective: "<one useful slice inside the current proof step>"
+    # For type: planning, set plan: plans/W001.md and include it in allowed_scope.
+    allowed_scope:
+      - "<file, directory, or authority scope>"
+    checks:
+      - "<command or manual check>"
+    stop_if:
+      - "<condition that requires progress update or escalation>"
+
+blockers: []
+
+last_check:
+  result: unknown # unknown | pass | fail | blocked
+  checks: []
+
+next_action: proof_step # proof_step | continue | needs_plan | blocked | review | done | needs_human

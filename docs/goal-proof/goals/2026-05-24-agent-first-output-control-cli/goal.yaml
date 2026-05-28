@@ -1,0 +1,87 @@
+schema_version: 2
+id: "2026-05-24-agent-first-output-control-cli"
+status: done
+
+objective: "Redesign the Goal Proof System CLI read-output contract so repo-level reporting is agent-first, token-bounded, thread-aware, and progressively disclosed across all read commands."
+guiding_principle: "Agents should be able to ask one stable command for a repo status report, see thread and unthreaded goal structure without duplicate reading, and expand detail with consistent output controls only when needed."
+
+relations:
+  thread_id: agent-first-cli
+  links:
+    - goal_id: 2026-05-23-evidence-query-cli
+      relation: related_to
+    - goal_id: 2026-05-23-goal-relations-cli-verification
+      relation: related_to
+    - goal_id: 2026-05-23-relations-thread-discovery-cli
+      relation: related_to
+
+authority_refs:
+  - "Current conversation: summary must show repo-level thread+goal structure; repo-wide work item detail is not needed at the top level."
+  - "Current conversation: output controls apply across the CLI, not only summary."
+  - "packages/cli/src/goal-proof.ts"
+  - "packages/cli/src/summarize-goal-packs.ts"
+  - "packages/cli/src/render-goal-tasks.ts"
+  - "packages/cli/src/render-goal-evidence.ts"
+  - "packages/cli/src/render-goal-relations.ts"
+  - "packages/cli/test/goal-pack-cli.test.ts"
+  - "packages/cli/test/goal-relations-cli.test.ts"
+  - "README.md"
+  - "README.zh-CN.md"
+  - "packages/cli/README.md"
+  - "packages/cli/README.zh-CN.md"
+  - "skills/goal/goal-proof-system/SKILL.md"
+
+engineering_guidance:
+  architecture_notes:
+    - "All read commands should share the same output-control vocabulary: --depth, --limit, --include, and --show-empty where applicable."
+    - "Default read output should omit empty arrays, null fields, zero-valued buckets, paths, objectives, raw links, and empty warnings/errors unless they carry direct decision value or are explicitly included."
+    - "Default read output should preserve decision-critical zero values such as todo=0, total=0, and problem_count=0."
+    - "summary is the repo-level status report; relations commands remain thread and relation detail tools."
+    - "Progressive disclosure must be bounded by default and must not require agents to read every Goal Pack to understand repo shape."
+
+constraints:
+  - "Do not preserve old summary.items meaning if it conflicts with the new grouped structure."
+  - "summary default depth is groups and default limit is 20."
+  - "summary --depth repo returns only repo totals and compact thread/unthreaded counts."
+  - "summary --depth groups returns repo totals, thread summaries, and unthreaded summary without goal item expansion."
+  - "summary --depth items returns bounded goal summaries grouped under threads and unthreaded top-level items."
+  - "Threaded goals must appear only under their thread group; unthreaded goals must appear only in top-level items."
+  - "Filters must apply before aggregation."
+  - "Do not add repo-wide work item detail as a top-level report."
+  - "Do not add --thread to summary; use relations commands for single-thread deep dives."
+
+non_goals:
+  - "No UI or web view."
+  - "No scheduler, queue, priority, or execution-order semantics."
+  - "No relation link expansion in summary by default."
+  - "No generic query language."
+  - "No compatibility shim that keeps a second flat all-goals truth."
+
+completion:
+  signal: "Read commands expose a consistent agent-first output-control protocol; summary groups threaded goals under threads, leaves only unthreaded goals in top-level items, omits empty/default-noise fields by default, applies filters before aggregation, and supports bounded progressive disclosure through depth and limit."
+  required_evidence: "Repository check passes; tests prove summary repo/groups/items depths, default empty-field omission, include/show-empty behavior, limit/omitted counts, filtered aggregation, no duplication between threads and top-level items, and fermi-like fixture behavior where completed threads disappear under --completion todo while unthreaded todo goals remain; docs describe the full read-output control protocol; completion review evidence record sets completion_satisfied=true."
+
+claim_limit: "This Goal Pack may claim only the CLI read-output control protocol, summary thread-aware grouping, docs, and tests. It may not claim work item scheduling, thread execution semantics, generic querying, UI, or changes to Goal Pack storage format."
+
+stop_rules:
+  - "Stop if the output-control vocabulary cannot stay consistent across read commands without creating command-specific aliases."
+  - "Stop if summary needs to infer execution order, priority, or scheduling from relations."
+  - "Stop if implementing the grouped summary would require changing goal.yaml, progress.yaml, or evidence.jsonl storage schema."
+  - "Stop if defaults cannot remain bounded for repos with many goals and threads."
+  - "Stop if fermi-like mixed threaded/unthreaded fixtures cannot be expressed in tests without relying on the external fermi repo."
+
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - authority_refs
+    - engineering_guidance
+    - constraints
+    - completion
+    - claim_limit
+    - stop_rules
+  agent_may_revise:
+    - next_slice
+    - work_order
+    - harness_strength
+    - implementation_shape

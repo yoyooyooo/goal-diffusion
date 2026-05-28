@@ -1,0 +1,23 @@
+{
+  "skill_name": "goal-proof",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to migrate a medium-sized CLI from scripts into a package and keep progress resumable across sessions.",
+      "expected_output": "Decides a Goal Pack is warranted, identifies goal contract fields that cannot silently change, creates or updates goal/progress/evidence records, and names the first proof step instead of writing a speculative work item tree.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Continue this Goal Pack work item and stop only if completion.required_evidence cannot be honestly verified.",
+      "expected_output": "Reads goal and progress, runs the largest safe useful slice inside allowed scope, verifies it, adds an evidence record, applies progress, and keeps the original objective intact.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Audit whether this long-running coding goal is complete.",
+      "expected_output": "Maps every explicit requirement to authoritative evidence, requires a completion review evidence record with completion_satisfied true, and refuses to call completion from partial progress.",
+      "files": []
+    }
+  ]
+}

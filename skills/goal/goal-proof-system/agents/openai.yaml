@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal Proof System"
+  short_description: "Goal Pack operating loop for AI coding"
+  default_prompt: "Use $goal-proof as one goal operating system: create or update a Goal Pack, run proof steps, add evidence records, check completion against completion.required_evidence, and continue by default inside the goal contract."

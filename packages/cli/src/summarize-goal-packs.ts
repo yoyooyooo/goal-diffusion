@@ -2,9 +2,9 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import {
   loadGoalPack,
-  NEXT_DECISIONS,
+  NEXT_ACTIONS,
   STATUS_VALUES,
-  TASK_STATUSES,
+  WORK_ITEM_STATUSES,
   validateGoalPack,
 } from "./lib/goal-pack.ts";
 import {
@@ -50,8 +50,8 @@ export function summarizeGoalPacks(target = ".", filterOptions = {}) {
       ...readControlFilterFields(controls),
     },
     goals: totals.goals,
-    tasks: totals.tasks,
-    receipt_count: totals.receipt_count,
+    work_items: totals.work_items,
+    evidence_count: totals.evidence_count,
     problem_count: totals.problem_count,
   };
 
@@ -109,8 +109,8 @@ function renderSummaryText(summary) {
     summary.goals_root ? `goals_root: ${summary.goals_root}` : null,
     `filters: completion=${summary.filters.completion} status=${summary.filters.status}`,
     `goals: total=${summary.goals.total} done=${summary.goals.done} todo=${summary.goals.todo} retired=${summary.goals.retired}`,
-    `tasks: total=${summary.tasks.total} done=${summary.tasks.done} todo=${summary.tasks.todo}`,
-    `receipts: ${summary.receipt_count}`,
+    `work_items: total=${summary.work_items.total} done=${summary.work_items.done} todo=${summary.work_items.todo}`,
+    `evidence_records: ${summary.evidence_count}`,
     `problem_packs: ${summary.problem_count}`,
     `threads: ${Array.isArray(summary.threads) ? summary.threads.length : summary.threads.total}`,
     `unthreaded: ${summary.unthreaded.goals.total}`,
@@ -123,7 +123,7 @@ function renderSummaryText(summary) {
     }
   }
   if (Array.isArray(summary.items)) {
-    for (const item of summary.items) lines.push(`${item.goal_id}  status=${item.status} next_decision=${item.next_decision}`);
+    for (const item of summary.items) lines.push(`${item.goal_id}  status=${item.status} next_action=${item.next_action}`);
   }
   return lines.join("\n");
 }
@@ -135,7 +135,7 @@ function renderListText(list) {
     `goals: ${list.count}`,
   ];
   for (const item of list.items) {
-    lines.push(`${item.goal_id}  status=${item.status} next_decision=${item.next_decision} active_task=${item.active_task || "null"} tasks=${item.tasks.total} done=${item.tasks.done} todo=${item.tasks.todo} receipts=${item.receipt_count}`);
+    lines.push(`${item.goal_id}  status=${item.status} next_action=${item.next_action} active_work_item=${item.active_work_item || "null"} work_items=${item.work_items.total} done=${item.work_items.done} todo=${item.work_items.todo} evidence=${item.evidence_count}`);
   }
   return lines.join("\n");
 }
@@ -175,7 +175,7 @@ function matchesCompletion(item, completion) {
 
 export function resolveGoalsRoot(target = ".", { cwd = process.cwd() } = {}) {
   const direct = resolve(cwd, target || ".");
-  const nested = join(direct, "docs", "goal-diffusion", "goals");
+  const nested = join(direct, "docs", "goal-proof", "goals");
   if (isGoalsDirectory(direct)) return direct;
   if (isGoalsDirectory(nested)) return nested;
 
@@ -188,7 +188,7 @@ export function resolveGoalsRoot(target = ".", { cwd = process.cwd() } = {}) {
 function findGoalsRootUpward(startDir) {
   let current = resolve(startDir);
   while (true) {
-    const candidate = join(current, "docs", "goal-diffusion", "goals");
+    const candidate = join(current, "docs", "goal-proof", "goals");
     if (isGoalsDirectory(candidate)) return candidate;
     const parent = dirname(current);
     if (parent === current) return null;
@@ -208,39 +208,39 @@ export function listGoalPackRoots(goalsRoot) {
   return readdirSync(goalsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => join(goalsRoot, entry.name))
-    .filter((root) => existsSync(join(root, "charter.yaml")) || existsSync(join(root, "state.yaml")) || existsSync(join(root, "receipts.jsonl")))
+    .filter((root) => existsSync(join(root, "goal.yaml")) || existsSync(join(root, "progress.yaml")) || existsSync(join(root, "evidence.jsonl")))
     .sort();
 }
 
 function summarizeOneGoalPack(root) {
   const pack = loadGoalPack(root);
   const validation = validateGoalPack(pack);
-  const relations = pack.contract.goal_relations || { thread_id: null };
-  const status = knownOrUnknown(pack.state.status || pack.contract.status, STATUS_VALUES);
-  const nextDecision = knownOrUnknown(pack.state.next_decision, NEXT_DECISIONS);
-  const taskStatusCounts = emptyCounts([...TASK_STATUSES, "unknown"]);
+  const relations = pack.goal.relations || { thread_id: null };
+  const status = knownOrUnknown(pack.progress.status || pack.goal.status, STATUS_VALUES);
+  const nextAction = knownOrUnknown(pack.progress.next_action, NEXT_ACTIONS);
+  const workStatusCounts = emptyCounts([...WORK_ITEM_STATUSES, "unknown"]);
 
-  for (const task of pack.state.tasks) {
-    increment(taskStatusCounts, knownOrUnknown(task.status, TASK_STATUSES));
+  for (const item of pack.progress.work_items) {
+    increment(workStatusCounts, knownOrUnknown(item.status, WORK_ITEM_STATUSES));
   }
 
-  const totalTasks = pack.state.tasks.length;
+  const totalWorkItems = pack.progress.work_items.length;
 
   return {
-    goal_id: pack.contract.id || pack.state.goal_id || pack.name,
+    goal_id: pack.goal.id || pack.progress.goal_id || pack.name,
     path: pack.root,
-    objective: pack.contract.objective || null,
+    objective: pack.goal.objective || null,
     thread_id: relations.thread_id || null,
     status,
-    next_decision: nextDecision,
-    active_task: pack.state.active_task,
-    tasks: {
-      total: totalTasks,
-      done: taskStatusCounts.done,
-      todo: Math.max(0, totalTasks - taskStatusCounts.done),
-      by_status: taskStatusCounts,
+    next_action: nextAction,
+    active_work_item: pack.progress.active_work_item,
+    work_items: {
+      total: totalWorkItems,
+      done: workStatusCounts.done,
+      todo: Math.max(0, totalWorkItems - workStatusCounts.done),
+      by_status: workStatusCounts,
     },
-    receipt_count: pack.receipts.length,
+    evidence_count: pack.evidence_records.length,
     warnings: validation.warnings,
     errors: validation.errors,
   };
@@ -283,21 +283,21 @@ function groupSummary(items, controls) {
 
 function aggregateSummaries(items, controls, { compact = false } = {}) {
   const goalStatusCounts = emptyCounts([...STATUS_VALUES, "unknown"]);
-  const nextDecisionCounts = emptyCounts([...NEXT_DECISIONS, "unknown"]);
-  const taskStatusCounts = emptyCounts([...TASK_STATUSES, "unknown"]);
-  let receiptCount = 0;
+  const nextActionCounts = emptyCounts([...NEXT_ACTIONS, "unknown"]);
+  const workStatusCounts = emptyCounts([...WORK_ITEM_STATUSES, "unknown"]);
+  let evidenceCount = 0;
 
   for (const item of items) {
     increment(goalStatusCounts, item.status);
-    increment(nextDecisionCounts, item.next_decision);
-    receiptCount += item.receipt_count;
-    for (const [status, count] of Object.entries(item.tasks.by_status)) {
-      taskStatusCounts[status] = (taskStatusCounts[status] || 0) + count;
+    increment(nextActionCounts, item.next_action);
+    evidenceCount += item.evidence_count;
+    for (const [status, count] of Object.entries(item.work_items.by_status)) {
+      workStatusCounts[status] = (workStatusCounts[status] || 0) + count;
     }
   }
 
   const totalGoals = items.length;
-  const totalTasks = Object.values(taskStatusCounts).reduce((sum, count) => sum + count, 0);
+  const totalWorkItems = Object.values(workStatusCounts).reduce((sum, count) => sum + count, 0);
   const problemPacks = items.filter((item) => item.errors.length > 0 || item.warnings.length > 0);
   const goals: any = {
     total: totalGoals,
@@ -305,20 +305,20 @@ function aggregateSummaries(items, controls, { compact = false } = {}) {
     todo: Math.max(0, totalGoals - goalStatusCounts.done - goalStatusCounts.retired),
     retired: goalStatusCounts.retired,
   };
-  const tasks: any = {
-    total: totalTasks,
-    done: taskStatusCounts.done,
-    todo: Math.max(0, totalTasks - taskStatusCounts.done),
+  const workItems: any = {
+    total: totalWorkItems,
+    done: workStatusCounts.done,
+    todo: Math.max(0, totalWorkItems - workStatusCounts.done),
   };
   if (!compact || wantsField(controls, "by_status") || controls.show_empty) {
     goals.by_status = withoutZeroBuckets(goalStatusCounts, controls);
-    goals.by_next_decision = withoutZeroBuckets(nextDecisionCounts, controls);
-    tasks.by_status = withoutZeroBuckets(taskStatusCounts, controls);
+    goals.by_next_action = withoutZeroBuckets(nextActionCounts, controls);
+    workItems.by_status = withoutZeroBuckets(workStatusCounts, controls);
   }
   const result: any = {
     goals,
-    tasks,
-    receipt_count: receiptCount,
+    work_items: workItems,
+    evidence_count: evidenceCount,
     problem_count: problemPacks.length,
   };
   const warnings = problemPacks.flatMap((item) => item.warnings.map((warning) => `${item.goal_id}: ${warning}`));
@@ -337,15 +337,15 @@ function compactGoalItem(item, controls) {
   const result = {
     goal_id: item.goal_id,
     status: item.status,
-    next_decision: item.next_decision,
-    tasks: {
-      total: item.tasks.total,
-      done: item.tasks.done,
-      todo: item.tasks.todo,
+    next_action: item.next_action,
+    work_items: {
+      total: item.work_items.total,
+      done: item.work_items.done,
+      todo: item.work_items.todo,
     },
-    receipt_count: item.receipt_count,
+    evidence_count: item.evidence_count,
   };
-  maybeSet(result, "active_task", item.active_task, controls);
+  maybeSet(result, "active_work_item", item.active_work_item, controls);
   maybeSet(result, "thread_id", item.thread_id, controls);
   setIncluded(result, "path", item.path, controls);
   setIncluded(result, "objective", item.objective, controls);
@@ -364,8 +364,4 @@ function increment(counts, key) {
 
 function knownOrUnknown(value, allowed) {
   return allowed.includes(value) ? value : "unknown";
-}
-
-function formatCounts(counts, keys) {
-  return keys.map((key) => `${key}=${counts[key] || 0}`).join(" ");
 }

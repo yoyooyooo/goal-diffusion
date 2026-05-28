@@ -1,0 +1,70 @@
+schema_version: 2
+goal_id: 2026-05-23-evidence-query-cli
+status: done
+
+proof_step:
+  from: "Agents currently inspect evidence history by reading raw evidence.jsonl directly, often with tail -n, which is line-oriented rather than evidence record-intent-oriented and can dump oversized JSON into context."
+  target_delta: "The CLI has a bounded evidence records query surface that answers common evidence record-history questions with compact defaults and explicit expansion."
+  proof_path:
+    - "Add failing CLI tests for compact evidence list defaults, composable filters, JSON output, and indexed evidence show."
+    - "Implement evidence list/show as first-class CLI commands over existing parsed evidence records."
+    - "Document the command surface in root docs, package docs, and the goal-proof skill."
+    - "Dogfood the command against this Goal Pack after recording at least one evidence record."
+  checks:
+    - "bun run check"
+    - "goal-proof check docs/goal-proof/goals/2026-05-23-evidence-query-cli"
+    - "goal-proof evidence list docs/goal-proof/goals/2026-05-23-evidence-query-cli --json"
+  failure_inspection:
+    - packages/cli/src/goal-proof.ts
+    - packages/cli/src/lib/goal-pack.ts
+    - packages/cli/test/goal-pack-cli.test.ts
+    - README.md
+    - packages/cli/README.md
+    - skills/goal/goal-proof-system/SKILL.md
+
+active_work_item: null
+
+work_items:
+  - id: W001
+    type: implementation
+    status: done
+    objective: "Implement compact, filterable evidence list/show commands for one Goal Pack."
+    allowed_scope:
+      - packages/cli/src/**
+      - packages/cli/test/**
+      - README.md
+      - README.zh-CN.md
+      - packages/cli/README.md
+      - packages/cli/README.zh-CN.md
+      - skills/goal/goal-proof-system/SKILL.md
+      - CHANGELOG.md
+      - docs/goal-proof/**
+    checks:
+      - "bun run check"
+      - "goal-proof check docs/goal-proof/goals/2026-05-23-evidence-query-cli"
+    stop_if:
+      - "The implementation needs evidence record schema changes, timestamps, external indexing, or a query language."
+      - "Existing CLI command semantics or evidence record validation would need a breaking change."
+      - "Compact default output cannot avoid raw full evidence record dumps."
+  - id: W999
+    type: review
+    status: done
+    objective: "Audit the evidence record-query CLI against the completion standard and completion proof."
+    allowed_scope:
+      - docs/goal-proof/goals/2026-05-23-evidence-query-cli/**
+    checks:
+      - "goal-proof check docs/goal-proof/goals/2026-05-23-evidence-query-cli"
+    stop_if:
+      - "Any completion-standard field lacks evidence-backed evidence."
+
+blockers:
+
+last_check:
+  result: pass
+  checks:
+    - "goal-proof-dev check docs/goal-proof/goals/2026-05-23-evidence-query-cli [pass]"
+    - "goal-proof-dev evidence list 2026-05-23-evidence-query-cli --command-status pass --changed-file packages/cli/src/** --json [pass]"
+    - "goal-proof-dev evidence show 2026-05-23-evidence-query-cli --index 1 --json [pass]"
+    - "bun run check [pass]"
+
+next_action: done

@@ -1,0 +1,77 @@
+schema_version: 2
+id: "2026-05-23-goal-relations-cli-verification"
+status: done
+
+objective: "Add a bounded relations CLI surface that verifies Goal Pack links, predecessor evidence records, required evidence tokens, and thread-derived graph views."
+guiding_principle: "Agents should be able to inspect and validate cross-pack continuity through one command family without reading raw Goal Pack directories or rebuilding planning context manually."
+
+relations:
+  thread_id: goal-relations
+  links:
+    - goal_id: 2026-05-23-goal-relations-protocol
+      relation: successor_of
+      evidence_ref: E999
+      evidence:
+        - relations_protocol_documented=true
+        - done_pack_append_only_closed=true
+        - successor_uses_predecessor_evidence record=true
+
+authority_refs:
+  - "README.md"
+  - "README.zh-CN.md"
+  - "packages/cli/README.md"
+  - "packages/cli/README.zh-CN.md"
+  - "skills/goal/goal-proof-system/SKILL.md"
+  - "skills/goal/goal-proof-system/references/checker-rules.md"
+  - "packages/cli/src/goal-proof.ts"
+  - "packages/cli/src/lib/goal-pack.ts"
+  - "packages/cli/test/goal-pack-cli.test.ts"
+  - "docs/goal-proof/goals/2026-05-23-goal-relations-protocol/goal.yaml"
+
+engineering_guidance:
+  architecture_notes:
+    - "Relations CLI must be a verification and inspection surface, not a planner, scheduler, or graph database."
+    - "The only top-level CLI namespace for this work is relations."
+    - "Thread views are derived from relations.thread_id and links; they do not create thread-owned files or state."
+    - "Hard relation failures must be limited to invalid relation enum, missing target, missing required evidence record, and missing required evidence."
+    - "related_to is nonblocking: missing evidence should warn rather than fail unless future protocol explicitly says otherwise."
+
+constraints:
+  - "Do not add a top-level threads command namespace."
+  - "Do not add a stored graph file, graph cache, or thread registry."
+  - "Do not change existing inspect, summary, list, tasks, evidence records, brief, dispatch, activate, evidence record, apply, or check semantics."
+  - "Do not require historical Goal Packs to define relations."
+  - "Do not make related_to a hard dependency."
+
+non_goals:
+  - "No visual graph UI."
+  - "No automatic successor generation."
+  - "No project management scheduler."
+  - "No schema migration for old Goal Packs."
+  - "No external storage or graph database."
+
+completion:
+  signal: "The CLI exposes goal-proof relations list/check/graph with compact text and JSON output, validates hard relation evidence, renders thread-derived graph views, and preserves existing Goal Pack commands."
+  required_evidence: "Repository check passes; tests prove relation enum validation, predecessor existence checks, evidence record_ref checks, required evidence token checks, related_to warning behavior, thread filtering, graph rendering, and docs coverage; relations check against the dogfood Goal Packs passes; completion review evidence record sets completion_satisfied=true."
+
+claim_limit: "This Goal Pack may claim only the relations CLI inspection and verification surface. It may not claim visual graph UI, automatic planning, thread-owned lifecycle, scheduler behavior, or cross-repository migration."
+
+stop_rules:
+  - "Stop if relation verification requires changing evidence record schema semantics."
+  - "Stop if CLI implementation needs a thread registry, graph cache, or stored graph artifact."
+  - "Stop if adding relations commands would break existing Goal Pack command behavior."
+  - "Stop if required predecessor evidence cannot be verified from evidence record JSON."
+
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - authority_refs
+    - engineering_guidance
+    - completion
+    - claim_limit
+  agent_may_revise:
+    - next_slice
+    - work_order
+    - harness_strength
+    - implementation_shape

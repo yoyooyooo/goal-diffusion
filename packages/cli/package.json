@@ -1,28 +1,28 @@
 {
-  "name": "goal-diffusion",
+  "name": "goal-proof",
   "version": "0.1.0",
-  "description": "A Goal Pack CLI for long-running AI coding loops.",
+  "description": "A Goal Proof CLI for evidence-backed long-running AI coding loops.",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://github.com/yoyooyooo/goal-diffusion#readme",
+  "homepage": "https://github.com/yoyooyooo/ai-coding-os#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yoyooyooo/goal-diffusion.git",
+    "url": "git+https://github.com/yoyooyooo/ai-coding-os.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/yoyooyooo/goal-diffusion/issues"
+    "url": "https://github.com/yoyooyooo/ai-coding-os/issues"
   },
   "keywords": [
     "ai",
     "agent",
     "cli",
     "goal-pack",
-    "goal-diffusion",
+    "goal-proof",
     "coding-agent"
   ],
   "bin": {
-    "goal-diffusion": "dist/cli.js"
+    "goal-proof": "dist/cli.js"
   },
   "exports": {
     ".": "./dist/index.js",
@@ -42,7 +42,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "rm -rf dist && bun build src/goal-diffusion.ts --target=node --outfile=dist/cli.js && bun build src/index.ts --target=node --outfile=dist/index.js && chmod +x dist/cli.js",
+    "build": "rm -rf dist && bun build src/goal-proof.ts --target=node --outfile=dist/cli.js && bun build src/index.ts --target=node --outfile=dist/index.js && chmod +x dist/cli.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "bun test",
     "check": "bun run build && bun run typecheck && bun run test",

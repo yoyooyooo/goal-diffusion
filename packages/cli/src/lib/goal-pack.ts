@@ -5,51 +5,48 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import { allChecksPass, checkLines, hasFinalAuditEvidence, receiptChecks } from "./goal-receipt-helpers.ts";
+import { allChecksPass, checkLines, hasCompletionReviewEvidence, recordChecks } from "./goal-evidence-helpers.ts";
 
 export const STATUS_VALUES = ["forming", "ready", "running", "blocked", "done", "retired"];
-export const TASK_TYPES = ["scout", "judge", "worker", "pm", "audit", "plan_required"];
-export const TASK_STATUSES = ["queued", "active", "blocked", "done"];
-export const NEXT_DECISIONS = ["edge", "continue", "plan_required", "blocked", "audit", "done", "needs-human"];
-export const RECEIPT_RESULTS = ["done", "blocked"];
+export const WORK_ITEM_TYPES = ["discovery", "decision", "implementation", "coordination", "review", "planning"];
+export const WORK_ITEM_STATUSES = ["queued", "active", "blocked", "done"];
+export const NEXT_ACTIONS = ["proof_step", "continue", "needs_plan", "blocked", "review", "done", "needs_human"];
+export const EVIDENCE_RESULTS = ["done", "blocked"];
 export const GOAL_RELATION_TYPES = ["successor_of", "depends_on", "supersedes", "related_to"];
 
 export function loadGoalPack(goalRoot) {
   const root = resolveGoalPackRoot(goalRoot);
   const files = {
-    charter: join(root, "charter.yaml"),
-    contract: join(root, "charter.yaml"),
-    state: join(root, "state.yaml"),
-    receipts: join(root, "receipts.jsonl"),
+    goal: join(root, "goal.yaml"),
+    progress: join(root, "progress.yaml"),
+    evidence: join(root, "evidence.jsonl"),
   };
   const missing = [];
-  if (!existsSync(files.charter)) missing.push("charter.yaml");
-  if (!existsSync(files.state)) missing.push("state.yaml");
-  if (!existsSync(files.receipts)) missing.push("receipts.jsonl");
+  if (!existsSync(files.goal)) missing.push("goal.yaml");
+  if (!existsSync(files.progress)) missing.push("progress.yaml");
+  if (!existsSync(files.evidence)) missing.push("evidence.jsonl");
 
-  const charterText = existsSync(files.charter) ? readFileSync(files.charter, "utf8") : "";
-  const stateText = existsSync(files.state) ? readFileSync(files.state, "utf8") : "";
-  const receiptsText = existsSync(files.receipts) ? readFileSync(files.receipts, "utf8") : "";
-  const { receipts, parseErrors: receiptParseErrors } = parseReceipts(receiptsText);
-  const charter = parseCharter(charterText);
+  const goalText = existsSync(files.goal) ? readFileSync(files.goal, "utf8") : "";
+  const progressText = existsSync(files.progress) ? readFileSync(files.progress, "utf8") : "";
+  const evidenceText = existsSync(files.evidence) ? readFileSync(files.evidence, "utf8") : "";
+  const { records: evidenceRecords, parseErrors: evidenceParseErrors } = parseEvidenceLog(evidenceText);
+  const goal = parseGoal(goalText);
 
   return {
     root,
     name: basename(root),
     files,
     missing,
-    schema: existsSync(files.charter) ? "v1" : "missing",
+    schema: existsSync(files.goal) ? "v2" : "missing",
     texts: {
-      charter: charterText,
-      contract: charterText,
-      state: stateText,
-      receipts: receiptsText,
+      goal: goalText,
+      progress: progressText,
+      evidence: evidenceText,
     },
-    charter,
-    contract: charter,
-    state: parseState(stateText),
-    receipts,
-    receiptParseErrors,
+    goal,
+    progress: parseProgress(progressText),
+    evidence_records: evidenceRecords,
+    evidenceParseErrors,
   };
 }
 
@@ -64,7 +61,7 @@ export function resolveGoalPackRoot(goalRoot, { cwd = process.cwd() } = {}) {
 function findGoalPackById(startDir, goalId) {
   let current = resolve(startDir);
   while (true) {
-    const candidate = join(current, "docs", "goal-diffusion", "goals", goalId);
+    const candidate = join(current, "docs", "goal-proof", "goals", goalId);
     if (existsSync(candidate)) return candidate;
     const parent = dirname(current);
     if (parent === current) return null;
@@ -76,10 +73,11 @@ function looksLikePath(value) {
   return value.includes("/") || value.includes("\\") || value === "." || value === ".." || value.startsWith("./") || value.startsWith("../") || value.startsWith("~/");
 }
 
-export function parseCharter(text) {
+export function parseGoal(text) {
   const engineeringGuidanceBody = blockText(text, "engineering_guidance", 0);
-  const autonomyBody = blockText(text, "autonomy", 0);
+  const agentAuthorityBody = blockText(text, "agent_authority", 0);
   return {
+    schema_version: topScalar(text, "schema_version"),
     id: topScalar(text, "id"),
     status: topScalar(text, "status"),
     intent: {
@@ -89,43 +87,43 @@ export function parseCharter(text) {
       open_questions: listScalar(blockText(text, "intent", 0), "open_questions", 2),
     },
     objective: topScalar(text, "objective"),
-    north_star: topScalar(text, "north_star"),
-    goal_relations: parseGoalRelations(text),
+    guiding_principle: topScalar(text, "guiding_principle"),
+    relations: parseRelations(text),
     authority_refs: listScalar(text, "authority_refs", 0),
     engineering_guidance: {
       standards: listScalar(engineeringGuidanceBody, "standards", 2),
       architecture_notes: listScalar(engineeringGuidanceBody, "architecture_notes", 2),
       quality_bar: pathScalar(text, ["engineering_guidance"], "quality_bar"),
-      preferred_harness: pathScalar(text, ["engineering_guidance"], "preferred_harness"),
+      preferred_proof_path: pathScalar(text, ["engineering_guidance"], "preferred_proof_path"),
     },
     constraints: listScalar(text, "constraints", 0),
     non_goals: listScalar(text, "non_goals", 0),
     stop_rules: listScalar(text, "stop_rules", 0),
     completion: {
       signal: pathScalar(text, ["completion"], "signal"),
-      final_proof: pathScalar(text, ["completion"], "final_proof"),
+      required_evidence: pathScalar(text, ["completion"], "required_evidence"),
     },
-    claim_boundary: topScalar(text, "claim_boundary"),
-    autonomy: {
-      continue_by_default: pathScalar(text, ["autonomy"], "continue_by_default"),
-      cannot_silently_change: listScalar(autonomyBody, "cannot_silently_change", 2),
-      agent_may_revise: listScalar(autonomyBody, "agent_may_revise", 2),
+    claim_limit: topScalar(text, "claim_limit"),
+    agent_authority: {
+      continue_by_default: pathScalar(text, ["agent_authority"], "continue_by_default"),
+      requires_human_decision: listScalar(agentAuthorityBody, "requires_human_decision", 2),
+      agent_may_revise: listScalar(agentAuthorityBody, "agent_may_revise", 2),
     },
     evidence_mode: topScalar(text, "evidence_mode"),
   };
 }
 
-function parseGoalRelations(text) {
-  const body = blockText(text, "goal_relations", 0);
+function parseRelations(text) {
+  const body = blockText(text, "relations", 0);
   if (!body) return { thread_id: null, links: [] };
   return {
-    thread_id: pathScalar(text, ["goal_relations"], "thread_id"),
-    links: parseGoalRelationLinks(body),
+    thread_id: pathScalar(text, ["relations"], "thread_id"),
+    links: parseRelationLinks(body),
   };
 }
 
-function parseGoalRelationLinks(goalRelationsBody) {
-  const linksBody = blockText(goalRelationsBody, "links", 2);
+function parseRelationLinks(relationsBody) {
+  const linksBody = blockText(relationsBody, "links", 2);
   if (!linksBody) return [];
   const lines = linksBody.split(/\r?\n/);
   const links = [];
@@ -137,7 +135,7 @@ function parseGoalRelationLinks(goalRelationsBody) {
     links.push({
       goal_id: current.goal_id || relationScalar(currentLines, "goal_id"),
       relation: relationScalar(currentLines, "relation"),
-      receipt_ref: relationScalar(currentLines, "receipt_ref"),
+      evidence_ref: relationScalar(currentLines, "evidence_ref"),
       evidence: listScalar(body, "evidence", 6),
     });
   };
@@ -156,132 +154,135 @@ function parseGoalRelationLinks(goalRelationsBody) {
     if (current) currentLines.push(line);
   }
   finish();
-  return links.filter((link) => link.goal_id || link.relation || link.receipt_ref || link.evidence.length > 0);
+  return links.filter((link) => link.goal_id || link.relation || link.evidence_ref || link.evidence.length > 0);
 }
 
 function relationScalar(lines, key) {
   return keyValue(lines.join("\n"), key, 6);
 }
 
-export function parseState(text) {
-  const lastVerification = blockText(text, "last_verification", 0);
+export function parseProgress(text) {
+  const lastCheck = blockText(text, "last_check", 0);
   return {
-    version: topScalar(text, "version"),
+    schema_version: topScalar(text, "schema_version"),
     goal_id: topScalar(text, "goal_id"),
     status: topScalar(text, "status"),
-    current_edge: {
-      from: pathScalar(text, ["current_edge"], "from"),
-      target_delta: pathScalar(text, ["current_edge"], "target_delta"),
-      harnessed_path: listScalar(blockText(text, "current_edge", 0), "harnessed_path", 2),
-      verify: listScalar(blockText(text, "current_edge", 0), "verify", 2),
-      failure_inspection: listScalar(blockText(text, "current_edge", 0), "failure_inspection", 2),
+    proof_step: {
+      from: pathScalar(text, ["proof_step"], "from"),
+      target_delta: pathScalar(text, ["proof_step"], "target_delta"),
+      proof_path: listScalar(blockText(text, "proof_step", 0), "proof_path", 2),
+      checks: listScalar(blockText(text, "proof_step", 0), "checks", 2),
+      failure_inspection: listScalar(blockText(text, "proof_step", 0), "failure_inspection", 2),
     },
-    active_task: topScalar(text, "active_task"),
-    tasks: parseTasks(text),
+    active_work_item: topScalar(text, "active_work_item"),
+    work_items: parseWorkItems(text),
     blockers: listScalar(text, "blockers", 0),
-    last_verification: {
-      result: pathScalar(text, ["last_verification"], "result") || "unknown",
-      checks: listScalar(lastVerification, "checks", 2),
+    last_check: {
+      result: pathScalar(text, ["last_check"], "result") || "unknown",
+      checks: listScalar(lastCheck, "checks", 2),
     },
-    next_decision: topScalar(text, "next_decision"),
+    next_action: topScalar(text, "next_action"),
   };
 }
 
-export function parseReceipts(text) {
-  const receipts = [];
+export function parseEvidenceLog(text) {
+  const records = [];
   const parseErrors = [];
   for (const [index, line] of text.split(/\r?\n/).entries()) {
     if (!line.trim()) continue;
     try {
-      receipts.push(JSON.parse(line));
+      records.push(JSON.parse(line));
     } catch {
-      parseErrors.push(`invalid receipts.jsonl line ${index + 1}`);
+      parseErrors.push(`invalid evidence.jsonl line ${index + 1}`);
     }
   }
-  return { receipts, parseErrors };
+  return { records, parseErrors };
 }
 
-export function findTask(state, taskId) {
-  return state.tasks.find((task) => task.id === taskId) || null;
+export function findWorkItem(progress, workId) {
+  return progress.work_items.find((item) => item.id === workId) || null;
 }
 
-export function getActiveTask(state) {
-  if (!state.active_task) return null;
-  return findTask(state, state.active_task);
+export function getActiveWorkItem(progress) {
+  if (!progress.active_work_item) return null;
+  return findWorkItem(progress, progress.active_work_item);
 }
 
-export function compactReceipt(receipt) {
-  if (!receipt) return null;
+export function compactEvidenceRecord(record) {
+  if (!record) return null;
   return {
-    task_id: receipt.task_id || null,
-    type: receipt.type || null,
-    result: receipt.result || null,
-    decision: receipt.decision || null,
-    oracle_satisfied: receipt.oracle_satisfied === true,
-    next_decision: receipt.next_decision || null,
+    evidence_id: record.evidence_id || null,
+    work_id: record.work_id || null,
+    type: record.type || null,
+    result: record.result || null,
+    decision: record.decision || null,
+    completion_satisfied: record.completion_satisfied === true,
+    next_action: record.next_action || null,
   };
 }
 
 export function inspectGoalPack(goalRoot) {
   const pack = loadGoalPack(goalRoot);
   const validation = validateGoalPack(pack);
-  const activeTask = getActiveTask(pack.state);
-  const lastReceipt = pack.receipts.at(-1) || null;
-  const blocked = pack.state.status === "blocked" || pack.state.next_decision === "blocked";
-  const canContinue = pack.state.status === "running"
+  const activeWorkItem = getActiveWorkItem(pack.progress);
+  const lastEvidenceRecord = pack.evidence_records.at(-1) || null;
+  const blocked = pack.progress.status === "blocked" || pack.progress.next_action === "blocked";
+  const canContinue = pack.progress.status === "running"
     && !blocked
-    && ["edge", "continue", "plan_required", "audit"].includes(String(pack.state.next_decision || ""));
+    && ["proof_step", "continue", "needs_plan", "review"].includes(String(pack.progress.next_action || ""));
 
   return {
-    goal_id: pack.contract.id || pack.state.goal_id || null,
-    status: pack.state.status || pack.contract.status || null,
-    objective: pack.contract.objective || null,
-    completion: pack.contract.completion,
-    claim_boundary: pack.contract.claim_boundary || null,
-    current_edge: pack.state.current_edge,
-    active_task: activeTask,
-    last_receipt: compactReceipt(lastReceipt),
-    next_decision: pack.state.next_decision || null,
-    blockers: pack.state.blockers,
+    goal_id: pack.goal.id || pack.progress.goal_id || null,
+    status: pack.progress.status || pack.goal.status || null,
+    objective: pack.goal.objective || null,
+    completion: pack.goal.completion,
+    claim_limit: pack.goal.claim_limit || null,
+    proof_step: pack.progress.proof_step,
+    active_work_item: activeWorkItem,
+    last_evidence_record: compactEvidenceRecord(lastEvidenceRecord),
+    next_action: pack.progress.next_action || null,
+    blockers: pack.progress.blockers,
     can_continue: canContinue,
-    task_count: pack.state.tasks.length,
-    receipt_count: pack.receipts.length,
+    work_item_count: pack.progress.work_items.length,
+    evidence_count: pack.evidence_records.length,
     warnings: validation.warnings,
     errors: validation.errors,
   };
 }
 
-export function renderPrompt(goalRoot, { taskId = null } = {}) {
+export function renderWorkBrief(goalRoot, { workId = null } = {}) {
   const pack = loadGoalPack(goalRoot);
-  const selectedTaskId = taskId || pack.state.active_task;
-  const task = selectedTaskId ? findTask(pack.state, selectedTaskId) : null;
-  if (!task) {
-    throw new Error(`task not found: ${selectedTaskId || "<active_task>"}`);
+  const selectedWorkId = workId || pack.progress.active_work_item;
+  const workItem = selectedWorkId ? findWorkItem(pack.progress, selectedWorkId) : null;
+  if (!workItem) {
+    throw new Error(`work item not found: ${selectedWorkId || "<active_work_item>"}`);
   }
 
   const warnings = [];
-  if (task.id !== pack.state.active_task) warnings.push(`selected task ${task.id} is not active_task ${pack.state.active_task || "null"}`);
+  if (workItem.id !== pack.progress.active_work_item) {
+    warnings.push(`selected work item ${workItem.id} is not active_work_item ${pack.progress.active_work_item || "null"}`);
+  }
 
   return {
-    goal_id: pack.contract.id || pack.state.goal_id || null,
-    status: pack.state.status || null,
-    charter_fields: {
-      objective: pack.contract.objective || null,
-      authority_refs: pack.contract.authority_refs,
-      engineering_guidance: pack.contract.engineering_guidance,
-      completion: pack.contract.completion,
-      claim_boundary: pack.contract.claim_boundary || null,
-      stop_rules: pack.contract.stop_rules,
+    goal_id: pack.goal.id || pack.progress.goal_id || null,
+    status: pack.progress.status || null,
+    goal_fields: {
+      objective: pack.goal.objective || null,
+      authority_refs: pack.goal.authority_refs,
+      engineering_guidance: pack.goal.engineering_guidance,
+      completion: pack.goal.completion,
+      claim_limit: pack.goal.claim_limit || null,
+      stop_rules: pack.goal.stop_rules,
     },
-    current_edge: pack.state.current_edge,
-    task,
+    proof_step: pack.progress.proof_step,
+    work_item: workItem,
     stop_rules: [
       "Do not change protected fields.",
       "Do not write outside allowed_scope.",
-      "Stop if no honest falsifiable verification path exists.",
-      ...task.stop_if,
+      "Stop if no honest falsifiable proof path exists.",
+      ...workItem.stop_if,
     ],
-    receipt_schema: receiptSchemaForTask(task),
+    evidence_schema: evidenceSchemaForWorkItem(workItem),
     warnings,
   };
 }
@@ -290,326 +291,331 @@ export function validateGoalPack(pack) {
   const errors = [];
   const warnings = [];
   for (const missing of pack.missing) errors.push(`missing ${missing}`);
-  for (const error of pack.receiptParseErrors) errors.push(error);
+  for (const error of pack.evidenceParseErrors) errors.push(error);
 
-  const { contract, state, receipts } = pack;
-  if (!contract.id) errors.push("charter.yaml missing id");
-  if (!STATUS_VALUES.includes(contract.status)) {
-    errors.push(`charter status must be ${STATUS_VALUES.join(", ")}; got ${contract.status || "<missing>"}`);
+  const { goal, progress, evidence_records: evidenceRecords } = pack;
+  if (String(goal.schema_version || "") !== "2") errors.push("goal.yaml schema_version must be 2");
+  if (String(progress.schema_version || "") !== "2") errors.push("progress.yaml schema_version must be 2");
+  if (!goal.id) errors.push("goal.yaml missing id");
+  if (!STATUS_VALUES.includes(goal.status)) {
+    errors.push(`goal status must be ${STATUS_VALUES.join(", ")}; got ${goal.status || "<missing>"}`);
   }
-  if (!STATUS_VALUES.includes(state.status)) {
-    errors.push(`state status must be ${STATUS_VALUES.join(", ")}; got ${state.status || "<missing>"}`);
+  if (!STATUS_VALUES.includes(progress.status)) {
+    errors.push(`progress status must be ${STATUS_VALUES.join(", ")}; got ${progress.status || "<missing>"}`);
   }
-  if (contract.status && state.status && contract.status !== state.status) {
-    warnings.push(`charter status ${contract.status} differs from state status ${state.status}`);
+  if (goal.status && progress.status && goal.status !== progress.status) {
+    warnings.push(`goal status ${goal.status} differs from progress status ${progress.status}`);
   }
-  if (state.next_decision && !NEXT_DECISIONS.includes(state.next_decision)) {
-    errors.push(`state next_decision must be ${NEXT_DECISIONS.join(", ")}; got ${state.next_decision}`);
+  if (progress.next_action && !NEXT_ACTIONS.includes(progress.next_action)) {
+    errors.push(`progress next_action must be ${NEXT_ACTIONS.join(", ")}; got ${progress.next_action}`);
   }
-  if (isWeak(contract.completion.signal)) warnings.push("completion.signal is missing or weak");
-  if (isWeak(contract.completion.final_proof)) warnings.push("completion.final_proof is missing or weak");
-  if (isWeak(contract.claim_boundary)) warnings.push("claim_boundary is missing or weak");
-  if (state.tasks.length === 0) errors.push("state.yaml tasks must contain at least one task");
+  if (isWeak(goal.completion.signal)) warnings.push("completion.signal is missing or weak");
+  if (isWeak(goal.completion.required_evidence)) warnings.push("completion.required_evidence is missing or weak");
+  if (isWeak(goal.claim_limit)) warnings.push("claim_limit is missing or weak");
+  if (progress.work_items.length === 0) errors.push("progress.yaml work_items must contain at least one work item");
 
-  const activeTasks = state.tasks.filter((task) => task.status === "active");
-  if (state.status === "running") {
-    if (activeTasks.length !== 1) errors.push(`running goal pack must have exactly one active task; found ${activeTasks.length}`);
-    if (!state.active_task) errors.push("running goal pack must set active_task");
+  const activeWorkItems = progress.work_items.filter((item) => item.status === "active");
+  if (progress.status === "running") {
+    if (activeWorkItems.length !== 1) errors.push(`running Goal Pack must have exactly one active work item; found ${activeWorkItems.length}`);
+    if (!progress.active_work_item) errors.push("running Goal Pack must set active_work_item");
   }
-  if (activeTasks.length === 1 && state.active_task !== activeTasks[0].id) {
-    errors.push(`active_task must point to ${activeTasks[0].id}; got ${state.active_task || "null"}`);
+  if (activeWorkItems.length === 1 && progress.active_work_item !== activeWorkItems[0].id) {
+    errors.push(`active_work_item must point to ${activeWorkItems[0].id}; got ${progress.active_work_item || "null"}`);
   }
-  if (state.active_task && !state.tasks.some((task) => task.id === state.active_task)) {
-    errors.push(`active_task points to unknown task: ${state.active_task}`);
+  if (progress.active_work_item && !progress.work_items.some((item) => item.id === progress.active_work_item)) {
+    errors.push(`active_work_item points to unknown work item: ${progress.active_work_item}`);
   }
 
-  for (const task of state.tasks) {
-    validateTask(task, errors);
+  for (const item of progress.work_items) {
+    validateWorkItem(item, errors);
   }
-  validateStateDecisionHints(state, warnings);
+  validateProgressActionHints(progress, warnings);
 
-  for (const receipt of receipts) {
-    for (const error of validateReceipt(pack, receipt)) {
+  for (const record of evidenceRecords) {
+    for (const error of validateEvidenceRecord(pack, record)) {
       errors.push(error);
     }
   }
 
-  if (state.status === "done") {
-    if (state.active_task !== null) errors.push("done goal pack must set active_task: null");
-    if (activeTasks.length > 0) errors.push("done goal pack must not have active tasks");
-    if (isWeak(contract.completion.signal) || isWeak(contract.completion.final_proof) || isWeak(contract.claim_boundary)) {
-      errors.push("done goal pack requires concrete completion and claim_boundary");
+  if (progress.status === "done") {
+    if (progress.active_work_item !== null) errors.push("done Goal Pack must set active_work_item: null");
+    if (activeWorkItems.length > 0) errors.push("done Goal Pack must not have active work items");
+    if (isWeak(goal.completion.signal) || isWeak(goal.completion.required_evidence) || isWeak(goal.claim_limit)) {
+      errors.push("done Goal Pack requires concrete completion and claim_limit");
     }
-    const finalAudit = receipts.find((receipt) =>
-      (receipt.type === "audit" || receipt.task_id === "T999")
-        && receipt.result === "done"
-        && receipt.decision === "complete"
+    const completionReview = evidenceRecords.find((record) =>
+      (record.type === "review" || record.work_id === "W999")
+        && record.result === "done"
+        && record.decision === "complete"
     );
-    if (!finalAudit) {
-      errors.push("done goal pack requires a final audit receipt with decision: complete");
+    if (!completionReview) {
+      errors.push("done Goal Pack requires a completion review evidence record with decision: complete");
     } else {
-      if (finalAudit.oracle_satisfied !== true) errors.push("final audit receipt must set oracle_satisfied: true");
-      if (!hasFinalAuditEvidence(finalAudit)) errors.push("final audit receipt must include evidence_map");
+      if (completionReview.completion_satisfied !== true) errors.push("completion review evidence record must set completion_satisfied: true");
+      if (!hasCompletionReviewEvidence(completionReview)) errors.push("completion review evidence record must include claim_evidence");
     }
   }
 
   return {
     ok: errors.length === 0,
     goal_pack: pack.name,
-    charter_status: contract.status,
-    state_status: state.status,
-    active_task: state.active_task,
-    task_count: state.tasks.length,
-    receipt_count: receipts.length,
+    goal_status: goal.status,
+    progress_status: progress.status,
+    active_work_item: progress.active_work_item,
+    work_item_count: progress.work_items.length,
+    evidence_count: evidenceRecords.length,
     errors,
     warnings,
   };
 }
 
-export function validateReceipt(pack, receipt) {
+export function validateEvidenceRecord(pack, record) {
   const errors = [];
-  if (!receipt || typeof receipt !== "object" || Array.isArray(receipt)) return ["receipt must be an object"];
-  if (!receipt.task_id) {
-    errors.push("receipt missing task_id");
+  if (!record || typeof record !== "object" || Array.isArray(record)) return ["evidence record must be an object"];
+  if (String(record.schema_version || "") !== "2") errors.push("evidence record schema_version must be 2");
+  if (!record.evidence_id || !/^E\d{3}$/.test(record.evidence_id)) errors.push(`evidence record id must use E### format; got ${record.evidence_id || "<missing>"}`);
+  if (!record.recorded_at) errors.push(`evidence record ${record.evidence_id || "<missing>"} missing recorded_at`);
+  if (!record.work_id) {
+    errors.push("evidence record missing work_id");
     return errors;
   }
 
-  const task = findTask(pack.state, receipt.task_id);
-  if (!task) {
-    errors.push(`receipt references unknown task ${receipt.task_id}`);
+  const workItem = findWorkItem(pack.progress, record.work_id);
+  if (!workItem) {
+    errors.push(`evidence record references unknown work item ${record.work_id}`);
     return errors;
   }
 
-  if (!receipt.type || !TASK_TYPES.includes(receipt.type)) errors.push(`receipt ${receipt.task_id} type must be ${TASK_TYPES.join(", ")}`);
-  if (!RECEIPT_RESULTS.includes(receipt.result)) errors.push(`receipt ${receipt.task_id} result must be ${RECEIPT_RESULTS.join(", ")}`);
-  if (receipt.next_decision && !NEXT_DECISIONS.includes(receipt.next_decision)) {
-    errors.push(`receipt ${receipt.task_id} next_decision must be ${NEXT_DECISIONS.join(", ")}`);
+  if (!record.type || !WORK_ITEM_TYPES.includes(record.type)) errors.push(`evidence record ${record.evidence_id || record.work_id} type must be ${WORK_ITEM_TYPES.join(", ")}`);
+  if (!EVIDENCE_RESULTS.includes(record.result)) errors.push(`evidence record ${record.evidence_id || record.work_id} result must be ${EVIDENCE_RESULTS.join(", ")}`);
+  if (record.next_action && !NEXT_ACTIONS.includes(record.next_action)) {
+    errors.push(`evidence record ${record.evidence_id || record.work_id} next_action must be ${NEXT_ACTIONS.join(", ")}`);
   }
 
-  const changedFiles = Array.isArray(receipt.changed_files) ? receipt.changed_files : [];
+  const changedFiles = Array.isArray(record.changed_files) ? record.changed_files : [];
   for (const file of changedFiles) {
-    if (!matchesAllowedScope(file, task.allowed_scope)) {
-      errors.push(`receipt ${receipt.task_id} changed file outside allowed_scope: ${normalizePath(file)}`);
+    if (!matchesAllowedScope(file, workItem.allowed_scope)) {
+      errors.push(`evidence record ${record.evidence_id || record.work_id} changed file outside allowed_scope: ${normalizePath(file)}`);
     }
   }
 
-  if (receipt.result === "done" && receipt.type === "worker") {
-    if (!Array.isArray(receipt.changed_files) || receipt.changed_files.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing changed_files`);
-    if (!Array.isArray(receiptChecks(receipt)) || receiptChecks(receipt).length === 0) errors.push(`receipt ${receipt.task_id} done worker missing checks`);
-    for (const check of receiptChecks(receipt)) {
-      if (!check || check.status !== "pass") errors.push(`receipt ${receipt.task_id} done worker check did not pass`);
+  if (record.result === "done" && record.type === "implementation") {
+    if (!Array.isArray(record.changed_files) || record.changed_files.length === 0) errors.push(`evidence record ${record.evidence_id || record.work_id} done implementation missing changed_files`);
+    if (!Array.isArray(recordChecks(record)) || recordChecks(record).length === 0) errors.push(`evidence record ${record.evidence_id || record.work_id} done implementation missing checks`);
+    for (const check of recordChecks(record)) {
+      if (!check || check.status !== "pass") errors.push(`evidence record ${record.evidence_id || record.work_id} done implementation check did not pass`);
     }
-    if (!Array.isArray(receipt.evidence) || receipt.evidence.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing evidence`);
-    if (!Array.isArray(receipt.claims) || receipt.claims.length === 0) errors.push(`receipt ${receipt.task_id} done worker missing claims`);
-    if (!receipt.summary || typeof receipt.summary !== "string") errors.push(`receipt ${receipt.task_id} done worker missing summary`);
+    if (!Array.isArray(record.evidence) || record.evidence.length === 0) errors.push(`evidence record ${record.evidence_id || record.work_id} done implementation missing evidence`);
+    if (!Array.isArray(record.claims) || record.claims.length === 0) errors.push(`evidence record ${record.evidence_id || record.work_id} done implementation missing claims`);
+    if (!record.summary || typeof record.summary !== "string") errors.push(`evidence record ${record.evidence_id || record.work_id} done implementation missing summary`);
   }
 
-  if (receipt.result === "blocked" && (!Array.isArray(receipt.blocked_by) || receipt.blocked_by.length === 0)) {
-    errors.push(`blocked receipt ${receipt.task_id} missing blocked_by`);
+  if (record.result === "blocked" && (!Array.isArray(record.blocked_by) || record.blocked_by.length === 0)) {
+    errors.push(`blocked evidence record ${record.evidence_id || record.work_id} missing blocked_by`);
   }
 
-  if (receipt.type === "audit" && receipt.decision === "complete") {
-    if (receipt.oracle_satisfied !== true) errors.push("final audit receipt must set oracle_satisfied: true");
-    if (!hasFinalAuditEvidence(receipt)) errors.push("final audit receipt must include evidence_map");
+  if (record.type === "review" && record.decision === "complete") {
+    if (record.completion_satisfied !== true) errors.push("completion review evidence record must set completion_satisfied: true");
+    if (!hasCompletionReviewEvidence(record)) errors.push("completion review evidence record must include claim_evidence");
   }
 
   return errors;
 }
 
-function validateStateDecisionHints(state, warnings) {
-  if (state.active_task) return;
-  const firstQueued = state.tasks.find((task) => task.status === "queued");
+function validateProgressActionHints(progress, warnings) {
+  if (progress.active_work_item) return;
+  const firstQueued = progress.work_items.find((item) => item.status === "queued");
   if (!firstQueued) return;
-  if (firstQueued.type !== "plan_required") return;
-  if (state.next_decision === "plan_required") return;
-  warnings.push(`first queued task ${firstQueued.id} is plan_required but next_decision is ${state.next_decision || "<missing>"}; consider next_decision: plan_required`);
+  if (firstQueued.type !== "planning") return;
+  if (progress.next_action === "needs_plan") return;
+  warnings.push(`first queued work item ${firstQueued.id} is planning but next_action is ${progress.next_action || "<missing>"}; consider next_action: needs_plan`);
 }
 
-export function appendReceipt(goalRoot, receipt) {
+export function appendEvidenceRecord(goalRoot, record) {
   const pack = loadGoalPack(goalRoot);
-  const errors = validateReceipt(pack, receipt);
+  const errors = validateEvidenceRecord(pack, record);
   if (errors.length > 0) {
     const error = new Error(errors.join("\n")) as Error & { errors: string[] };
     error.errors = errors;
     throw error;
   }
 
-  const existing = pack.texts.receipts;
+  const existing = pack.texts.evidence;
   const prefix = existing.length > 0 && !existing.endsWith("\n") ? "\n" : "";
-  atomicWrite(pack.files.receipts, `${existing}${prefix}${JSON.stringify(receipt)}\n`);
-  return { ok: true, receipt };
+  atomicWrite(pack.files.evidence, `${existing}${prefix}${JSON.stringify(record)}\n`);
+  return { ok: true, evidence_record: record };
 }
 
-type ActivateGoalPackOptions = {
-  taskId?: string | null;
+type ActivateGoalWorkOptions = {
+  workId?: string | null;
   dryRun?: boolean;
 };
 
-export function activateGoalPack(goalRoot, { taskId, dryRun = false }: ActivateGoalPackOptions = {}) {
-  if (!taskId) throw new Error("activate requires taskId");
+export function activateGoalWork(goalRoot, { workId, dryRun = false }: ActivateGoalWorkOptions = {}) {
+  if (!workId) throw new Error("activate requires workId");
   const pack = loadGoalPack(goalRoot);
-  const task = findTask(pack.state, taskId);
-  if (!task) throw new Error(`task not found: ${taskId}`);
-  if (["done", "retired"].includes(String(pack.state.status || "")) || ["done", "retired"].includes(String(pack.contract.status || ""))) {
-    throw new Error(`cannot activate task in ${pack.state.status || pack.contract.status} goal pack`);
+  const workItem = findWorkItem(pack.progress, workId);
+  if (!workItem) throw new Error(`work item not found: ${workId}`);
+  if (["done", "retired"].includes(String(pack.progress.status || "")) || ["done", "retired"].includes(String(pack.goal.status || ""))) {
+    throw new Error(`cannot activate work item in ${pack.progress.status || pack.goal.status} Goal Pack`);
   }
-  if (["done", "blocked"].includes(task.status)) {
-    throw new Error(`cannot activate ${taskId}; task status is ${task.status}`);
+  if (["done", "blocked"].includes(workItem.status)) {
+    throw new Error(`cannot activate ${workId}; work item status is ${workItem.status}`);
   }
-  if (task.type === "worker") {
-    if (task.allowed_scope.length === 0) throw new Error(`cannot activate worker ${taskId}; missing allowed_scope`);
-    if (task.verify.length === 0) throw new Error(`cannot activate worker ${taskId}; missing verify`);
-    if (task.stop_if.length === 0) throw new Error(`cannot activate worker ${taskId}; missing stop_if`);
-  }
-
-  const activeTasks = pack.state.tasks.filter((candidate) => candidate.status === "active");
-  if (activeTasks.length > 0 && !activeTasks.some((candidate) => candidate.id === taskId)) {
-    throw new Error(`cannot activate ${taskId}; active task already set to ${activeTasks.map((candidate) => candidate.id).join(", ")}`);
+  if (workItem.type === "implementation") {
+    if (workItem.allowed_scope.length === 0) throw new Error(`cannot activate implementation ${workId}; missing allowed_scope`);
+    if (workItem.checks.length === 0) throw new Error(`cannot activate implementation ${workId}; missing checks`);
+    if (workItem.stop_if.length === 0) throw new Error(`cannot activate implementation ${workId}; missing stop_if`);
   }
 
-  const nextState = structuredClone(pack.state);
-  const nextTask = findTask(nextState, taskId);
+  const activeWorkItems = pack.progress.work_items.filter((candidate) => candidate.status === "active");
+  if (activeWorkItems.length > 0 && !activeWorkItems.some((candidate) => candidate.id === workId)) {
+    throw new Error(`cannot activate ${workId}; active work item already set to ${activeWorkItems.map((candidate) => candidate.id).join(", ")}`);
+  }
+
+  const nextProgress = structuredClone(pack.progress);
+  const nextWorkItem = findWorkItem(nextProgress, workId);
   const warnings = [];
-  const alreadyActive = nextState.status === "running"
-    && nextState.active_task === taskId
-    && nextTask.status === "active";
+  const alreadyActive = nextProgress.status === "running"
+    && nextProgress.active_work_item === workId
+    && nextWorkItem.status === "active";
 
   if (!alreadyActive) {
-    nextTask.status = "active";
-    nextState.status = "running";
-    nextState.active_task = taskId;
-    nextState.next_decision = decisionForTask(nextTask);
+    nextWorkItem.status = "active";
+    nextProgress.status = "running";
+    nextProgress.active_work_item = workId;
+    nextProgress.next_action = actionForWorkItem(nextWorkItem);
   }
 
-  const serializedState = serializeState(nextState);
-  const contractStatus = pack.contract.status === "running"
-    ? pack.contract.status
+  const serializedProgress = serializeProgress(nextProgress);
+  const goalStatus = pack.goal.status === "running"
+    ? pack.goal.status
     : "running";
-  const serializedContract = contractStatus !== pack.contract.status
-    ? updateTopScalar(pack.texts.contract, "status", contractStatus)
-    : pack.texts.contract;
+  const serializedGoal = goalStatus !== pack.goal.status
+    ? updateTopScalar(pack.texts.goal, "status", goalStatus)
+    : pack.texts.goal;
 
   if (!dryRun && !alreadyActive) {
-    atomicWrite(pack.files.state, serializedState);
-    if (serializedContract !== pack.texts.contract) atomicWrite(pack.files.contract, serializedContract);
+    atomicWrite(pack.files.progress, serializedProgress);
+    if (serializedGoal !== pack.texts.goal) atomicWrite(pack.files.goal, serializedGoal);
   }
 
-  if (alreadyActive) warnings.push(`${taskId} is already active`);
+  if (alreadyActive) warnings.push(`${workId} is already active`);
 
   return {
     ok: true,
     dry_run: dryRun,
-    goal_id: pack.contract.id || pack.state.goal_id || null,
-    task_id: taskId,
-    status: nextState.status,
-    active_task: nextState.active_task,
-    next_decision: nextState.next_decision,
-    charter_status: contractStatus,
+    goal_id: pack.goal.id || pack.progress.goal_id || null,
+    work_id: workId,
+    status: nextProgress.status,
+    active_work_item: nextProgress.active_work_item,
+    next_action: nextProgress.next_action,
+    goal_status: goalStatus,
     warnings,
   };
 }
 
-export function advanceGoalPack(goalRoot, { dryRun = false } = {}) {
+export function applyGoalProgress(goalRoot, { dryRun = false } = {}) {
   const pack = loadGoalPack(goalRoot);
-  const latest = pack.receipts.at(-1);
-  if (!latest) throw new Error("receipts.jsonl has no receipts to advance from");
+  const latest = pack.evidence_records.at(-1);
+  if (!latest) throw new Error("evidence.jsonl has no evidence records to apply from");
 
-  const errors = validateReceipt(pack, latest);
+  const errors = validateEvidenceRecord(pack, latest);
   if (errors.length > 0) {
     const error = new Error(errors.join("\n")) as Error & { errors: string[] };
     error.errors = errors;
     throw error;
   }
 
-  const nextState = structuredClone(pack.state);
-  const task = findTask(nextState, latest.task_id);
+  const nextProgress = structuredClone(pack.progress);
+  const workItem = findWorkItem(nextProgress, latest.work_id);
   const warnings = [];
-  let contractStatus = pack.contract.status;
+  let goalStatus = pack.goal.status;
 
   if (latest.result === "blocked") {
-    task.status = "blocked";
-    nextState.status = "blocked";
-    nextState.active_task = null;
-    nextState.blockers = unique([...nextState.blockers, ...latest.blocked_by]);
-    nextState.last_verification = {
+    workItem.status = "blocked";
+    nextProgress.status = "blocked";
+    nextProgress.active_work_item = null;
+    nextProgress.blockers = unique([...nextProgress.blockers, ...latest.blocked_by]);
+    nextProgress.last_check = {
       result: "blocked",
-      checks: checkLines(receiptChecks(latest)),
+      checks: checkLines(recordChecks(latest)),
     };
-    nextState.next_decision = "blocked";
-  } else if (latest.type === "audit" && latest.decision === "complete" && latest.oracle_satisfied === true) {
-    task.status = "done";
-    nextState.status = "done";
-    nextState.active_task = null;
-    nextState.last_verification = {
+    nextProgress.next_action = "blocked";
+  } else if (latest.type === "review" && latest.decision === "complete" && latest.completion_satisfied === true) {
+    workItem.status = "done";
+    nextProgress.status = "done";
+    nextProgress.active_work_item = null;
+    nextProgress.last_check = {
       result: "pass",
-      checks: checkLines(receiptChecks(latest)),
+      checks: checkLines(recordChecks(latest)),
     };
-    nextState.next_decision = "done";
-    contractStatus = "done";
+    nextProgress.next_action = "done";
+    goalStatus = "done";
   } else if (latest.result === "done") {
-    task.status = "done";
-    nextState.last_verification = {
-      result: allChecksPass(receiptChecks(latest)) ? "pass" : "unknown",
-      checks: checkLines(receiptChecks(latest)),
+    workItem.status = "done";
+    nextProgress.last_check = {
+      result: allChecksPass(recordChecks(latest)) ? "pass" : "unknown",
+      checks: checkLines(recordChecks(latest)),
     };
-    const decision = latest.next_decision || "edge";
-    applyNextDecision(nextState, decision, warnings);
+    const action = latest.next_action || "proof_step";
+    applyNextAction(nextProgress, action, warnings);
   }
 
-  const serializedState = serializeState(nextState);
-  const serializedContract = contractStatus !== pack.contract.status
-    ? updateTopScalar(pack.texts.contract, "status", contractStatus)
-    : pack.texts.contract;
+  const serializedProgress = serializeProgress(nextProgress);
+  const serializedGoal = goalStatus !== pack.goal.status
+    ? updateTopScalar(pack.texts.goal, "status", goalStatus)
+    : pack.texts.goal;
 
   if (!dryRun) {
-    atomicWrite(pack.files.state, serializedState);
-    if (serializedContract !== pack.texts.contract) atomicWrite(pack.files.contract, serializedContract);
+    atomicWrite(pack.files.progress, serializedProgress);
+    if (serializedGoal !== pack.texts.goal) atomicWrite(pack.files.goal, serializedGoal);
   }
 
   return {
     ok: true,
     dry_run: dryRun,
-    receipt: compactReceipt(latest),
-    state: nextState,
-    charter_status: contractStatus,
+    evidence_record: compactEvidenceRecord(latest),
+    progress: nextProgress,
+    goal_status: goalStatus,
     warnings,
   };
 }
 
-export function serializeState(state) {
+export function serializeProgress(progress) {
   const lines = [];
-  lines.push(`version: ${state.version ?? 1}`);
-  lines.push(`goal_id: ${yamlScalar(state.goal_id)}`);
-  lines.push(`status: ${state.status}`);
+  lines.push(`schema_version: ${progress.schema_version ?? 2}`);
+  lines.push(`goal_id: ${yamlScalar(progress.goal_id)}`);
+  lines.push(`status: ${progress.status}`);
   lines.push("");
-  lines.push("current_edge:");
-  lines.push(`  from: ${yamlScalar(state.current_edge.from)}`);
-  lines.push(`  target_delta: ${yamlScalar(state.current_edge.target_delta)}`);
-  appendList(lines, "  harnessed_path:", state.current_edge.harnessed_path, 4);
-  appendList(lines, "  verify:", state.current_edge.verify, 4);
-  appendList(lines, "  failure_inspection:", state.current_edge.failure_inspection, 4);
+  lines.push("proof_step:");
+  lines.push(`  from: ${yamlScalar(progress.proof_step.from)}`);
+  lines.push(`  target_delta: ${yamlScalar(progress.proof_step.target_delta)}`);
+  appendList(lines, "  proof_path:", progress.proof_step.proof_path, 4);
+  appendList(lines, "  checks:", progress.proof_step.checks, 4);
+  appendList(lines, "  failure_inspection:", progress.proof_step.failure_inspection, 4);
   lines.push("");
-  lines.push(`active_task: ${state.active_task || "null"}`);
+  lines.push(`active_work_item: ${progress.active_work_item || "null"}`);
   lines.push("");
-  lines.push("tasks:");
-  for (const task of state.tasks) {
-    lines.push(`  - id: ${task.id}`);
-    lines.push(`    type: ${task.type}`);
-    lines.push(`    status: ${task.status}`);
-    lines.push(`    objective: ${yamlScalar(task.objective)}`);
-    if (task.plan) lines.push(`    plan: ${yamlScalar(task.plan)}`);
-    if (task.allowed_scope.length > 0) appendList(lines, "    allowed_scope:", task.allowed_scope, 6);
-    if (task.verify.length > 0) appendList(lines, "    verify:", task.verify, 6);
-    if (task.stop_if.length > 0) appendList(lines, "    stop_if:", task.stop_if, 6);
+  lines.push("work_items:");
+  for (const item of progress.work_items) {
+    lines.push(`  - id: ${item.id}`);
+    lines.push(`    type: ${item.type}`);
+    lines.push(`    status: ${item.status}`);
+    lines.push(`    objective: ${yamlScalar(item.objective)}`);
+    if (item.plan) lines.push(`    plan: ${yamlScalar(item.plan)}`);
+    if (item.allowed_scope.length > 0) appendList(lines, "    allowed_scope:", item.allowed_scope, 6);
+    if (item.checks.length > 0) appendList(lines, "    checks:", item.checks, 6);
+    if (item.stop_if.length > 0) appendList(lines, "    stop_if:", item.stop_if, 6);
   }
   lines.push("");
-  appendList(lines, "blockers:", state.blockers, 2);
+  appendList(lines, "blockers:", progress.blockers, 2);
   lines.push("");
-  lines.push("last_verification:");
-  lines.push(`  result: ${state.last_verification.result || "unknown"}`);
-  appendList(lines, "  checks:", state.last_verification.checks || [], 4);
+  lines.push("last_check:");
+  lines.push(`  result: ${progress.last_check.result || "unknown"}`);
+  appendList(lines, "  checks:", progress.last_check.checks || [], 4);
   lines.push("");
-  lines.push(`next_decision: ${state.next_decision || "edge"}`);
+  lines.push(`next_action: ${progress.next_action || "proof_step"}`);
   return `${lines.join("\n")}\n`;
 }
 
@@ -692,24 +698,24 @@ export function listScalar(text, key, indent) {
   return listAfterKey(lines, start, indent);
 }
 
-function parseTasks(text) {
-  const body = blockText(text, "tasks", 0);
+function parseWorkItems(text) {
+  const body = blockText(text, "work_items", 0);
   if (!body) return [];
   const lines = body.split(/\r?\n/);
-  const tasks = [];
+  const items = [];
   let current = null;
   let currentLines = [];
   const finish = () => {
     if (!current) return;
-    tasks.push({
+    items.push({
       id: current.id,
-      type: taskScalar(currentLines, "type"),
-      status: taskScalar(currentLines, "status"),
-      objective: taskScalar(currentLines, "objective"),
-      plan: taskScalar(currentLines, "plan"),
-      allowed_scope: taskList(currentLines, "allowed_scope"),
-      verify: taskList(currentLines, "verify"),
-      stop_if: taskList(currentLines, "stop_if"),
+      type: workItemScalar(currentLines, "type"),
+      status: workItemScalar(currentLines, "status"),
+      objective: workItemScalar(currentLines, "objective"),
+      plan: workItemScalar(currentLines, "plan"),
+      allowed_scope: workItemList(currentLines, "allowed_scope"),
+      checks: workItemList(currentLines, "checks"),
+      stop_if: workItemList(currentLines, "stop_if"),
     });
   };
   for (const line of lines) {
@@ -723,107 +729,113 @@ function parseTasks(text) {
     if (current) currentLines.push(line);
   }
   finish();
-  return tasks;
+  return items;
 }
 
-function taskScalar(lines, key) {
+function workItemScalar(lines, key) {
   return keyValue(lines.join("\n"), key, 4);
 }
 
-function taskList(lines, key) {
+function workItemList(lines, key) {
   return listScalar(lines.join("\n"), key, 4);
 }
 
-function validateTask(task, errors) {
-  if (!task.id || !/^T\d{3}$/.test(task.id)) errors.push(`task id must use T### format; got ${task.id || "<missing>"}`);
-  if (!TASK_TYPES.includes(task.type)) errors.push(`task ${task.id} type must be ${TASK_TYPES.join(", ")}`);
-  if (!TASK_STATUSES.includes(task.status)) errors.push(`task ${task.id} status must be ${TASK_STATUSES.join(", ")}`);
-  if (!task.objective) errors.push(`task ${task.id} missing objective`);
-  if (task.type === "worker" && task.status === "active") {
-    if (task.allowed_scope.length === 0) errors.push(`active worker ${task.id} missing allowed_scope`);
-    if (task.verify.length === 0) errors.push(`active worker ${task.id} missing verify`);
-    if (task.stop_if.length === 0) errors.push(`active worker ${task.id} missing stop_if`);
+function validateWorkItem(item, errors) {
+  if (!item.id || !/^W\d{3}$/.test(item.id)) errors.push(`work item id must use W### format; got ${item.id || "<missing>"}`);
+  if (!WORK_ITEM_TYPES.includes(item.type)) errors.push(`work item ${item.id} type must be ${WORK_ITEM_TYPES.join(", ")}`);
+  if (!WORK_ITEM_STATUSES.includes(item.status)) errors.push(`work item ${item.id} status must be ${WORK_ITEM_STATUSES.join(", ")}`);
+  if (!item.objective) errors.push(`work item ${item.id} missing objective`);
+  if (item.type === "implementation" && item.status === "active") {
+    if (item.allowed_scope.length === 0) errors.push(`active implementation ${item.id} missing allowed_scope`);
+    if (item.checks.length === 0) errors.push(`active implementation ${item.id} missing checks`);
+    if (item.stop_if.length === 0) errors.push(`active implementation ${item.id} missing stop_if`);
   }
 }
 
-function receiptSchemaForTask(task) {
-  if (task.type === "audit") {
+function evidenceSchemaForWorkItem(item) {
+  if (item.type === "review") {
     return {
-      task_id: task.id,
-      type: "audit",
+      schema_version: 2,
+      evidence_id: "E999",
+      work_id: item.id,
+      type: "review",
       result: "done",
       decision: "complete",
-      oracle_satisfied: true,
-      evidence_map: [{ claim: "completion.final_proof", evidence: ["<receipt/check/evidence reference>"] }],
+      completion_satisfied: true,
+      recorded_at: "<ISO-8601-UTC>",
+      claim_evidence: [{ claim: "completion.required_evidence", evidence: ["<evidence/check reference>"] }],
       not_claimed: [],
       remaining_gaps: [],
       summary: "",
-      next_decision: "done",
+      next_action: "done",
     };
   }
   return {
-    task_id: task.id,
-    type: task.type,
+    schema_version: 2,
+    evidence_id: "<E###>",
+    work_id: item.id,
+    type: item.type,
     result: "done",
+    recorded_at: "<ISO-8601-UTC>",
     changed_files: ["<file-in-allowed-scope>"],
     checks: [{ kind: "command", cmd: "<command>", status: "pass" }],
     evidence: ["<evidence>"],
     claims: ["<claim>"],
     not_claimed: [],
     summary: "",
-    next_decision: "continue",
+    next_action: "continue",
   };
 }
 
-function decisionForTask(task) {
-  if (task.type === "audit") return "audit";
-  if (task.type === "plan_required") return "plan_required";
+function actionForWorkItem(item) {
+  if (item.type === "review") return "review";
+  if (item.type === "planning") return "needs_plan";
   return "continue";
 }
 
-function applyNextDecision(state, decision, warnings) {
-  if (decision === "blocked" || decision === "needs-human") {
-    state.status = "blocked";
-    state.active_task = null;
-    state.next_decision = decision;
+function applyNextAction(progress, action, warnings) {
+  if (action === "blocked" || action === "needs_human") {
+    progress.status = "blocked";
+    progress.active_work_item = null;
+    progress.next_action = action;
     return;
   }
-  if (decision === "done") {
-    state.status = "done";
-    state.active_task = null;
-    state.next_decision = "done";
+  if (action === "done") {
+    progress.status = "done";
+    progress.active_work_item = null;
+    progress.next_action = "done";
     return;
   }
-  if (decision === "plan_required") {
-    state.active_task = null;
-    state.next_decision = "plan_required";
+  if (action === "needs_plan") {
+    progress.active_work_item = null;
+    progress.next_action = "needs_plan";
     return;
   }
-  if (decision === "audit") {
-    activateQueuedTask(state, warnings, { preferredType: "audit", fallbackDecision: "audit" });
+  if (action === "review") {
+    activateQueuedWorkItem(progress, warnings, { preferredType: "review", fallbackAction: "review" });
     return;
   }
-  if (decision === "continue") {
-    activateQueuedTask(state, warnings, { preferredType: null, fallbackDecision: "edge" });
+  if (action === "continue") {
+    activateQueuedWorkItem(progress, warnings, { preferredType: null, fallbackAction: "proof_step" });
     return;
   }
-  state.active_task = null;
-  state.next_decision = "edge";
+  progress.active_work_item = null;
+  progress.next_action = "proof_step";
 }
 
-function activateQueuedTask(state, warnings, { preferredType, fallbackDecision }) {
-  const queued = state.tasks.filter((task) => task.status === "queued" && (!preferredType || task.type === preferredType));
+function activateQueuedWorkItem(progress, warnings, { preferredType, fallbackAction }) {
+  const queued = progress.work_items.filter((item) => item.status === "queued" && (!preferredType || item.type === preferredType));
   if (queued.length === 1) {
     queued[0].status = "active";
-    state.active_task = queued[0].id;
-    state.status = "running";
-    state.next_decision = queued[0].type === "audit" ? "audit" : "continue";
+    progress.active_work_item = queued[0].id;
+    progress.status = "running";
+    progress.next_action = queued[0].type === "review" ? "review" : "continue";
     return;
   }
-  state.active_task = null;
-  state.next_decision = fallbackDecision;
-  if (queued.length > 1) warnings.push(`multiple queued tasks match ${preferredType || "any"}; active_task not changed`);
-  if (queued.length === 0) warnings.push(`no queued task matches ${preferredType || "any"}; next_decision set to ${fallbackDecision}`);
+  progress.active_work_item = null;
+  progress.next_action = fallbackAction;
+  if (queued.length > 1) warnings.push(`multiple queued work items match ${preferredType || "any"}; active_work_item not changed`);
+  if (queued.length === 0) warnings.push(`no queued work item matches ${preferredType || "any"}; next_action set to ${fallbackAction}`);
 }
 
 function appendList(lines, label, values, itemIndent) {

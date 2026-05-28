@@ -1,0 +1,58 @@
+schema_version: 2
+id: "2026-05-23-evidence-query-cli"
+status: done
+
+objective: "Add an agent-first evidence records query surface to the Goal Proof System CLI so agents can inspect evidence history through compact filtered commands instead of reading raw evidence.jsonl with tail."
+guiding_principle: "Goal Proof System CLI should expose bounded, composable operating primitives that answer common agent questions without dumping large raw artifacts into context."
+
+authority_refs:
+  - "README.md"
+  - "packages/cli/README.md"
+  - "skills/goal/goal-proof-system/SKILL.md"
+  - "packages/cli/src/goal-proof.ts"
+  - "packages/cli/src/lib/goal-pack.ts"
+  - "packages/cli/test/goal-pack-cli.test.ts"
+
+engineering_guidance:
+  architecture_notes:
+    - "CLI commands must map stable natural-language intents to one primary command."
+    - "Default output should be compact and agent-readable; full raw evidence record JSON should require an explicit show or JSON path."
+    - "Behavior changes must be covered by failing tests before implementation and verified by the repository check."
+
+constraints:
+  - "Do not turn the CLI into a generic JSONL database or jq wrapper."
+  - "Do not change evidence.jsonl format or existing evidence record validation semantics."
+  - "Preserve existing inspect, summary, list, tasks, brief, dispatch, activate, evidence record, apply, and check behavior."
+  - "Use append-order evidence record indexes for selection; do not add time filtering unless evidence record schema authority adds timestamps."
+
+non_goals:
+  - "No arbitrary jq expression support."
+  - "No OR/group query language."
+  - "No evidence record schema migration."
+  - "No time-range filtering."
+  - "No UI or web view."
+
+completion:
+  signal: "CLI exposes evidence list/show commands with compact defaults, JSON output, evidence record index selection, and filters for task, type, result, decision, next_action, completion satisfaction, changed file, command status, and contains text."
+  required_evidence: "Repository check passes; tests prove compact evidence list defaults avoid full raw dumps, filters compose with AND semantics, show returns one selected evidence record by index, docs describe the command surface, and a completion review evidence record sets completion_satisfied true."
+
+claim_limit: "This Goal Pack may claim only the evidence record query CLI surface and documentation. It may not claim changes to evidence record schema authority, project planning semantics, UI, storage format, or generic JSONL querying."
+
+stop_rules:
+  - "Stop if implementing the filters requires changing the evidence record schema or evidence record validation contract."
+  - "Stop if a requested filter needs timestamps, external indexing, or a query language beyond simple AND filters."
+  - "Stop if existing command semantics would need a breaking change."
+  - "Stop if completion cannot be proved with local tests and the repository check."
+
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - authority_refs
+    - engineering_guidance
+    - claim_limit
+  agent_may_revise:
+    - next_slice
+    - work_order
+    - harness_strength
+    - implementation_shape

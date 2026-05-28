@@ -7,19 +7,15 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const cliScript = join(packageRoot, "src", "goal-diffusion.ts");
+const cliScript = join(packageRoot, "src", "goal-proof.ts");
 
-function makePack() {
-  const root = mkdtempSync(join(tmpdir(), "goal-pack-test-"));
+function makePack({ goal = goalYaml(), progress = progressYaml(), evidence = "" } = {}) {
+  const root = mkdtempSync(join(tmpdir(), "goal-proof-check-"));
   mkdirSync(join(root, "notes"), { recursive: true });
-  writeFileSync(join(root, "receipts.jsonl"), "");
+  writeFileSync(join(root, "goal.yaml"), goal.trimStart());
+  writeFileSync(join(root, "progress.yaml"), progress.trimStart());
+  writeFileSync(join(root, "evidence.jsonl"), evidence.trimStart());
   return root;
-}
-
-function writePack(root, { contract, state, receipts = "" }) {
-  writeFileSync(join(root, "charter.yaml"), contract.trimStart());
-  writeFileSync(join(root, "state.yaml"), state.trimStart());
-  writeFileSync(join(root, "receipts.jsonl"), receipts.trimStart());
 }
 
 function runChecker(root) {
@@ -31,271 +27,241 @@ function runChecker(root) {
   };
 }
 
-const baseContract = `
-id: cli-checker-goal
-status: running
+function goalYaml({ id = "cli-checker-goal", status = "running" } = {}) {
+  return `
+schema_version: 2
+id: ${id}
+status: ${status}
 objective: "Exercise the Goal Pack checker."
+guiding_principle: "Progress is evidence-backed."
 authority_refs:
-  - "goal-diffusion/SKILL.md"
+  - "skills/goal/goal-proof-system/SKILL.md"
 engineering_guidance:
   standards:
-    - "Contract / Edge / State / Receipt are the minimum primitives."
+    - "Goal Proof v2 schema."
 completion:
-  signal: "The checker validates Goal Pack state, tasks, receipts, and final audits."
-  final_proof: "Checker passes and final audit maps receipts to completion."
-claim_boundary: "Only claims local checker behavior."
+  signal: "Checker validates Goal Pack progress and evidence."
+  required_evidence: "Checker passes and completion review maps evidence to completion."
+claim_limit: "Only claims local checker behavior."
+stop_rules:
+  - "Stop on schema mismatch."
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - completion
+    - claim_limit
+  agent_may_revise:
+    - proof_step
+    - work_items
+evidence_mode: normal
 `;
+}
 
-test("rejects an active worker task without verify and stop_if", () => {
-  const root = makePack();
-  try {
-    writePack(root, {
-      contract: baseContract,
-      state: `
-version: 1
-goal_id: cli-checker-goal
-status: running
-active_task: T001
-tasks:
-  - id: T001
-    type: worker
-    status: active
-    objective: "Rewrite the controller."
-    allowed_scope:
-      - "goal-diffusion/SKILL.md"
-`,
-    });
-
-    const result = runChecker(root);
-    assert.equal(result.status, 1);
-    assert.match(result.stdout.errors.join("\n"), /active worker T001 missing verify/i);
-    assert.match(result.stdout.errors.join("\n"), /active worker T001 missing stop_if/i);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("accepts a running goal pack with one active scoped worker", () => {
-  const root = makePack();
-  try {
-    writePack(root, {
-      contract: baseContract,
-      state: `
-version: 1
-goal_id: cli-checker-goal
-status: running
-current_edge:
+function progressYaml({ id = "cli-checker-goal", status = "running", active = "W001", workStatus = "active", nextAction = "continue", workType = "implementation" } = {}) {
+  return `
+schema_version: 2
+goal_id: ${id}
+status: ${status}
+proof_step:
   from: "Checker fixture"
-  target_delta: "Valid running Goal Pack"
-  harnessed_path:
+  target_delta: "Valid Goal Pack"
+  proof_path:
     - "Run checker"
-  verify:
+  checks:
     - "bun test packages/cli/test/check-goal-pack.test.ts"
   failure_inspection:
-    - "goal-diffusion/SKILL.md"
-active_task: T001
-tasks:
-  - id: T001
-    type: worker
-    status: active
-    objective: "Validate a scoped worker task."
+    - "packages/cli/src/"
+active_work_item: ${active ?? "null"}
+work_items:
+  - id: W001
+    type: ${workType}
+    status: ${workStatus}
+    objective: "Validate a scoped work item."
     allowed_scope:
-      - "goal-diffusion/SKILL.md"
-    verify:
+      - "packages/cli/**"
+    checks:
       - "bun test packages/cli/test/check-goal-pack.test.ts"
     stop_if:
-      - "Need to change authority."
+      - "Need authority change."
 blockers: []
-next_decision: continue
-`,
-    });
+last_check:
+  result: unknown
+  checks: []
+next_action: ${nextAction}
+`;
+}
 
+test("accepts a running Goal Proof v2 pack with one active scoped implementation", () => {
+  const root = makePack();
+  try {
     const result = runChecker(root);
     assert.equal(result.status, 0, result.stderr || JSON.stringify(result.stdout));
     assert.equal(result.stdout.ok, true);
-    assert.equal(result.stdout.active_task, "T001");
+    assert.equal(result.stdout.active_work_item, "W001");
+    assert.equal(result.stdout.work_item_count, 1);
+    assert.equal(result.stdout.evidence_count, 0);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test("warns when first queued plan task disagrees with next decision", () => {
-  const root = makePack();
+test("rejects active implementation work without checks and stop_if", () => {
+  const progress = `
+schema_version: 2
+goal_id: cli-checker-goal
+status: running
+proof_step:
+  from: "Checker fixture"
+  target_delta: "Invalid Goal Pack"
+  proof_path:
+    - "Run checker"
+  checks:
+    - "bun test packages/cli/test/check-goal-pack.test.ts"
+  failure_inspection:
+    - "packages/cli/src/"
+active_work_item: W001
+work_items:
+  - id: W001
+    type: implementation
+    status: active
+    objective: "Rewrite the controller."
+    allowed_scope:
+      - "packages/cli/**"
+blockers: []
+last_check:
+  result: unknown
+  checks: []
+next_action: continue
+`;
+  const root = makePack({ progress });
   try {
-    writePack(root, {
-      contract: baseContract.replace("status: running", "status: ready"),
-      state: `
-version: 1
+    const result = runChecker(root);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout.errors.join("\n"), /active implementation W001 missing checks/i);
+    assert.match(result.stdout.errors.join("\n"), /active implementation W001 missing stop_if/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("warns when queued planning work disagrees with next_action", () => {
+  const progress = `
+schema_version: 2
 goal_id: cli-checker-goal
 status: ready
-current_edge:
-  from: "Queued plan task"
-  target_delta: "Plan decision is explicit"
-  harnessed_path:
+proof_step:
+  from: "Queued planning work"
+  target_delta: "Planning decision is explicit"
+  proof_path:
     - "Run checker"
-  verify:
-    - "bun test packages/cli/test/check-goal-pack.test.ts"
+  checks:
+    - "Review work plan"
   failure_inspection:
-    - "goal-diffusion/SKILL.md"
-active_task: null
-tasks:
-  - id: T003
-    type: plan_required
+    - "plans/W001.md"
+active_work_item: null
+work_items:
+  - id: W001
+    type: planning
     status: queued
     objective: "Plan a high-risk slice."
-    plan: implementation-plan.md
+    plan: plans/W001.md
     allowed_scope:
-      - "implementation-plan.md"
-    verify:
-      - "Review implementation plan"
+      - "plans/W001.md"
+    checks:
+      - "Review work plan"
     stop_if:
-      - "Need protected field changes."
+      - "Plan needs protected goal changes."
 blockers: []
-next_decision: continue
-`,
-    });
+last_check:
+  result: unknown
+  checks: []
+next_action: continue
+`;
+  const root = makePack({ goal: goalYaml({ status: "ready" }), progress });
+  try {
+    const result = runChecker(root);
+    assert.equal(result.status, 0, result.stderr || JSON.stringify(result.stdout));
+    assert.match(result.stdout.warnings.join("\n"), /first queued work item W001 is planning/);
+    assert.match(result.stdout.warnings.join("\n"), /consider next_action: needs_plan/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
+test("rejects invalid implementation evidence records", () => {
+  const evidence = `${JSON.stringify({
+    schema_version: 2,
+    evidence_id: "E001",
+    work_id: "W001",
+    type: "implementation",
+    result: "done",
+    recorded_at: "2026-05-28T00:00:00Z",
+    changed_files: ["outside.txt"],
+    checks: [{ kind: "command", cmd: "bun test", status: "fail" }],
+    evidence: ["test"],
+    claims: ["claim"],
+    summary: "done",
+    next_action: "continue",
+  })}\n`;
+  const root = makePack({ evidence });
+  try {
+    const result = runChecker(root);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout.errors.join("\n"), /changed file outside allowed_scope: outside\.txt/i);
+    assert.match(result.stdout.errors.join("\n"), /done implementation check did not pass/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("accepts done packs only with completion review evidence", () => {
+  const progress = `
+schema_version: 2
+goal_id: cli-checker-goal
+status: done
+proof_step:
+  from: "Review pending"
+  target_delta: "Completion reviewed"
+  proof_path:
+    - "Run checker"
+  checks:
+    - "bun test packages/cli/test/check-goal-pack.test.ts"
+  failure_inspection:
+    - "packages/cli/src/"
+active_work_item: null
+work_items:
+  - id: W999
+    type: review
+    status: done
+    objective: "Completion review."
+blockers: []
+last_check:
+  result: pass
+  checks:
+    - "bun test packages/cli/test/check-goal-pack.test.ts"
+next_action: done
+`;
+  const evidence = `${JSON.stringify({
+    schema_version: 2,
+    evidence_id: "E999",
+    work_id: "W999",
+    type: "review",
+    result: "done",
+    decision: "complete",
+    completion_satisfied: true,
+    recorded_at: "2026-05-28T00:00:00Z",
+    claim_evidence: [{ claim: "completion.required_evidence", evidence: ["checker_passed=true"] }],
+    not_claimed: [],
+    remaining_gaps: [],
+    summary: "Completion review passed.",
+    next_action: "done",
+  })}\n`;
+  const root = makePack({ goal: goalYaml({ status: "done" }), progress, evidence });
+  try {
     const result = runChecker(root);
     assert.equal(result.status, 0, result.stderr || JSON.stringify(result.stdout));
     assert.equal(result.stdout.ok, true);
-    assert.match(result.stdout.warnings.join("\n"), /first queued task T003 is plan_required/);
-    assert.match(result.stdout.warnings.join("\n"), /consider next_decision: plan_required/);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("rejects done goal packs without a completion-backed final audit receipt", () => {
-  const root = makePack();
-  try {
-    writePack(root, {
-      contract: baseContract.replace("status: running", "status: done"),
-      state: `
-version: 1
-goal_id: cli-checker-goal
-status: done
-active_task: null
-tasks:
-  - id: T999
-    type: audit
-    status: done
-    objective: "Final audit."
-blockers: []
-next_decision: done
-`,
-      receipts: `{"task_id":"T999","type":"audit","result":"done","decision":"complete","summary":"Looks good."}\n`,
-    });
-
-    const result = runChecker(root);
-    assert.equal(result.status, 1);
-    assert.match(result.stdout.errors.join("\n"), /final audit receipt must set oracle_satisfied: true/i);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("rejects receipts for unknown tasks", () => {
-  const root = makePack();
-  try {
-    writePack(root, {
-      contract: baseContract,
-      state: `
-version: 1
-goal_id: cli-checker-goal
-status: running
-active_task: T001
-tasks:
-  - id: T001
-    type: worker
-    status: active
-    objective: "Rewrite the controller."
-    allowed_scope:
-      - "packages/cli/**"
-    verify:
-      - "bun test packages/cli/test/check-goal-pack.test.ts"
-    stop_if:
-      - "Need authority change."
-blockers: []
-next_decision: continue
-`,
-      receipts: `{"task_id":"T404","type":"worker","result":"done","changed_files":["goal-diffusion/SKILL.md"],"checks":[{"kind":"command","cmd":"bun test packages/cli/test/check-goal-pack.test.ts","status":"pass"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
-    });
-
-    const result = runChecker(root);
-    assert.equal(result.status, 1);
-    assert.match(result.stdout.errors.join("\n"), /receipt references unknown task T404/i);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("rejects done worker receipts without passing checks inside allowed scope", () => {
-  const root = makePack();
-  try {
-    writePack(root, {
-      contract: baseContract,
-      state: `
-version: 1
-goal_id: cli-checker-goal
-status: running
-active_task: T001
-tasks:
-  - id: T001
-    type: worker
-    status: active
-    objective: "Rewrite the controller."
-    allowed_scope:
-      - "packages/cli/**"
-    verify:
-      - "bun test packages/cli/test/check-goal-pack.test.ts"
-    stop_if:
-      - "Need authority change."
-blockers: []
-next_decision: continue
-`,
-      receipts: `{"task_id":"T001","type":"worker","result":"done","changed_files":["outside.txt"],"checks":[{"kind":"command","cmd":"bun test packages/cli/test/check-goal-pack.test.ts","status":"fail"}],"evidence":["test"],"claims":["claim"],"summary":"done","next_decision":"continue"}\n`,
-    });
-
-    const result = runChecker(root);
-    assert.equal(result.status, 1);
-    assert.match(result.stdout.errors.join("\n"), /receipt T001 changed file outside allowed_scope: outside\.txt/i);
-    assert.match(result.stdout.errors.join("\n"), /receipt T001 done worker check did not pass/i);
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("rejects blocked receipts without blocked_by and invalid next decisions", () => {
-  const root = makePack();
-  try {
-    writePack(root, {
-      contract: baseContract,
-      state: `
-version: 1
-goal_id: cli-checker-goal
-status: blocked
-active_task: null
-tasks:
-  - id: T001
-    type: worker
-    status: blocked
-    objective: "Rewrite the controller."
-    allowed_scope:
-      - "packages/cli/**"
-    verify:
-      - "bun test packages/cli/test/check-goal-pack.test.ts"
-    stop_if:
-      - "Need authority change."
-blockers: []
-next_decision: maybe
-`,
-      receipts: `{"task_id":"T001","type":"worker","result":"blocked","evidence":["blocked"],"next_decision":"blocked"}\n`,
-    });
-
-    const result = runChecker(root);
-    assert.equal(result.status, 1);
-    assert.match(result.stdout.errors.join("\n"), /blocked receipt T001 missing blocked_by/i);
-    assert.match(result.stdout.errors.join("\n"), /state next_decision must be/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

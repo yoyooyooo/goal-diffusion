@@ -1,4 +1,4 @@
-import { loadGoalPack, GOAL_RELATION_TYPES, NEXT_DECISIONS, STATUS_VALUES, TASK_STATUSES } from "./lib/goal-pack.ts";
+import { loadGoalPack, GOAL_RELATION_TYPES, NEXT_ACTIONS, STATUS_VALUES, WORK_ITEM_STATUSES } from "./lib/goal-pack.ts";
 import { limitItems, maybeSet, normalizeReadControls, readControlFilterFields, setIncluded, setOmittedCount, wantsField, withoutZeroBuckets } from "./read-output-control.ts";
 import { COMPLETION_VALUES, listGoalPackRoots, resolveGoalsRoot } from "./summarize-goal-packs.ts";
 
@@ -25,14 +25,14 @@ export function runRelationsGraph(target = ".", { json = false, thread = null } 
   return renderRelationsGraphText(graph);
 }
 
-export function runRelationsGoals(target = ".", { json = false, thread = null, completion = "all", status = null, nextDecision = null, limit = null, include = null, showEmpty = false } = {}) {
-  const readOptions = json ? { thread, completion, status, nextDecision, limit, include, showEmpty } : { thread, completion, status, nextDecision, limit, include: include ? `${include},path` : "path", showEmpty };
+export function runRelationsGoals(target = ".", { json = false, thread = null, completion = "all", status = null, nextAction = null, limit = null, include = null, showEmpty = false } = {}) {
+  const readOptions = json ? { thread, completion, status, nextAction, limit, include, showEmpty } : { thread, completion, status, nextAction, limit, include: include ? `${include},path` : "path", showEmpty };
   const model = collectGoalRelationGoals(target, readOptions);
   if (json) return JSON.stringify(model, null, 2);
   return renderRelationsGoalsText(model);
 }
 
-export function runRelationsTasks(target = ".", {
+export function runRelationsWork(target = ".", {
   json = false,
   thread = null,
   completion = "todo",
@@ -45,9 +45,9 @@ export function runRelationsTasks(target = ".", {
   showEmpty = false,
 } = {}) {
   const readOptions = json ? { thread, completion, status, goalCompletion, goalStatus, goal, limit, include, showEmpty } : { thread, completion, status, goalCompletion, goalStatus, goal, limit, include: include ? `${include},objective,path` : "objective,path", showEmpty };
-  const model = collectGoalRelationTasks(target, readOptions);
+  const model = collectGoalRelationWork(target, readOptions);
   if (json) return JSON.stringify(model, null, 2);
-  return renderRelationsTasksText(model);
+  return renderRelationsWorkText(model);
 }
 
 export function collectGoalRelations(target = ".", options: any = {}) {
@@ -102,23 +102,23 @@ export function collectGoalRelationGoals(target = ".", filterOptions = {}) {
   return result;
 }
 
-export function collectGoalRelationTasks(target = ".", filterOptions = {}) {
+export function collectGoalRelationWork(target = ".", filterOptions = {}) {
   const controls = normalizeReadControls(filterOptions);
   const goalsRoot = resolveGoalsRoot(target);
-  const filters = normalizeRelationTaskFilters(filterOptions);
+  const filters = normalizeRelationWorkFilters(filterOptions);
   const items = [];
 
   for (const root of listGoalPackRoots(goalsRoot)) {
     const pack = loadGoalPack(root);
     const goal = relationGoalItem(pack);
-    if (!goal.thread_id || !matchesRelationTaskGoalFilters(goal, filters)) continue;
-    for (const task of pack.state.tasks) {
-      if (!matchesRelationTaskFilters(task, filters)) continue;
-      items.push(relationTaskItem(goal, task));
+    if (!goal.thread_id || !matchesRelationWorkGoalFilters(goal, filters)) continue;
+    for (const workItem of pack.progress.work_items) {
+      if (!matchesRelationWorkFilters(workItem, filters)) continue;
+      items.push(relationWorkItem(goal, workItem));
     }
   }
 
-  items.sort((a, b) => `${a.goal_id}:${a.task.id}`.localeCompare(`${b.goal_id}:${b.task.id}`));
+  items.sort((a, b) => `${a.goal_id}:${a.work_item.id}`.localeCompare(`${b.goal_id}:${b.work_item.id}`));
   const limited = limitItems(items, controls.limit);
 
   const result: any = {
@@ -127,9 +127,9 @@ export function collectGoalRelationTasks(target = ".", filterOptions = {}) {
       ...readControlFilterFields(controls),
     },
     goal_count: new Set(items.map((item) => item.goal_id)).size,
-    task_count: items.length,
+    work_item_count: items.length,
     shown: limited.items.length,
-    items: limited.items.map((item) => relationTaskOutputItem(item, controls)),
+    items: limited.items.map((item) => relationWorkOutputItem(item, controls)),
   };
   setIncluded(result, "goals_root", goalsRoot, controls, ["path", "goals_root"]);
   setOmittedCount(result, "items_omitted", limited.omitted, controls);
@@ -203,18 +203,18 @@ export function renderGoalRelationsGraph(target = ".", { thread = null } = {}) {
   };
 }
 
-function relationTaskItem(goal, task) {
+function relationWorkItem(goal, workItem) {
   return {
     goal_id: goal.goal_id,
     path: goal.path,
     thread_id: goal.thread_id,
     goal_status: goal.status,
-    goal_next_decision: goal.next_decision,
-    task: {
-      id: task.id,
-      type: task.type,
-      status: task.status,
-      objective: task.objective || null,
+    goal_next_action: goal.next_action,
+    work_item: {
+      id: workItem.id,
+      type: workItem.type,
+      status: workItem.status,
+      objective: workItem.objective || null,
     },
   };
 }
@@ -235,76 +235,76 @@ function relationGoalOutputItem(item, controls) {
     goal_id: item.goal_id,
     thread_id: item.thread_id,
     status: item.status,
-    next_decision: item.next_decision,
-    tasks: {
-      total: item.tasks.total,
-      done: item.tasks.done,
-      todo: item.tasks.todo,
+    next_action: item.next_action,
+    work_items: {
+      total: item.work_items.total,
+      done: item.work_items.done,
+      todo: item.work_items.todo,
     },
-    receipt_count: item.receipt_count,
+    evidence_count: item.evidence_count,
   };
-  maybeSet(output, "active_task", item.active_task, controls);
+  maybeSet(output, "active_work_item", item.active_work_item, controls);
   if (controls.show_empty || wantsField(controls, "by_status")) {
-    output.tasks.by_status = withoutZeroBuckets(item.tasks.by_status, controls);
+    output.work_items.by_status = withoutZeroBuckets(item.work_items.by_status, controls);
   }
   setIncluded(output, "path", item.path, controls);
   setIncluded(output, "links", item.links, controls);
   return output;
 }
 
-function relationTaskOutputItem(item, controls) {
+function relationWorkOutputItem(item, controls) {
   const output: any = {
     goal_id: item.goal_id,
     thread_id: item.thread_id,
     goal_status: item.goal_status,
-    goal_next_decision: item.goal_next_decision,
-    task: {
-      id: item.task.id,
-      type: item.task.type,
-      status: item.task.status,
+    goal_next_action: item.goal_next_action,
+    work_item: {
+      id: item.work_item.id,
+      type: item.work_item.type,
+      status: item.work_item.status,
     },
   };
-  setIncluded(output.task, "objective", item.task.objective, controls);
+  setIncluded(output.work_item, "objective", item.work_item.objective, controls);
   setIncluded(output, "path", item.path, controls);
   return output;
 }
 
 function relationGoalItem(pack) {
   const item = relationItem(pack);
-  const taskCounts = taskStatusCounts(pack.state.tasks);
-  const totalTasks = pack.state.tasks.length;
+  const workCounts = workStatusCounts(pack.progress.work_items);
+  const totalWork = pack.progress.work_items.length;
 
   return {
     ...item,
-    next_decision: pack.state.next_decision || null,
-    active_task: pack.state.active_task || null,
-    tasks: {
-      total: totalTasks,
-      done: taskCounts.done || 0,
-      todo: Math.max(0, totalTasks - (taskCounts.done || 0)),
-      by_status: taskCounts,
+    next_action: pack.progress.next_action || null,
+    active_work_item: pack.progress.active_work_item || null,
+    work_items: {
+      total: totalWork,
+      done: workCounts.done || 0,
+      todo: Math.max(0, totalWork - (workCounts.done || 0)),
+      by_status: workCounts,
     },
-    receipt_count: pack.receipts.length,
+    evidence_count: pack.evidence_records.length,
   };
 }
 
 function relationItem(pack) {
-  const relations = pack.contract.goal_relations || { thread_id: null, links: [] };
+  const relations = pack.goal.relations || { thread_id: null, links: [] };
   return {
     goal_id: goalId(pack),
     path: pack.root,
-    status: pack.state.status || pack.contract.status || null,
+    status: pack.progress.status || pack.goal.status || null,
     thread_id: relations.thread_id || null,
     links: (relations.links || []).map((link) => ({
       goal_id: link.goal_id || null,
       relation: link.relation || null,
-      receipt_ref: link.receipt_ref || null,
+      evidence_ref: link.evidence_ref || null,
       evidence: Array.isArray(link.evidence) ? link.evidence : [],
     })),
   };
 }
 
-function normalizeRelationTaskFilters({
+function normalizeRelationWorkFilters({
   thread = null,
   completion = "todo",
   status = null,
@@ -315,8 +315,8 @@ function normalizeRelationTaskFilters({
   if (!COMPLETION_VALUES.includes(completion)) {
     throw new Error(`completion must be ${COMPLETION_VALUES.join(", ")}; got ${completion || "<missing>"}`);
   }
-  if (status !== null && status !== "all" && !TASK_STATUSES.includes(status)) {
-    throw new Error(`status must be ${TASK_STATUSES.join(", ")}; got ${status}`);
+  if (status !== null && status !== "all" && !WORK_ITEM_STATUSES.includes(status)) {
+    throw new Error(`status must be ${WORK_ITEM_STATUSES.join(", ")}; got ${status}`);
   }
   if (!COMPLETION_VALUES.includes(goalCompletion)) {
     throw new Error(`goal_completion must be ${COMPLETION_VALUES.join(", ")}; got ${goalCompletion || "<missing>"}`);
@@ -334,41 +334,41 @@ function normalizeRelationTaskFilters({
   };
 }
 
-function normalizeRelationGoalFilters({ thread = null, completion = "all", status = null, nextDecision = null } = {}) {
+function normalizeRelationGoalFilters({ thread = null, completion = "all", status = null, nextAction = null } = {}) {
   if (!COMPLETION_VALUES.includes(completion)) {
     throw new Error(`completion must be ${COMPLETION_VALUES.join(", ")}; got ${completion || "<missing>"}`);
   }
   if (status !== null && status !== "all" && !STATUS_VALUES.includes(status)) {
     throw new Error(`status must be ${STATUS_VALUES.join(", ")}; got ${status}`);
   }
-  if (nextDecision !== null && nextDecision !== "all" && !NEXT_DECISIONS.includes(nextDecision)) {
-    throw new Error(`next_decision must be ${NEXT_DECISIONS.join(", ")}; got ${nextDecision}`);
+  if (nextAction !== null && nextAction !== "all" && !NEXT_ACTIONS.includes(nextAction)) {
+    throw new Error(`next_action must be ${NEXT_ACTIONS.join(", ")}; got ${nextAction}`);
   }
   return {
     thread: thread || "all",
     completion,
     status: status || "all",
-    next_decision: nextDecision || "all",
+    next_action: nextAction || "all",
   };
 }
 
-function matchesRelationTaskGoalFilters(goal, filters) {
+function matchesRelationWorkGoalFilters(goal, filters) {
   return (filters.thread === "all" || goal.thread_id === filters.thread)
     && (filters.goal === "all" || goal.goal_id === filters.goal)
     && matchesGoalCompletion(goal, filters.goal_completion)
     && (filters.goal_status === "all" || goal.status === filters.goal_status);
 }
 
-function matchesRelationTaskFilters(task, filters) {
-  return matchesTaskCompletion(task, filters.completion)
-    && (filters.status === "all" || task.status === filters.status);
+function matchesRelationWorkFilters(workItem, filters) {
+  return matchesWorkCompletion(workItem, filters.completion)
+    && (filters.status === "all" || workItem.status === filters.status);
 }
 
 function matchesRelationGoalFilters(item, filters) {
   return (filters.thread === "all" || item.thread_id === filters.thread)
     && matchesGoalCompletion(item, filters.completion)
     && (filters.status === "all" || item.status === filters.status)
-    && (filters.next_decision === "all" || item.next_decision === filters.next_decision);
+    && (filters.next_action === "all" || item.next_action === filters.next_action);
 }
 
 function matchesGoalCompletion(item, completion) {
@@ -377,16 +377,16 @@ function matchesGoalCompletion(item, completion) {
   return item.status !== "done" && item.status !== "retired";
 }
 
-function matchesTaskCompletion(task, completion) {
+function matchesWorkCompletion(workItem, completion) {
   if (completion === "all") return true;
-  if (completion === "done") return task.status === "done";
-  return task.status !== "done";
+  if (completion === "done") return workItem.status === "done";
+  return workItem.status !== "done";
 }
 
-function taskStatusCounts(tasks) {
-  const counts = Object.fromEntries([...TASK_STATUSES, "unknown"].map((status) => [status, 0]));
-  for (const task of tasks) {
-    const status = TASK_STATUSES.includes(task.status) ? task.status : "unknown";
+function workStatusCounts(workItems) {
+  const counts = Object.fromEntries([...WORK_ITEM_STATUSES, "unknown"].map((status) => [status, 0]));
+  for (const workItem of workItems) {
+    const status = WORK_ITEM_STATUSES.includes(workItem.status) ? workItem.status : "unknown";
     counts[status] = (counts[status] || 0) + 1;
   }
   return counts;
@@ -414,43 +414,43 @@ function validateRelationLink({ item, link, itemByGoalId, packByGoalId, errors, 
     return;
   }
 
-  if (link.evidence.length > 0 && !link.receipt_ref) {
-    pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} missing receipt_ref for required evidence`);
+  if (link.evidence.length > 0 && !link.evidence_ref) {
+    pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} missing evidence_ref for required evidence`);
     return;
   }
 
-  if (!link.receipt_ref) return;
+  if (!link.evidence_ref) return;
 
-  const receipt = targetPack.receipts.filter((candidate) => candidate.task_id === link.receipt_ref).at(-1);
-  if (!receipt) {
-    pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} target ${targetId} missing receipt ${link.receipt_ref}`);
+  const evidenceRecord = targetPack.evidence_records.filter((candidate) => candidate.evidence_id === link.evidence_ref).at(-1);
+  if (!evidenceRecord) {
+    pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} target ${targetId} missing evidence record ${link.evidence_ref}`);
     if (soft) {
       for (const token of link.evidence) {
-        warnings.push(`${item.goal_id}: related_to evidence ${token} is missing because receipt ${link.receipt_ref} is missing`);
+        warnings.push(`${item.goal_id}: related_to evidence ${token} is missing because evidence record ${link.evidence_ref} is missing`);
       }
     }
     return;
   }
 
-  const receiptEvidence = receiptEvidenceIndex(receipt);
+  const evidenceIndex = evidenceRecordIndex(evidenceRecord);
   for (const token of link.evidence) {
-    if (!matchesReceiptEvidenceToken(receiptEvidence, token)) {
-      const hint = nearestEvidenceHint(receiptEvidence.hints, token);
+    if (!matchesEvidenceToken(evidenceIndex, token)) {
+      const hint = nearestEvidenceHint(evidenceIndex.hints, token);
       const hintText = hint ? `; nearest evidence: ${hint}` : "";
-      pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} target ${targetId} receipt ${link.receipt_ref} missing evidence ${token}${hintText}`);
+      pushProblem(soft, errors, warnings, `${item.goal_id}: ${relation} target ${targetId} evidence record ${link.evidence_ref} missing evidence ${token}${hintText}`);
     }
   }
 }
 
-function receiptEvidenceIndex(receipt: any) {
-  const candidates = collectReceiptEvidenceStrings(receipt)
+function evidenceRecordIndex(record: any) {
+  const candidates = collectEvidenceStrings(record)
     .map((value) => value.trim())
     .filter(Boolean);
   const hints = uniqueStrings([
-    ...collectReceiptEvidenceStrings(receipt?.evidence),
-    ...collectReceiptEvidenceStrings(receipt?.evidence_map),
-    ...collectReceiptEvidenceStrings(receipt?.checks),
-    ...collectReceiptEvidenceStrings(receipt?.summary),
+    ...collectEvidenceStrings(record?.evidence),
+    ...collectEvidenceStrings(record?.claim_evidence),
+    ...collectEvidenceStrings(record?.checks),
+    ...collectEvidenceStrings(record?.summary),
     ...candidates.filter((value) => /[A-Za-z0-9_.-]=/.test(value)),
   ])
     .map((value) => value.trim())
@@ -462,14 +462,14 @@ function receiptEvidenceIndex(receipt: any) {
   };
 }
 
-function collectReceiptEvidenceStrings(value: unknown, output: string[] = []): string[] {
+function collectEvidenceStrings(value: unknown, output: string[] = []): string[] {
   if (value === null || value === undefined) return output;
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
     output.push(String(value));
     return output;
   }
   if (Array.isArray(value)) {
-    for (const item of value) collectReceiptEvidenceStrings(item, output);
+    for (const item of value) collectEvidenceStrings(item, output);
     return output;
   }
   if (typeof value === "object") {
@@ -478,13 +478,13 @@ function collectReceiptEvidenceStrings(value: unknown, output: string[] = []): s
       if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
         output.push(`${key}=${String(item)}`);
       }
-      collectReceiptEvidenceStrings(item, output);
+      collectEvidenceStrings(item, output);
     }
   }
   return output;
 }
 
-function matchesReceiptEvidenceToken(index: { normalized: Set<string> }, token: string) {
+function matchesEvidenceToken(index: { normalized: Set<string> }, token: string) {
   const normalizedToken = normalizeEvidenceText(token);
   if (index.normalized.has(normalizedToken)) return true;
   const tokenParts = evidenceKeyValueTokens(token).map(normalizeEvidenceText);
@@ -531,7 +531,7 @@ function graphEdge(item, link, errors) {
     from,
     to,
     relation: link.relation,
-    receipt_ref: link.receipt_ref || null,
+    evidence_ref: link.evidence_ref || null,
     evidence: linkEvidenceStatus(item.goal_id, link, errors),
   };
 }
@@ -552,7 +552,7 @@ function renderRelationsListText(model) {
   for (const item of model.items) {
     lines.push(`${item.goal_id}  thread=${item.thread_id || "null"} links=${item.links.length}`);
     for (const link of item.links) {
-      lines.push(`  ${link.relation || "<missing>"} ${link.goal_id || "<missing>"} receipt=${link.receipt_ref || "null"} evidence=${link.evidence.length}`);
+      lines.push(`  ${link.relation || "<missing>"} ${link.goal_id || "<missing>"} evidence_record=${link.evidence_ref || "null"} evidence=${link.evidence.length}`);
     }
   }
   return lines.join("\n");
@@ -561,24 +561,24 @@ function renderRelationsListText(model) {
 function renderRelationsGoalsText(model) {
   const lines = [
     `goals_root: ${model.goals_root}`,
-    `filters: thread=${model.filters.thread} completion=${model.filters.completion} status=${model.filters.status} next_decision=${model.filters.next_decision}`,
+    `filters: thread=${model.filters.thread} completion=${model.filters.completion} status=${model.filters.status} next_action=${model.filters.next_action}`,
     `goals: ${model.count}`,
   ];
   for (const item of model.items) {
-    lines.push(`${item.goal_id}  thread=${item.thread_id} status=${item.status || "unknown"} next_decision=${item.next_decision || "unknown"} active_task=${item.active_task || "null"} tasks=${item.tasks.total} done=${item.tasks.done} todo=${item.tasks.todo} receipts=${item.receipt_count}`);
+    lines.push(`${item.goal_id}  thread=${item.thread_id} status=${item.status || "unknown"} next_action=${item.next_action || "unknown"} active_work_item=${item.active_work_item || "null"} work_items=${item.work_items.total} done=${item.work_items.done} todo=${item.work_items.todo} evidence_records=${item.evidence_count}`);
   }
   return lines.join("\n");
 }
 
-function renderRelationsTasksText(model) {
+function renderRelationsWorkText(model) {
   const lines = [
     `goals_root: ${model.goals_root}`,
     `filters: thread=${model.filters.thread} completion=${model.filters.completion} status=${model.filters.status} goal_completion=${model.filters.goal_completion} goal_status=${model.filters.goal_status} goal=${model.filters.goal}`,
     `goals: ${model.goal_count}`,
-    `tasks: ${model.task_count}`,
+    `work_items: ${model.work_item_count}`,
   ];
   for (const item of model.items) {
-    lines.push(`${item.goal_id} ${item.task.id}  task_status=${item.task.status} task_type=${item.task.type} goal_status=${item.goal_status || "unknown"} goal_next_decision=${item.goal_next_decision || "unknown"} ${item.task.objective || ""}`);
+    lines.push(`${item.goal_id} ${item.work_item.id}  work_item_status=${item.work_item.status} work_item_type=${item.work_item.type} goal_status=${item.goal_status || "unknown"} goal_next_action=${item.goal_next_action || "unknown"} ${item.work_item.objective || ""}`);
   }
   return lines.join("\n");
 }
@@ -608,7 +608,7 @@ function renderRelationsGraphText(graph) {
     lines.push(`thread: ${thread.thread_id}`);
     lines.push(`goals: ${thread.goals.length}`);
     for (const edge of thread.edges) {
-      lines.push(`${edge.from} --${edge.relation}--> ${edge.to} receipt=${edge.receipt_ref || "null"} evidence=${edge.evidence}`);
+      lines.push(`${edge.from} --${edge.relation}--> ${edge.to} evidence_record=${edge.evidence_ref || "null"} evidence=${edge.evidence}`);
     }
   }
   return lines.join("\n");
@@ -620,5 +620,5 @@ function pushProblem(soft, errors, warnings, message) {
 }
 
 function goalId(pack) {
-  return pack.contract.id || pack.state.goal_id || pack.name;
+  return pack.goal.id || pack.progress.goal_id || pack.name;
 }

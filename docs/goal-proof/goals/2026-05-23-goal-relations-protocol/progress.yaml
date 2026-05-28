@@ -1,0 +1,68 @@
+schema_version: 2
+goal_id: 2026-05-23-goal-relations-protocol
+status: done
+
+proof_step:
+  from: "Goal Proof System currently connects work through per-pack state and evidence records, but cross-pack follow-up relationships are only informal."
+  target_delta: "Goal Relations become a documented, minimal protocol that supports thread continuity without creating a second planning system."
+  proof_path:
+    - "Update the controller skill and phase skills with Goal Thread, Goal Relation, derived graph view, and done-pack closure rules."
+    - "Update templates so new Goal Packs can carry relations.thread_id and relations.links."
+    - "Update README docs with the user-facing concept model and command roadmap."
+    - "Use local lexical scan plus memdex semantic detection to prove retired bundled-goal vocabulary is absent from current guidance."
+  checks:
+    - "bun run check"
+    - "goal-proof check docs/goal-proof/goals/2026-05-23-goal-relations-protocol"
+    - "rg -n <retired-bundled-goal-vocabulary-pattern> README.md README.zh-CN.md docs skills packages"
+    - "memdex ask --repo . --json <retired-vocabulary-absence-query>"
+  failure_inspection:
+    - README.md
+    - README.zh-CN.md
+    - skills/goal/goal-proof-system/SKILL.md
+    - skills/goal/goal-proof-system/references/checker-rules.md
+    - skills/goal/goal-proof-system/templates/goal.yaml
+    - skills/goal/goal-proof-system/templates/evidence record.jsonl
+    - skills/goal/goal-contracts/SKILL.md
+    - skills/goal/finding-proof-step/SKILL.md
+    - skills/goal/proof-step-implementation/SKILL.md
+
+active_work_item: null
+
+work_items:
+  - id: W001
+    type: implementation
+    status: done
+    objective: "Document Goal Relations in skills, references, templates, and README files without adding CLI behavior."
+    allowed_scope:
+      - README.md
+      - README.zh-CN.md
+      - docs/**
+      - skills/**
+    checks:
+      - "bun run check"
+      - "goal-proof check docs/goal-proof/goals/2026-05-23-goal-relations-protocol"
+      - "rg -n <retired-bundled-goal-vocabulary-pattern> README.md README.zh-CN.md docs skills packages"
+      - "memdex ask --repo . --json <retired-vocabulary-absence-query>"
+    stop_if:
+      - "The protocol requires a thread-owned lifecycle, thread-owned state, nested Goal Packs, or a stored graph artifact."
+      - "The current docs must retain retired bundled-goal vocabulary as a present concept."
+      - "The protocol cannot explain successor relationships through predecessor evidence record evidence."
+  - id: W999
+    type: review
+    status: done
+    objective: "Audit the Goal Relations protocol against its completion standard."
+    allowed_scope:
+      - docs/goal-proof/goals/2026-05-23-goal-relations-protocol/**
+    checks:
+      - "goal-proof check docs/goal-proof/goals/2026-05-23-goal-relations-protocol"
+    stop_if:
+      - "Any completion-standard token lacks evidence-backed evidence."
+
+blockers:
+
+last_check:
+  result: pass
+  checks:
+    - "goal-proof-dev relations check docs/goal-proof/goals --thread goal-relations --json [pass]"
+
+next_action: done

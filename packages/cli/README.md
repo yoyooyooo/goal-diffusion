@@ -1,96 +1,91 @@
-# goal-diffusion
+# goal-proof
 
 **English** | [中文](README.zh-CN.md)
 
-CLI for checking progress, reading next steps, and recording evidence for Goal
-Diffusion work.
+CLI for inspecting Goal Proof System Goal Packs, reading the active work item,
+recording evidence, applying deterministic progress, and checking consistency.
 
-Use it inside any project that stores Goal Diffusion goal folders under
-`docs/goal-diffusion/goals/<goal-id>`. It answers the operational questions
-first: which goals exist, which are done, which are still todo, what next step is
-active, and whether the files are consistent.
+Use it inside any project that stores Goal Pack folders under
+`docs/goal-proof/goals/<goal-id>`.
 
 ```bash
-npm install -g goal-diffusion
+npm install -g goal-proof
 ```
 
 ## Common Flow
 
 ```bash
-goal-diffusion summary .
-goal-diffusion list . --completion todo
-goal-diffusion inspect <goal-id>
-goal-diffusion tasks <goal-id>
-goal-diffusion receipts list <goal-id> --limit 5
-goal-diffusion relations goals . --thread <thread-id> --completion todo --json
-goal-diffusion relations tasks . --thread <thread-id> --completion todo --json
-goal-diffusion relations check . --thread <thread-id>
-goal-diffusion brief <goal-id>
-goal-diffusion check <goal-id>
+goal-proof summary .
+goal-proof list . --completion todo
+goal-proof inspect <goal-id>
+goal-proof work list <goal-id>
+goal-proof evidence list <goal-id> --limit 5
+goal-proof relations goals . --thread <thread-id> --completion todo --json
+goal-proof relations work . --thread <thread-id> --completion todo --json
+goal-proof relations check . --thread <thread-id>
+goal-proof work brief <goal-id>
+goal-proof check <goal-id>
 ```
 
-Use `summary` and `list` at project level. Use `inspect`, `tasks`, `receipts`,
-`brief`, `record`, `advance`, and `check` on a single goal folder.
-Use `relations` at project or goals-directory level to inspect continuity
-metadata and discover thread-member goal/task candidates. It does not create a
-queue, worklist, scheduler, thread lifecycle, or execution order.
+Use `summary` and `list` at project level. Use `inspect`, `work list`,
+`work brief`, `work activate`, `evidence list`, `evidence show`,
+`evidence add`, `apply`, and `check` on one Goal Pack. Use `relations` at
+project or goals-directory level to inspect continuity metadata and discover
+thread-member goal/work candidates. Relations do not create a queue, scheduler,
+thread lifecycle, stored graph, or execution order.
 
 ## Commands
 
 ```bash
-goal-diffusion --help
-goal-diffusion <command> --help
-goal-diffusion inspect <goal-pack> [--json]
-goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--depth repo|groups|items] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <value>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--include fields] [--show-empty] [--json]
-goal-diffusion receipts show <goal-pack> --index N [--json]
-goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion brief <goal-pack> [--task T###] [--json]
-goal-diffusion dispatch <goal-pack> [--task T###]
-goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin) [--advance] [--check]
-goal-diffusion advance <goal-pack> [--dry-run]
-goal-diffusion check <goal-pack>
+goal-proof --help
+goal-proof <command> --help
+goal-proof inspect <goal-pack> [--json]
+goal-proof summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--depth repo|groups|items] [--limit N] [--include fields] [--show-empty] [--json]
+goal-proof list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-proof work list <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--limit N] [--include fields] [--show-empty] [--json]
+goal-proof work brief <goal-pack> [--work <id>] [--json]
+goal-proof work activate <goal-pack> --work <id> [--dry-run]
+goal-proof evidence list <goal-pack> [--limit N] [--work <id>] [--type discovery|decision|implementation|coordination|review|planning] [--result done|blocked] [--decision <value>] [--next-action proof_step|continue|needs_plan|blocked|review|done|needs_human] [--completion-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--include fields] [--show-empty] [--json]
+goal-proof evidence show <goal-pack> --index N [--json]
+goal-proof evidence add <goal-pack> (--file evidence-record.json | --json '<json>' | --stdin) [--apply] [--check]
+goal-proof relations list [project-root|goals-dir] [--thread <id>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-proof relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-action proof_step|continue|needs_plan|blocked|review|done|needs_human] [--limit N] [--include fields] [--show-empty] [--json]
+goal-proof relations work [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--limit N] [--include fields] [--show-empty] [--json]
+goal-proof relations check [project-root|goals-dir] [--thread <id>] [--json]
+goal-proof relations graph [project-root|goals-dir] [--thread <id>] [--json]
+goal-proof apply <goal-pack> [--dry-run]
+goal-proof check <goal-pack>
 ```
 
 `<goal-pack>` may be a directory or a bare goal id under
-`docs/goal-diffusion/goals/`.
-`summary` accepts a project root or `docs/goal-diffusion/goals` directory, and
-defaults upward from the current directory.
-For `summary` and `list`, `--completion todo` means goal status is neither
-`done` nor `retired`, and `--status` filters raw Goal Pack status.
-Read JSON commands share output controls: `--limit` bounds visible collections,
+`docs/goal-proof/goals/`. `summary` accepts a project root or a
+`docs/goal-proof/goals` directory, defaulting upward from the current directory.
+
+Read JSON commands share output controls. `--limit` bounds visible collections,
 `--include path,objective,links` restores omitted detail, and `--show-empty`
 restores empty/default fields. `summary` defaults to `--depth groups` and
 `--limit 20`; `--depth items` nests threaded goals under `threads` and leaves
 only unthreaded goals in top-level `items`.
-For `tasks`, `--completion todo` means task status is not `done`, and `--status`
-filters raw task status.
-For `receipts list`, filters compose with AND semantics and output compact
-receipt summaries by default. Use `receipts show --index N` to expand one full
-receipt.
-For `record`, choose exactly one input source. Use `--stdin` for heredoc receipt
-JSON. Use `--advance --check` for the common append, deterministic advance, and
-validation path; `activate` and `advance` remain state-transition commands and
-do not accept payload input.
-For `relations`, `list` shows relation metadata, `check` validates hard relation
-evidence with token-aware matching across receipt evidence fields, and `graph`
-renders a derived view. `goals` discovers thread-member
-Goal Packs. `tasks` discovers thread-member tasks; `--status` filters task
-status, while `--goal-status` and `--goal-completion` filter parent Goal Packs.
-`--thread` filters by `goal_relations.thread_id`; the commands do not create
-thread files, graph state, or execution order.
+
+For `summary` and `list`, `--completion todo` means Goal Pack status is neither
+`done` nor `retired`. For `work list`, `--completion todo` means work item
+status is not `done`.
+
+For `evidence list`, filters compose with AND semantics and compact evidence
+record summaries are shown by default. Use `evidence show --index N` to expand
+one full evidence record. For `evidence add`, choose exactly one input source.
+Use `--stdin` for heredoc JSON and `--apply --check` for the common append,
+deterministic progress update, and validation path.
+
+For `relations`, `list` shows relation metadata, `goals` discovers
+thread-member Goal Packs, `work` discovers thread-member work items, `check`
+validates relation evidence with token-aware matching, and `graph` renders a
+derived relation view. `relations.thread_id` is a label only.
 
 Typical execution loop:
 
 ```text
-check -> inspect -> brief -> work -> record -> advance -> check
+check -> inspect -> work brief -> work -> evidence add -> apply -> check
 ```
 
 ## Release
@@ -113,7 +108,7 @@ Trusted Publishing.
 
 ```bash
 bun install
-bun run --filter goal-diffusion build
-bun run --filter goal-diffusion typecheck
-bun run --filter goal-diffusion test
+bun run --filter goal-proof build
+bun run --filter goal-proof typecheck
+bun run --filter goal-proof test
 ```

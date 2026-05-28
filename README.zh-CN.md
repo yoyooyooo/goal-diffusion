@@ -1,439 +1,289 @@
-![](https://github.com/yoyooyooo/goal-diffusion/raw/main/assets/banner.png)
+![](https://github.com/yoyooyooo/ai-coding-os/raw/main/assets/banner.png)
+
 [English](README.md) | **中文**
 
-# AI Coding Project OS
+# AI Coding OS
 
-AI Coding Project OS 是一套面向高智能 agent 的项目级 AI coding 长期治理方法套件。
+AI Coding OS 是一套面向高智能 agent 的 AI coding 方法论和 skill suite。
+它默认相信模型能力会持续进化，所以系统不把 agent 当弱执行器，也不把
+agent 锁进防御式流程表格。它提供的是边界、路由、验证路径和 claim 标准。
 
-它适用于新项目、老项目、功能开发、迁移、重构、排障、审计、研究探索、文档治理和工具链建设。区别不在于“能不能用”，而在于不同项目需要不同的入口路由、目标边界、验证方式、证据强度和停止条件。
+默认落地边界是 workspace：一个 repo、一个产品表面、一组 docs、一个目标流。
+这套方法可用于 MVP、功能、迁移、重构、排障、审计、研究、文档治理和工具建设。
 
-默认用户入口是 `$ai-coding-project-os`。它是薄路由：自己不拥有持久 artifact，而是按意图把工作分发给 Goal Diffusion、Docs Governance、Interface Capability Planning、Product Harness System、UI Product Harness、Headless Product Harness，或直接 inline 完成小改动。
+默认入口是 `$ai-coding-os`。它不拥有持久 artifact，只负责把工作路由到
+Goal Proof System、Docs Governance、Interface Capability Planning、Product
+Harness System、UI Product Harness、Headless Product Harness，或一轮内 inline 实施。
 
-这套方法的目标不是把强 agent 关进表格，而是给它清晰跳板：
-
-```text
-目标不漂移
-路径可验证
-过程可滚动
-完成可解释
-高风险可升级
-```
-
-默认姿态是强 agent optimistic workflow：相信 agent 能自主实施，但要求它在目标、边界、证据和完成声明上保持诚实。
-
-## 套件构成
-
-| Skill | 定位 |
-| --- | --- |
-| `ai-coding-project-os` | 默认用户入口；路由和编排，不拥有持久 artifact |
-| `goal-diffusion` | 目标计划、Goal Pack、滚动执行、跨会话延续 |
-| `docs-governance` | 文档分层、SSoT、standards、ADR、roadmap、cleanup、audit |
-| `interface-capability-planning` | UI/IA 交互能力合同、状态/数据归属、harness handoff |
-| `product-harness-system` | 通用 harness artifact、生命周期、claim ceiling、coverage matrix 和 trace |
-| `ui-product-harness` | interface-headless、render wiring、browser-visible、production-near UI proof |
-| `headless-product-harness` | proof command、smoke check、fixture/replay、evidence envelope |
-| `goal-plans` | `goal-diffusion` 阶段 skill：生成或修复 `charter.yaml` |
-| `finding-harnessed-path` | `goal-diffusion` 阶段 skill：寻找 current edge |
-| `diffusion-implementation` | `goal-diffusion` 阶段 skill：执行、验证、receipt、advance |
-| `write-implementation-plans` | `goal-diffusion` 阶段 skill：高风险 slice 的 `implementation-plan.md` |
-
-日常推荐只点名 `$ai-coding-project-os`。当用户明确要求生成目标计划、Goal Pack、长期延续或直接点名 `$goal-diffusion` 时，Goal Diffusion 是规划和执行延续的载体；随口小改动直接实施并验证，不创建 Goal Pack。
-
-## 核心思想
-
-传统 Spec-driven AI Coding 往往在规划阶段和 agent 对齐“怎么做”。这在一些场景有效，但也容易把强模型过早锁死在实施细节里。
-
-AI Coding Project OS 把重心移到这些问题：
-
-- 要达到什么目标？
-- 目标边界是什么？
-- 当前最小可验证推进路径是什么？
-- 完成声明需要回扣哪些证据？
-- 什么时候应该继续、升级计划、阻塞或回到人类确认？
-
-它不是不要规划，而是把规划收口为 Goal Pack：目标授权、边界、验证、停止条件和 receipt 证据链。agent 不默认写完整任务树；当这些条件清楚时，应自主选择实现路径，并用 receipt 持续校准。
-
-## Diffusion 类比
-
-这里的 Diffusion 类比“从低精度目标到高精度目标”。
-
-一开始，你可能只有一个较粗的目标。随着执行推进，agent 会在目标和现实之间补出更小、更清晰、可验证的中间节点。
+## 核心原则
 
 ```text
-粗目标 -> 当前 edge -> 有证据的状态变化 -> 更清晰的下一步
+高智能 agent 优先
+目标和边界清楚
+proof path 可运行
+evidence 支撑 claim
+gap 显式留下
 ```
 
-这些节点之间的连线是 Harness Path：从当前状态走向更清晰状态的可验证路径。验证可以是测试脚本、构建命令、CLI 输出、截图、日志、人工验收清单、数据对比或其他能支撑 claim 的证据。
+这不是形式化证明系统。默认口径是 strong-agent optimistic workflow：相信 agent
+能自主推进，但要求它在 evidence、not_claimed、stop signal 和 completion claim 上诚实。
 
-## 核心对象
+## Skill Suite
 
-| 对象 | 作用 |
+多数用户只需要从 `$ai-coding-os` 进入。进阶用户可直接点名某个方法或阶段 skill。
+
+| Group | Skill | 作用 |
+| --- | --- | --- |
+| `router/` | `ai-coding-os` | 用户入口、意图路由、inline-vs-durable 判断 |
+| `goal/` | `goal-proof` | Goal Pack、goal contract、proof step、evidence chain、completion review |
+| `goal/` | `goal-contracts` | 创建或修复 `goal.yaml` |
+| `goal/` | `finding-proof-step` | 寻找可证伪的 `proof_step` |
+| `goal/` | `proof-step-implementation` | 执行、验证、添加 evidence、apply progress |
+| `goal/` | `write-work-plans` | 为高风险 work item 写 `plans/<work_id>.md` |
+| `governance/` | `docs-governance` | docs layer、SSoT、standards、ADR、roadmap、cleanup、audit |
+| `capability/` | `interface-capability-planning` | UI/IA、InterfaceCapability、surface、state/data ownership、harness handoff |
+| `harness/` | `product-harness-system` | harness artifact model、claim limit、coverage matrix、trace lifecycle |
+| `harness/` | `ui-product-harness` | interface-headless、render wiring、browser-visible、production-near UI proof |
+| `harness/` | `headless-product-harness` | proof command、smoke、fixture/replay、evidence envelope |
+
+## Diffusion 隐喻
+
+Goal Diffusion 只保留为隐喻：粗目标通过更小、更清楚、已验证的状态逐步变清晰。
+
+```text
+coarse goal -> proof step -> evidenced state change -> sharper next action
+```
+
+正式方法名是 Goal Proof System。正式 CLI 是 `goal-proof`。
+
+## 核心词汇
+
+| 词 | 含义 |
 | --- | --- |
-| Goal Pack | 一个长期目标的完成单元 |
-| Goal Charter | agent 对人类意图的可执行压缩和目标授权 |
-| Current Edge | 当前最小可验证推进路径 |
-| Check | 支撑本轮 claim 的检查；命令只是 check 的一种 |
-| Receipt | 一段已执行工作的追加式证据检查点 |
-| Final Audit | 完成前的证据摘要，必须回扣 completion |
-| Goal Relation | Goal Pack 之间的证据关系 |
-| Goal Thread | 多个 Goal Pack 共享的标签，不拥有状态 |
-| `charter.yaml` | 目标授权、边界、完成标准和自主策略 |
-| `state.yaml` | 当前运行态、active task、edge 和 next decision |
-| `receipts.jsonl` | append-only receipts |
-| `implementation-plan.md` | 仅 `plan_required` 高风险 slice 使用 |
-| `interface-capabilities.yaml` | UI/IA/interaction trace 可选 companion，仅相关 Goal Pack 使用 |
-| `product-harness.yaml` | harness proof trace 可选 companion，仅相关 Goal Pack 使用 |
+| Goal Pack | 一个长期目标的持久 completion unit |
+| Goal Contract | `goal.yaml`；目标授权、边界、完成标准和 claim limit |
+| Proof Step | `progress.yaml.proof_step`；当前可证伪推进步 |
+| Proof Path | 支撑或证伪 proof step 的可运行/可检查路径 |
+| Work Item | `progress.yaml.work_items` 内的有界工作单元，通常 `W###` |
+| Evidence Record | `evidence.jsonl` 内 append-only 证据记录，通常 `E###` |
+| Completion Review | 最终把 evidence 回扣到 `completion.required_evidence` 的 review evidence |
+| Claim Limit | 当前目标或 proof 能声明和不能声明的范围 |
+| Gap | 未覆盖 claim、缺证据、待决策或需人类介入点 |
+| Goal Thread | 多个 Goal Pack 共享的 `relations.thread_id` 标签 |
+| Goal Relation | Goal Pack 之间的 typed metadata link |
+| Derived Graph View | CLI 从 relations 派生出来的图视图，不是存储状态 |
 
-## 最小完整流程
+## Goal Proof System
+
+Goal Proof System 是 OS 的长期目标载体。
 
 ```text
 human intent
-  -> agent writes goal charter
-  -> agent finds current edge
-  -> agent executes largest safe useful slice
-  -> agent records receipt
-  -> continue | plan_required | blocked | audit
-  -> final audit maps evidence to completion
-  -> done
+  -> goal.yaml
+  -> progress.yaml proof_step
+  -> work item
+  -> checks
+  -> evidence.jsonl evidence record
+  -> apply progress
+  -> proof_step | continue | needs_plan | blocked | review | done | needs_human
 ```
 
-Goal Pack 不是因为有 task list 就 ready。只有当 charter 边界稳定，并且
-`state.yaml.current_edge` 能证明或证伪下一次推进时，才算 ready。好的 edge
-要说清起点状态、目标变化、输入或 fixture、检查命令或人工 gate、预期正向证据、负向 claim、claim ceiling 和失败后优先检查位置。
+Goal Pack ready 的条件是：goal contract 稳定，且当前 `proof_step` 能证明或证伪一次有意义推进。
+不是因为列了 work item 就 ready。
 
-默认不做机器级形式化证明。完成 discipline 仍然存在：任何 `done` 都必须说明完成了哪个标准、证据在哪里、没有声明什么、剩余 gap 被路由到哪里。
+`plans/<work_id>.md` 只在高风险 work item 需要先审计划时出现。它不是第二套任务系统。
 
-## 字段等级
+完成必须有 review evidence record，包含 `completion_satisfied: true`，并用
+`claim_evidence` 把 completion claim 映射到 evidence。
 
-Goal Charter 使用字段等级，而不是把所有字段都变成必填。
+## Goal Pack 文件
 
 ```text
-must    缺失则不能启动长期目标
-should  强烈建议；缺失可启动，但应记录 assumption 或 warning
-when    场景触发才需要
-strict  仅 evidence_mode: strict 时需要
-```
-
-默认字段口径：
-
-```yaml
-id:
-status: forming | ready | running | blocked | done | retired
-
-intent:
-  source:
-  interpreted_as:
-  assumptions: []
-  open_questions: []
-
-objective:
-north_star:
-
-authority_refs: []
-
-engineering_guidance:
-  standards: []
-  architecture_notes: []
-  quality_bar:
-  preferred_harness:
-
-constraints: []
-non_goals: []
-
-completion:
-  signal:
-  final_proof:
-
-claim_boundary:
-stop_rules: []
-
-autonomy:
-  continue_by_default: true
-  agent_may_revise:
-    - next_slice
-    - task_order
-    - harness_strength
-    - implementation_shape
-  cannot_silently_change:
-    - objective
-    - completion
-    - claim_boundary
-    - stop_rules
-    - authority_refs
-
-evidence_mode: light | normal | strict
-
-conditional:
-  interfaces: []
-  data_policy:
-  security_boundary:
-  migration_guard:
-  release_gate:
-  coordination:
-
-strict:
-  required_checks: []
-  required_evidence: []
-  provenance: []
-```
-
-`engineering_guidance` 是强烈建议字段，不是硬性架构合同。项目早期没有正式架构标准时，agent 可以继续，但应说明它将以现有代码结构、测试风格和最近权威文档作为工程指引。
-
-## Evidence Mode
-
-`light` 用于小修小补或一轮可完成的工作。可以只有一个 worker receipt 和一个 final audit。
-
-`normal` 是长期目标默认模式。需要 receipt、checks、evidence、claims、not_claimed 和 final audit 的 `evidence_map`。
-
-`strict` 只用于高风险场景，例如 public API/schema/protocol、安全、权限、私有数据、破坏性迁移、release/compliance、多 agent 严格协作，或 successor goal 依赖前置证据。
-
-## 完成证明
-
-默认 final audit 形态：
-
-```json
-{
-  "task_id": "T999",
-  "type": "audit",
-  "result": "done",
-  "decision": "complete",
-  "oracle_satisfied": true,
-  "evidence_map": [
-    {
-      "claim": "completion.final_proof",
-      "evidence": []
-    }
-  ],
-  "not_claimed": [],
-  "remaining_gaps": [],
-  "summary": "",
-  "next_decision": "done"
-}
-```
-
-这不是形式化 proof，而是完成理由压缩。它回答：
-
-- 哪个 `completion.final_proof` 被满足？
-- 哪些 receipt / check / evidence 支撑它？
-- 本次没有声明什么？
-- 剩余 gap 是删除、放入 inbox、创建 successor，还是进入最近实现 artifact？
-
-## 滚动实施
-
-Goal Diffusion 每轮只问一个问题：当前最小可验证、同时又能推进目标的 edge 是什么？
-
-```text
-charter -> edge -> work -> check -> receipt -> continue | plan_required | blocked | audit
-```
-
-edge phase 找最小可验证路径。run phase 执行最大安全有用 slice。这样不会把任务切成无意义小块，也不会一开始写完整任务树。
-
-charter alignment 和 edge discovery 是一个闭环。若只有 charter，还没有可证伪
-current edge，下一步是找 edge，不是进入实现。
-
-agent 默认继续推进。只有以下情况才停：
-
-- 无法命名诚实可验证路径；
-- 需要静默改变 objective、completion、claim_boundary、stop_rules 或 authority_refs；
-- 触发安全、权限、私有数据、public API/schema/protocol、破坏性数据或 compliance 边界；
-- 验证反复失败且修复会越界。
-
-## `implementation-plan.md`
-
-`implementation-plan.md` 只在 `plan_required` 时存在。
-
-典型触发：
-
-- public API / schema / protocol；
-- security / permissions / private data；
-- destructive migration；
-- release / compliance；
-- 多 agent 严格协作；
-- 错一步回滚成本很高。
-
-它不是第二套任务系统。plan receipt 只声明“执行计划已就绪”，不声明目标完成。计划就绪后回到 rolling implementation。
-
-## Goal Relations
-
-Goal Relations 连接彼此独立的 Goal Pack，但不引入新的规划对象。Goal Pack 仍然是完成单位：一个 objective、一个 completion、一个 state 文件、一条 append-only receipt 链。
-
-Goal Thread 只是共享标签。它没有自己的生命周期、任务列表、状态文件、receipt 流、注册表或存储图。
-
-graph 是检查时从 Goal Relations 派生出来的视图，不作为规划状态写入仓库。
-
-## 当前口径
-
-本 README 使用 v1 口径：`charter.yaml`、`completion`、`engineering_guidance`、`checks`、`evidence_map`。
-
-当前 CLI、templates、skills、checker、tests、README 和 dogfood Goal Pack 主路径已使用 v1 口径。旧口径只应出现在归档 source 或迁移 receipts 中，用于保留证据链。
-
-## 安装
-
-先安装 CLI。CLI 负责查看目标状态、列出 todo 和 done、生成简报、记录证据、推进状态和检查一致性。
-
-```bash
-npm install -g goal-diffusion
-goal-diffusion --help
-```
-
-再安装 Agent Skills。入口 skill 负责路由项目级意图；具体方法 skill 负责创建或更新目标文件夹、治理文档层、设计验证路径、记录 receipt，并决定下一步。
-
-推荐安装整套 AI Coding Project OS skills：
-
-```bash
-npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent '*' --skill '*' --full-depth -y
-```
-
-当前 GitHub 仓库 URL 仍保留 `goal-diffusion`，用于分发兼容；项目名是 AI Coding Project OS。
-
-如果只给 Codex 安装：
-
-```bash
-npx skills add https://github.com/yoyooyooo/goal-diffusion -g --agent codex --skill '*' --full-depth -y
-```
-
-## 如何使用
-
-日常项目工作，默认从 `$ai-coding-project-os` 进入：
-
-```text
-使用 $ai-coding-project-os：
-我要治理/规划/实施/审计这个项目里的……
-背景：……
-约束：……
-验收：……
-```
-
-当你明确要生成目标计划、Goal Pack 或跨会话延续时，给 agent 这些信息即可：
-
-```text
-使用 $goal-diffusion：
-目标：我要达到什么结果……
-背景：项目当前情况是……
-边界：哪些不能改、哪些必须遵守……
-验收：怎样算完成……
-停止条件：遇到什么必须回来问我……
-```
-
-agent 会在项目内创建或更新 `docs/goal-diffusion/goals/<goal-id>`，并用 CLI 做状态检查、简报、记录和推进。执行 agent 默认信任 charter；只有发现意图误解、completion 不可验证、边界必须改变或风险升级时才 repair charter。
-
-## Skill 路由关系
-
-用户日常只需要点名 `$ai-coding-project-os`。它按意图路由到对应方法；高级用户也可以直接点名具体 skill。
-
-| Skill | 什么时候用 | 未来职责 |
-| --- | --- | --- |
-| `ai-coding-project-os` | 默认入口 | 判断当前应 inline 还是路由到具体方法 |
-| `docs-governance` | 文档层、权威、cleanup、audit | 治理 docs 分层和文档生命周期 |
-| `interface-capability-planning` | UI/IA、交互能力、前端 handoff | 规划 InterfaceCapability 合同和 trace artifact |
-| `product-harness-system` | harness 架构、artifact 放置、claim ceiling、coverage matrix、headless/UI proof 对齐 | 定义通用 Product Harness System |
-| `ui-product-harness` | 前端状态/数据/realtime/router 测试、UI dogfood、browser-visible proof | 设计 interface-headless、render-wiring、浏览器和 production-near UI harness |
-| `headless-product-harness` | 命令面、smoke proof、证据 envelope | 设计可验证 headless 产品路径 |
-| `goal-diffusion` | 目标计划、Goal Pack、长期执行 | Goal Pack 方法入口，判断当前阶段 |
-| `goal-plans` | 没有 Goal Pack，或目标授权不清楚 | 生成或修复 `charter.yaml` |
-| `finding-harnessed-path` | 没有可验证下一步 | 找 current edge，写入 `state.yaml.current_edge` |
-| `diffusion-implementation` | 已有 active task | 执行、验证、记录 receipt、advance，并在边界内继续 |
-| `write-implementation-plans` | 高风险任务 | 写 `implementation-plan.md`，计划就绪后回到执行 |
-
-## 快速查看
-
-这些命令主要给人类或 agent 查看当前状态：
-
-```bash
-goal-diffusion summary .
-goal-diffusion list . --completion todo
-goal-diffusion inspect <goal-pack> --json
-goal-diffusion tasks <goal-pack>
-goal-diffusion receipts list <goal-pack> --limit 5
-goal-diffusion relations goals . --thread <thread-id> --completion todo --json
-goal-diffusion relations tasks . --thread <thread-id> --completion todo --json
-goal-diffusion brief <goal-pack>
-```
-
-Relations 命令用于检查跨 Goal Pack 连续性，也用于发现 thread 成员候选 goal/task。它不创建队列、worklist、scheduler、thread 生命周期或执行顺序。
-
-## CLI
-
-```bash
-goal-diffusion --help
-goal-diffusion <command> --help
-goal-diffusion inspect <goal-pack> [--json]
-goal-diffusion summary [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--depth repo|groups|items] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion list [project-root|goals-dir] [--completion all|todo|done] [--status <status>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion tasks <goal-pack> [--completion all|todo|done] [--status queued|active|blocked|done] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion receipts list <goal-pack> [--limit N] [--task T###] [--type <value>] [--result done|blocked] [--decision <value>] [--next-decision <value>] [--oracle-satisfied true|false] [--changed-file <glob>] [--command-status pass|fail] [--contains <text>] [--include fields] [--show-empty] [--json]
-goal-diffusion receipts show <goal-pack> --index N [--json]
-goal-diffusion relations list [project-root|goals-dir] [--thread <id>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations goals [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status forming|ready|running|blocked|done|retired] [--next-decision edge|continue|plan_required|blocked|audit|done|needs-human] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations tasks [project-root|goals-dir] [--thread <id>] [--completion all|todo|done] [--status queued|active|blocked|done] [--goal-completion all|todo|done] [--goal-status forming|ready|running|blocked|done|retired] [--goal <goal-id>] [--limit N] [--include fields] [--show-empty] [--json]
-goal-diffusion relations check [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion relations graph [project-root|goals-dir] [--thread <id>] [--json]
-goal-diffusion brief <goal-pack> [--task T###] [--json]
-goal-diffusion dispatch <goal-pack> [--task T###]
-goal-diffusion activate <goal-pack> --task T### [--dry-run]
-goal-diffusion record <goal-pack> (--file receipt.json | --json '<json>' | --stdin) [--advance] [--check]
-goal-diffusion advance <goal-pack> [--dry-run]
-goal-diffusion check <goal-pack>
-```
-
-`record` 必须在 `--file`、`--json`、`--stdin` 三个输入源里选一个；常见追加 receipt、确定性 advance、校验路径可用 `--advance --check`。
-
-典型循环：
-
-```text
-check -> inspect -> brief -> work -> record -> advance -> check
-```
-
-只有在把当前或选中的任务交给另一个 agent 时才使用 `dispatch`。
-
-## 目标文件夹结构
-
-Goal Pack 结构：
-
-```text
-docs/goal-diffusion/
+docs/goal-proof/
   README.md
   inbox/
   sources/
   goals/<goal-id>/
-    charter.yaml
-    state.yaml
-    receipts.jsonl
-    implementation-plan.md  # 仅 plan_required 时存在
-    interface-capabilities.yaml  # UI/interface trace companion，可选
-    product-harness.yaml  # harness proof trace companion，可选
+    goal.yaml
+    progress.yaml
+    evidence.jsonl
+    plans/<work_id>.md  # only when needs_plan
+    interface-capabilities.yaml  # optional UI/interface trace companion
+    product-harness.yaml  # optional harness proof companion
     notes/
 ```
 
-历史 dogfood Goal Pack 已按 v1 结构保留为 `charter.yaml`、`state.yaml`、`receipts.jsonl`。后续迁移 schema 时仍应同步更新 skills、CLI checker、README、测试和历史示例，不应只替换文件名。
+`goal.yaml` 拥有 objective、authority refs、engineering guidance、completion、
+claim limit、stop rules 和 agent authority。`progress.yaml` 拥有运行态、
+active work item、proof step、blockers、last check 和 next action。`evidence.jsonl`
+是 append-only evidence。`notes/` 只存长上下文。
+
+## Interface Capability 和 Harness
+
+UI / Harness 体系让 agent 可以从底层和界面两端验证产品能力。
+
+```text
+Product Capability
+  -> InterfaceCapability
+  -> InterfaceSurface / Region
+  -> Interaction State Contract
+  -> Frontend State/Data Ownership
+  -> Harness Scenario
+  -> Headless Proof and/or UI Proof
+  -> Evidence
+  -> Claim / Gap
+```
+
+最终 UI 未定时，仍可用 harness route、harness component、interface-headless test
+或 browser-visible candidate path 先证明局部链路。正式界面稳定后，可复用 proof path
+再提升为 regression。
+
+持久放置：
+
+- 项目级界面 trace：`docs/interface-capabilities/**`
+- 项目级 harness contract：`docs/product-harness/**`
+- Goal-local interface companion：`docs/goal-proof/goals/<goal-id>/interface-capabilities.yaml`
+- Goal-local harness companion：`docs/goal-proof/goals/<goal-id>/product-harness.yaml`
+
+## 安装
+
+安装 CLI：
+
+```bash
+npm install -g goal-proof
+goal-proof --help
+```
+
+安装全套 AI Coding OS skills：
+
+```bash
+npx skills add https://github.com/yoyooyooo/ai-coding-os -g --agent '*' --skill '*' --full-depth -y
+```
+
+Codex-only：
+
+```bash
+npx skills add https://github.com/yoyooyooo/ai-coding-os -g --agent codex --skill '*' --full-depth -y
+```
+
+仓库和 skill suite 名是 AI Coding OS。CLI 和 npm package 仍是 `goal-proof`。
+
+## 使用
+
+日常项目工作：
+
+```text
+使用 $ai-coding-os：
+我要治理/规划/实施/审计……
+背景：……
+边界：……
+验收：……
+```
+
+长期目标：
+
+```text
+使用 $goal-proof：
+目标：……
+背景：……
+边界：……
+验收：……
+停止条件：……
+```
+
+UI capability 规划：
+
+```text
+使用 $interface-capability-planning：
+拆 InterfaceCapability、surface、interaction state、frontend state/data ownership 和 harness needs。
+```
+
+UI proof：
+
+```text
+使用 $ui-product-harness：
+规划 interface-headless、render wiring、browser-visible proof、evidence、gap 和 claim limit。
+```
+
+Headless proof：
+
+```text
+使用 $headless-product-harness：
+设计最小 proof command、fixture/replay、evidence envelope 和 not_claimed。
+```
+
+Docs governance：
+
+```text
+使用 $docs-governance：
+检查 docs layer、authority placement、README route、obsolete planning docs 和 audit。
+```
+
+本仓文档层规则见 `docs/standards/docs-governance.md`；skill SSoT / runtime
+分发规则见 `docs/standards/skill-source-distribution.md`。
+
+## CLI 快速查看
+
+```bash
+goal-proof summary .
+goal-proof list . --completion todo
+goal-proof inspect <goal-pack> --json
+goal-proof work list <goal-pack>
+goal-proof evidence list <goal-pack> --limit 5
+goal-proof relations goals . --thread <thread-id> --completion todo --json
+goal-proof relations work . --thread <thread-id> --completion todo --json
+goal-proof relations check . --thread <thread-id>
+goal-proof relations graph . --thread <thread-id>
+goal-proof work brief <goal-pack>
+goal-proof check <goal-pack>
+```
+
+Relations commands 用于检查跨 Goal Pack 连续性和发现 thread 成员候选。它不创建队列、
+worklist、scheduler、thread 生命周期、存储图或执行顺序。`relations.thread_id` 只是标签。
+
+典型循环：
+
+```text
+check -> inspect -> work brief -> work -> evidence add -> apply -> check
+```
+
+完整 CLI 见 [packages/cli/README.zh-CN.md](packages/cli/README.zh-CN.md)。
+
+## 文档和 Artifact Homes
+
+| 路径 | 作用 |
+| --- | --- |
+| `docs/README.md` | 文档层路由和 authority 顺序 |
+| `docs/product/**` | OS 产品/方法论定位 |
+| `docs/ssot/**` | 当前事实、术语、不变量 |
+| `docs/standards/**` | 可执行规则、命令、质量门、协作 SOP |
+| `docs/adr/**` | 已采纳取舍 |
+| `docs/roadmap/**` | 顺序、状态、证据链接、迁移波次 |
+| `docs/interface-capabilities/**` | 项目级 InterfaceCapability / InterfaceSurface trace |
+| `docs/product-harness/**` | 项目级 harness scenario、claim limit、coverage matrix、evidence refs |
+| `docs/goal-proof/**` | Goal Pack、inbox、sources、evidence records、Goal Relations |
+| `skills/**` | AI Coding OS 公开 skill suite 源码视图 |
+| `packages/cli/**` | `goal-proof` CLI |
 
 ## 仓库结构
 
 ```text
-packages/cli/                    TypeScript CLI，使用 Bun 构建
-skills/ai-coding-project-os/     OS 入口 skill
-skills/docs-governance/          文档治理 skill
-skills/interface-capability-planning/ Interface capability planning skill
-skills/product-harness-system/   Product harness system skill
-skills/ui-product-harness/       UI product harness skill
-skills/headless-product-harness/ headless proof / evidence skill
-skills/goal-diffusion/           Goal Pack 方法入口 skill
-skills/goal-plans/               目标授权编写 skill
-skills/finding-harnessed-path/   下一步选择 skill
-skills/diffusion-implementation/ 工作执行 skill
-skills/write-implementation-plans/ plan-required 工作 skill
-docs/                            文档治理与方法论分层入口
+packages/cli/                         TypeScript CLI，使用 Bun 构建
+skills/router/                        OS 入口和用户意图路由
+skills/goal/                          Goal Pack 方法和执行阶段
+skills/governance/                    文档层治理
+skills/capability/                    Interface capability planning
+skills/harness/                       Product、headless 和 UI harness guidance
+skills/README.md                      Skill suite 分组索引
+docs/                                 文档治理与方法论分层入口
+assets/                               README media
 ```
 
-CLI 包发布名为 `goal-diffusion`。
+CLI 包发布名为 `goal-proof`。
 
 ## 发布
 
-发布由 tag 驱动，通过 GitHub Actions 和 npm Trusted Publishing 完成。先配置一次 npm package trusted publisher：
-
-- Repository：本 GitHub 仓库。
-- Workflow：`.github/workflows/publish.yml`。
-- Environment：`npm-publish`。
+发布由 tag 驱动，通过 GitHub Actions 和 npm Trusted Publishing 完成：
 
 ```bash
 bun run release:check patch
@@ -442,11 +292,9 @@ bun run release patch
 bun run release 0.2.0
 ```
 
-`bun run release:check` 只执行发布决策预检，不改文件：检查工作区干净、已 checkout 到分支、默认必须是 `main`，查询 npm 版本、git tag 和默认 `origin`。
-
-发布脚本会创建临时本地 release 分支，在那里更新 `package.json`、`packages/cli/package.json` 和 `bun.lock`，提交 `chore: release vX.Y.Z`，让 `vX.Y.Z` tag 指向该提交，只 push tag，然后回到原分支。`main` 不会收到仅用于发布的版本提交。如果已有 `vX.Y.Z` tag 但 npm 没有 `X.Y.Z`，下一次发布会复用并替换失败 tag。已推送 tag 触发 GitHub Actions，运行检查、打 npm tarball，并通过 npm Trusted Publishing 发布。
-
-包使用 `files` allowlisting，因此 npm tarball 只包含 `dist/`、`README.md`、`README.zh-CN.md`、`LICENSE` 和 package metadata。
+`bun run release:check` 只执行发布决策预检，不改文件。`bun run release`
+创建临时本地 release 分支，更新版本文件，提交，给该提交打 `vX.Y.Z` tag，
+只 push tag，然后回到原分支。GitHub Actions 从 tag 发布 npm 包。
 
 ## 开发
 

@@ -1,0 +1,77 @@
+schema_version: 2
+id: "2026-05-23-evidence-add-stdin-input-cli"
+status: done
+
+objective: "Add explicit stdin evidence record input to the Goal Proof System CLI evidence add command so agents can append validated evidence records from heredoc without shell-quoting large JSON or creating temporary files."
+guiding_principle: "Goal Proof System CLI write commands should stay atomic and agent-first: content-payload writes accept readable stdin, while state transitions stay explicit and deterministic."
+
+relations:
+  thread_id: evidence-cli
+  links:
+    - goal_id: 2026-05-23-evidence-query-cli
+      relation: related_to
+
+authority_refs:
+  - "Current conversation: agent-first expectation favors heredoc/stdin for content-style write payloads."
+  - "packages/cli/src/goal-proof.ts"
+  - "packages/cli/src/append-evidence.ts"
+  - "packages/cli/src/lib/goal-pack.ts"
+  - "packages/cli/src/render-goal-task-dispatch.ts"
+  - "packages/cli/test/goal-pack-cli.test.ts"
+  - "README.md"
+  - "README.zh-CN.md"
+  - "packages/cli/README.md"
+  - "packages/cli/README.zh-CN.md"
+  - "skills/goal/goal-proof-system/SKILL.md"
+
+engineering_guidance:
+  architecture_notes:
+    - "Agent-facing write commands must keep one primary intent per command."
+    - "Content-payload write input should support explicit stdin when payload quoting is error-prone."
+    - "State-transition write commands must not accept arbitrary payload input."
+    - "Input-source flags for evidence record must be mutually exclusive and must not rely on implicit stdin reads."
+    - "User-facing CLI command-surface changes require tests and synchronized docs."
+
+constraints:
+  - "Support evidence add --stdin as an explicit evidence record JSON input source."
+  - "Keep --file and --json behavior compatible."
+  - "Do not add heredoc/stdin input to activate or apply."
+  - "Do not implicitly read stdin when no input-source flag is supplied."
+  - "Do not change evidence.jsonl format or evidence record validation semantics."
+  - "Do not introduce --file - unless explicitly chosen in a later design."
+
+non_goals:
+  - "No evidence record schema migration."
+  - "No generic stdin support across every write command."
+  - "No interactive editor mode."
+  - "No YAML evidence record input."
+  - "No automatic evidence record generation."
+  - "No shell-specific wrapper command."
+
+completion:
+  signal: "goal-proof evidence add accepts exactly one input source among --file, --json, and --stdin; --stdin reads a full JSON evidence record from stdin and supports heredoc usage; activate and apply remain parameter/state-derived commands with no payload stdin."
+  required_evidence: "bun run check passes; CLI tests prove evidence add --stdin appends a valid evidence record, conflicts with --file and --json, rejects empty stdin, keeps existing --file and --json paths working, and help/docs/skill text describe the command surface; a dogfood evidence record is recorded via --stdin; completion review evidence record sets completion_satisfied=true."
+
+claim_limit: "This Goal Pack may claim only the evidence add command stdin input source and related docs/tests. It may not claim broader write-command redesign, evidence record schema changes, activate/apply payload support, or generic heredoc support outside evidence record."
+
+stop_rules:
+  - "Stop if supporting --stdin requires changing evidence record validation or evidence.jsonl storage."
+  - "Stop if Commander cannot express mutual exclusion cleanly without weakening existing --file/--json behavior."
+  - "Stop if implementation would require implicit stdin reads that can hang agents."
+  - "Stop if docs cannot state a stable rule separating content-payload writes from state-transition writes."
+
+agent_authority:
+  continue_by_default: true
+  requires_human_decision:
+    - objective
+    - authority_refs
+    - engineering_guidance
+    - constraints
+    - completion
+    - claim_limit
+    - stop_rules
+  agent_may_revise:
+    - next_slice
+    - work_order
+    - harness_strength
+    - implementation_shape

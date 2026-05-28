@@ -1,31 +1,30 @@
 export {
-  activateGoalPack,
-  advanceGoalPack,
-  appendReceipt,
-  compactReceipt,
-  getActiveTask,
+  activateGoalWork,
+  appendEvidenceRecord,
+  applyGoalProgress,
+  compactEvidenceRecord,
+  getActiveWorkItem,
   inspectGoalPack,
   loadGoalPack,
   matchesAllowedScope,
   normalizePath,
-  parseCharter,
-  parseReceipts,
-  parseState,
-  renderPrompt,
+  parseEvidenceLog,
+  parseGoal,
+  parseProgress,
+  renderWorkBrief,
+  validateEvidenceRecord,
   validateGoalPack,
-  validateReceipt,
   GOAL_RELATION_TYPES,
 } from "./lib/goal-pack.ts";
 
 export { checkGoalPack } from "./check-goal-pack.ts";
-export { runGoalDiffusionCli } from "./goal-diffusion.ts";
-export { runActivate } from "./activate-goal-pack.ts";
-export { runAdvance } from "./advance-goal-pack.ts";
-export { runAppendReceipt } from "./append-receipt.ts";
-export { runBrief } from "./render-goal-task-brief.ts";
-export { runDispatch } from "./render-goal-task-dispatch.ts";
-export { runReceiptsList, runReceiptShow, listGoalReceipts, showGoalReceipt } from "./render-goal-receipts.ts";
-export { runRelationsCheck, runRelationsGraph, runRelationsList, checkGoalRelations, collectGoalRelations, renderGoalRelationsGraph } from "./render-goal-relations.ts";
-export { runTasks, listGoalTasks } from "./render-goal-tasks.ts";
+export { runGoalProofCli } from "./goal-proof.ts";
+export { runActivateWork } from "./activate-goal-work.ts";
+export { runApply } from "./apply-goal-progress.ts";
+export { runAppendEvidence } from "./append-evidence.ts";
+export { runWorkBrief } from "./render-goal-work-brief.ts";
+export { runEvidenceList, runEvidenceShow, listGoalEvidence, showGoalEvidence } from "./render-goal-evidence.ts";
+export { runRelationsCheck, runRelationsGraph, runRelationsGoals, runRelationsList, runRelationsWork, checkGoalRelations, collectGoalRelationGoals, collectGoalRelations, collectGoalRelationWork, renderGoalRelationsGraph } from "./render-goal-relations.ts";
+export { runWork, listGoalWork } from "./render-goal-work.ts";
 export { runInspect } from "./inspect-goal-pack.ts";
 export { runList, runSummary, listGoalPacks, summarizeGoalPacks, listGoalPackRoots, resolveGoalsRoot } from "./summarize-goal-packs.ts";

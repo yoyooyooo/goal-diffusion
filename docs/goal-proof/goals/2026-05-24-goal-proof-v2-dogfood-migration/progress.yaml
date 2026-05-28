@@ -1,0 +1,141 @@
+schema_version: 2
+goal_id: 2026-05-24-goal-proof-v2-dogfood-migration
+status: done
+
+proof_step:
+  from: "Docs, skills, templates, CLI behavior, checker behavior, tests, and historical dogfood Goal Packs now use v2 goal/progress/evidence schema as the active path."
+  target_delta: "Completion review maps evidence record evidence to completion.required_evidence and closes this Goal Pack."
+  proof_path:
+    - "Map W001-W005 evidence records to each completion.required_evidence clause."
+    - "Verify repository checks, docs review, active Goal Pack check, and v2 terminology scans."
+    - "Record W999 review evidence record with claim_evidence, not_claimed, remaining_gaps, and completion_satisfied true."
+  checks:
+    - "bun run check"
+    - "python3 skills/governance/docs-governance/scripts/run_docs_audit.py --repo ."
+    - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_review|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" README.md README.zh-CN.md AGENTS.md docs skills packages scripts"
+  failure_inspection:
+    - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/evidence.jsonl
+    - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/goal.yaml
+    - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/progress.yaml
+    - README.md
+    - README.zh-CN.md
+
+active_work_item: null
+
+work_items:
+  - id: W001
+    type: implementation
+    status: done
+    objective: "Synchronize English README and skill documentation with future v2 goal/progress/evidence schema terminology, keeping old terms only in migration/history contexts."
+    allowed_scope:
+      - README.md
+      - README.zh-CN.md
+      - docs/**
+      - skills/**
+    checks:
+      - "bun run check"
+      - "python3 skills/governance/docs-governance/scripts/run_docs_audit.py --repo ."
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_review|architecture_standard|protected_fields|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" README.md README.zh-CN.md AGENTS.md docs skills"
+    stop_if:
+      - "Skill rename or CLI public command rename requires a product decision."
+      - "Docs and skill ownership conflict cannot be resolved from docs/README.md."
+  - id: W002
+    type: planning
+    status: done
+    objective: "Write plans/<work_id>.md for schema, CLI checker/renderer/tests, and historical Goal Pack rewrite, using this Goal Pack as the workflow owner."
+    plan: plans/W002.md
+    allowed_scope:
+      - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/plans/<work_id>.md
+      - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/progress.yaml
+      - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/evidence.jsonl
+    checks:
+      - "test -f docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/plans/<work_id>.md"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"goal.yaml|progress.yaml|evidence.jsonl|plans/<work_id>.md|docs/roadmap\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/plans/<work_id>.md"
+    stop_if:
+      - "The plan would move execution state into docs/roadmap or another project-level docs layer."
+      - "The plan would require strict proof fields on the default path."
+      - "The plan would broaden the goal into release/versioning."
+  - id: W003
+    type: implementation
+    status: done
+    objective: "Migrate Goal Proof System templates and checker-facing examples to goal.yaml, checks, and completion review claim_evidence."
+    allowed_scope:
+      - skills/goal/goal-proof-system/templates/**
+      - skills/goal/goal-proof-system/references/**
+      - skills/goal/goal-proof-system/SKILL.md
+      - skills/goal/goal-contracts/**
+      - skills/goal/proof-step-implementation/**
+      - skills/goal/finding-proof-step/**
+      - skills/goal/write-work-plans/**
+    checks:
+      - "bun run check"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_review|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" skills"
+    stop_if:
+      - "Default path would require strict proof fields."
+  - id: W004
+    type: implementation
+    status: done
+    objective: "Update CLI parser, checker, renderers, command docs, and tests to validate and display v2 Goal Packs."
+    allowed_scope:
+      - packages/cli/**
+      - scripts/**
+      - README.md
+      - README.zh-CN.md
+      - docs/**
+    checks:
+      - "bun run check"
+      - "goal-proof check docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration"
+    stop_if:
+      - "CLI public compatibility or release semantics need a product decision."
+  - id: W005
+    type: implementation
+    status: done
+    objective: "Rewrite historical dogfood Goal Packs under docs/goal-proof/goals/** to v2 schema, update indexes, and refresh migration-status docs."
+    allowed_scope:
+      - AGENTS.md
+      - README.md
+      - README.zh-CN.md
+      - docs/README.md
+      - docs/ssot/README.md
+      - docs/roadmap/README.md
+      - docs/goal-proof/goals/**
+      - docs/goal-proof/README.md
+      - docs/goal-proof/sources/**
+    checks:
+      - "bun run check"
+      - "goal-proof check docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_review|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" docs/goal-proof/goals docs/goal-proof/README.md"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"仍可能使用旧口径|仍处于迁移期|legacy names such as|current historical\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" AGENTS.md README.md README.zh-CN.md docs/README.md docs/ssot/README.md docs/roadmap/README.md docs/goal-proof/README.md"
+    stop_if:
+      - "A historical evidence rewrite would make completion evidence unrecoverable."
+  - id: W999
+    type: review
+    status: done
+    objective: "Audit the v2 dogfood migration against completion.required_evidence and evidence record final claim_evidence."
+    allowed_scope:
+      - docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration/**
+      - docs/goal-proof/README.md
+    checks:
+      - "bun run check"
+      - "python3 skills/governance/docs-governance/scripts/run_docs_audit.py --repo ."
+      - "goal-proof check docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"contract.yaml|completion_review|architecture_standard|protected_fields|\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"commands\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"|Goal Plan\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" README.md README.zh-CN.md AGENTS.md docs skills packages scripts"
+      - "rg -n \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"claim_evidence|not_claimed|remaining_gaps|plans/<work_id>.md\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration"
+    stop_if:
+      - "Any completion proof element lacks evidence-backed evidence."
+      - "Evidence Records do not show that execution used Goal Pack artifacts as the workflow owner."
+
+blockers:
+
+last_check:
+  result: pass
+  checks:
+    - "bun run check [pass]"
+    - "python3 skills/governance/docs-governance/scripts/run_docs_audit.py --repo . [pass]"
+    - "bun packages/cli/src/goal-proof.ts check docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration [pass]"
+    - "rg -n \"contract.yaml|completion_review|architecture_standard|protected_fields|\\\"commands\\\"|Goal Plan\" README.md README.zh-CN.md AGENTS.md docs/README.md docs/ssot docs/standards docs/roadmap docs/product docs/adr docs/architecture docs/goal-proof/README.md skills packages scripts [pass]"
+    - "rg -n \"contract.yaml|completion_review|architecture_standard|protected_fields|\\\"commands\\\"|Goal Plan\" docs/goal-proof/goals --glob '!**/2026-05-24-goal-proof-v2-dogfood-migration/**' [pass]"
+    - "rg -n \"claim_evidence|not_claimed|remaining_gaps|plans/<work_id>.md\" docs/goal-proof/goals/2026-05-24-goal-proof-v2-dogfood-migration [pass]"
+    - "wc -l packages/cli/src/lib/goal-pack.ts packages/cli/src/lib/goal-evidence-helpers.ts [pass]"
+
+next_action: done

@@ -15,7 +15,7 @@
 - Playwright / agent-browser / unit test 的步骤。
 - fixture 数据、mock handler、seed 数据或 replay trace。
 - 产品事实、API schema、数据库事实、正式 UI 视觉方案。
-- Goal Pack 运行状态、receipt 或 final audit。
+- Goal Pack 运行状态、evidence record 或 completion review。
 
 ## Boundary
 
@@ -34,12 +34,12 @@ coverage_intent:
 
 完整证明方案放 `docs/product-harness/**`。
 
-## Promotion
+## Promotion / Demotion
 
 Goal Pack 可以先生成候选稿：
 
 ```text
-docs/goal-diffusion/goals/<goal-id>/interface-capabilities.yaml
+docs/goal-proof/goals/<goal-id>/interface-capabilities.yaml
 ```
 
 完成时必须给 retention verdict：
@@ -51,6 +51,9 @@ promote | keep-in-goal | split | retire | block
 Promote 后，Goal Pack companion 应只保留 source / promoted_to / evidence
 link，不再作为长期权威。
 
+如果 capability 只是一次性验证脚手架、未被产品化、或已被新的 capability 吸收，
+demote 回 Goal Pack note/source 或在本层标记 retired 后删除重复定义。
+
 ## Conflict
 
 冲突时按本仓 `docs/README.md` 的顺序裁决。`docs/ssot/**`、`docs/standards/**`
@@ -61,3 +64,4 @@ link，不再作为长期权威。
 - Harness 证明合同：`../product-harness/README.md`
 - 文档路由：`../README.md`
 - 当前事实：`../ssot/README.md`
+- 文档治理：`../standards/docs-governance.md`
