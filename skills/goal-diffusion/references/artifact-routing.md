@@ -17,6 +17,8 @@ docs/goal-diffusion/
       state.yaml
       receipts.jsonl
       implementation-plan.md  # only when plan_required
+      interface-capabilities.yaml  # optional UI/interface trace companion
+      product-harness.yaml  # optional harness proof companion
       notes/
 ```
 
@@ -36,6 +38,8 @@ equivalent to these roles instead of recreating this exact tree.
 | Receipts | Append-only evidence chain | `docs/goal-diffusion/goals/<goal-id>/receipts.jsonl` |
 | Notes | Long narrative, final summaries, or source digests | `docs/goal-diffusion/goals/<goal-id>/notes/` |
 | Implementation plan | Detailed plan only for high-risk selected slice | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
+| Interface capabilities | Optional UI/IA/interaction trace companion; contains InterfaceCapability and InterfaceSurface candidate records | `docs/goal-diffusion/goals/<goal-id>/interface-capabilities.yaml` |
+| Product harness | Optional harness proof companion; contains HarnessScenario, fixture refs, route/component refs, evidence refs, claim ceilings, lifecycle, and coverage matrix candidates | `docs/goal-diffusion/goals/<goal-id>/product-harness.yaml` |
 
 The method index may list current Goal Packs and status entry points, but it
 should not maintain a hand-written progress list that competes with Goal Pack
@@ -73,6 +77,18 @@ implementation plan
   -> goal pack implementation-plan.md
   -> referenced by a state task with type: plan_required and plan: implementation-plan.md
 
+interface capability trace
+  -> goal pack interface-capabilities.yaml only when the goal includes UI/IA,
+     interaction state, frontend state/data orchestration, or browser-visible
+     proof
+  -> referenced from charter/state/receipts by ID, not embedded as the full DSL
+
+product harness trace
+  -> goal pack product-harness.yaml only when the goal needs durable harness
+     scenario, fixture, route/component, evidence ref, claim ceiling, lifecycle,
+     or coverage matrix planning
+  -> referenced from charter/state/receipts by ID, not embedded as the full DSL
+
 external docs or decisions
   -> sources/ when consumed
   -> host authority layer when current truth
@@ -90,6 +106,8 @@ material. Route those rules by scope:
 | Raw idea, weak signal, gap map, or deferred follow-up | `inbox/` |
 | Consumed proposal, imported planning branch, historical prompt, or source digest | `sources/` or Goal Pack `notes/source-history/` |
 | Detailed task checklist, trace item list, or local implementation evidence | host implementation artifact such as `specs/**`, unless the Goal Pack has a `plan_required` slice |
+| UI/IA interaction capability trace for a Goal Pack | `interface-capabilities.yaml` companion artifact |
+| Harness scenario, fixture/route/evidence refs, claim ceiling, or coverage trace for a Goal Pack | `product-harness.yaml` companion artifact; route concrete UI/headless execution details to the owning harness method |
 
 When a project has duplicated this method-level doctrine locally, converge by
 moving the generic rule here and reducing the project document to a thin local
@@ -196,6 +214,64 @@ When the plan exists, the corresponding `state.yaml` task should use
 entry for the plan file. The plan is not a charter, product spec, schema
 authority, or parallel workflow; it is an execution plan for one selected
 high-risk slice inside the Goal Pack boundary.
+
+## Interface Capability Companion Rules
+
+Create `docs/goal-diffusion/goals/<goal-id>/interface-capabilities.yaml` only
+when a Goal Pack needs durable traceability for UI/IA, interface capability,
+frontend state/data ownership, or browser-visible proof.
+
+The companion artifact may contain thin `InterfaceCapability` and
+`InterfaceSurface` records. It may reference harness IDs but must not define
+full `HarnessScenario` or `HarnessEvidence` records. The Goal Pack should
+reference records by ID:
+
+```yaml
+interface_capability_refs:
+  - ic.issue-intake.from-channel-message
+```
+
+Do not put the full Interface Capability DSL inside `charter.yaml`. Receipts may
+record:
+
+```json
+{
+  "interface_capabilities": [
+    {
+      "id": "ic.issue-intake.from-channel-message",
+      "status": "verified",
+      "ui_harness": "uh.issue-intake.browser",
+      "headless_proof": "hp.issue-create.from-message",
+      "evidence": ["screenshot:...", "command:..."]
+    }
+  ]
+}
+```
+
+This companion does not apply to headless-only, docs-only, infra-only, or
+CLI-only goals unless a user-visible interface path is part of the claim.
+
+## Product Harness Companion Rules
+
+Create `docs/goal-diffusion/goals/<goal-id>/product-harness.yaml` only when a
+Goal Pack needs durable traceability for harness scenarios, fixtures, route or
+component refs, evidence refs, claim ceilings, lifecycle, or coverage matrix.
+
+The companion artifact may contain thin `HarnessScenario`, `HarnessFixture` ref,
+`HarnessRoute` ref, `HarnessComponent` ref, `HarnessEvidence` ref, and coverage
+records. It must not redefine InterfaceCapability semantics; use `covers` to
+point at `ic.*` IDs:
+
+```yaml
+harness_scenario_refs:
+  - hs.issue-intake.from-channel-message
+```
+
+Do not put the full Product Harness DSL inside `charter.yaml`. Receipts may
+record executed evidence by ID and artifact path.
+
+This companion does not apply to docs-only or goal-planning-only work unless a
+proof surface is part of the claim.
 
 ## Index Shape
 

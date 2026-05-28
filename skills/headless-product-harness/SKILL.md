@@ -13,10 +13,14 @@ description: >-
 Use this skill to turn product intent into a runnable, machine-readable proof
 path before server or web UI becomes the completion gate.
 
+Use `product-harness-system` for shared Harness Scenario / Fixture / Evidence
+vocabulary, lifecycle, placement, trace, and claim ceilings. This skill applies
+those rules to headless command, smoke, fixture/replay, and boundary proof.
+
 ## Quick Start
 
-1. Identify the product authority: product core, contract/schema, harness,
-   transport/API, UI, storage, and external runtime.
+1. Identify product authority: core, contract/schema, harness, transport/API,
+   UI, storage, and external runtime.
 2. Classify the proof: `boundary`, `offline-fixture`, `replay`, `adapter`,
    `projection`, `db-backed`, or `real-runtime-opt-in`.
 3. State the claim ceiling for that proof level before implementation.
@@ -25,34 +29,25 @@ path before server or web UI becomes the completion gate.
 6. Place tests near the authority; keep the harness as orchestration.
 7. Report only what the command proves and what it explicitly does not prove.
 
-## Authority Rule
+## Authority
 
 `xtask`, `just`, `pnpm xtask`, or any equivalent harness may orchestrate a proof.
-It must not become the business fact source.
+It must not become the business fact source. Product core owns business rules;
+contract/schema owns DTOs and wire-safe records; server/API owns transport; UI
+owns consumption; external runtime proof is opt-in.
 
-Use this ownership split:
-
-```text
-product core -> business rules and facts
-contract/schema -> DTOs, schemas, wire-safe records
-harness -> repo commands, fixtures, smoke orchestration, evidence output
-server/API -> transport adapter into product core
-web/UI -> consumption, previews, operator workflow
-external runtime -> opt-in integration, not default proof
-```
+Headless proof proves facts and projections. If the capability must become a
+user-visible interface path, hand off to an interface or UI harness workflow to
+prove projection consumption, render wiring, browser-visible behavior, reload,
+focus, layout-critical behavior, and frontend state orchestration. Do not report
+`browser_ui_claim=true` from a headless proof alone.
 
 ## Workflow
 
 1. Name the capability in durable terms. Avoid phase, MVP, sprint, or current
    roadmap labels in command names.
-2. Pick one harness level:
-   - `boundary`: import/dependency/authority drift.
-   - `offline-fixture`: deterministic local input to product core.
-   - `replay`: normalized or sanitized real trace replay.
-   - `adapter`: external/source mapping into canonical records.
-   - `projection`: product facts into view/query facts.
-   - `db-backed`: persistence and restart/rebuild proof.
-   - `real-runtime-opt-in`: real external process/API, excluded from default CI.
+2. Pick one level: `boundary`, `offline-fixture`, `replay`, `adapter`,
+   `projection`, `db-backed`, or `real-runtime-opt-in`.
 3. State the maximum claim that this level can prove. A lower level may support
    later work, but it must not be reported as proof of a higher-level surface.
 4. Write the command contract. See
@@ -64,7 +59,7 @@ external runtime -> opt-in integration, not default proof
 7. Add fixture/replay material only when deterministic reproduction needs it.
    See [fixture-replay-ladder.md](references/fixture-replay-ladder.md).
 
-## Harness Gap Policy
+## Gap Policy
 
 Missing harness detail is implementation scope when product authority, allowed
 write scope, claim boundary, forbidden claims, and falsifiable evidence intent
@@ -75,7 +70,7 @@ Stop only when no honest falsifiable path exists, or when continuing would
 require changing product truth, claim boundary, public API/schema/protocol
 posture, security policy, private-data handling, or destructive behavior.
 
-## Command Design Rules
+## Command Rules
 
 - Command names prove capabilities, not progress labels.
 - One command proves one capability slice.
@@ -86,26 +81,16 @@ posture, security policy, private-data handling, or destructive behavior.
 - Do not emit a negative claim token for a boundary the command did not check;
   report that boundary as `not_proven` instead.
 - Do not hardcode progress tokens without executing the underlying check.
-- Prefer stable names with compatibility aliases only when old names already
-  exist.
+- Use negative claims such as `browser_ui_claim=false`,
+  `render_wiring_claim=false`, or `interface_headless_claim=false` unless those
+  UI harness levels were explicitly exercised by their owning method.
 
 ## Report Shape
 
-Use this closeout when designing or reviewing a harness:
-
-```text
-authority_map:
-capability:
-command:
-evidence_contract:
-claim_ceiling:
-negative_claims:
-tests_near_authority:
-fixtures_or_replay:
-boundary_rules:
-not_proven:
-docs_to_update:
-```
+When designing or reviewing a harness, report `authority_map`, `capability`,
+`command`, `evidence_contract`, `claim_ceiling`, `negative_claims`,
+`tests_near_authority`, `fixtures_or_replay`, `boundary_rules`, `not_proven`,
+and `docs_to_update`.
 
 ## Placement With Governance
 

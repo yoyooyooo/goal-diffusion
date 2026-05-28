@@ -20,10 +20,13 @@
 - 仓库定位是 AI Coding Project OS 项目仓：一组平铺公开 skill、一个轻量入口 skill，以及仍以 `goal-diffusion` 发布的 Goal Pack CLI。
 - 默认用户入口是 `ai-coding-project-os`。它只路由和编排，不拥有持久 artifact。
 - `docs-governance` 独立公开，拥有文档分层、权威放置、cleanup 和 audit。
+- `interface-capability-planning` 独立公开，拥有 UI/IA 交互能力合同、状态/数据归属、testability planning 和 harness handoff。
+- `product-harness-system` 独立公开，拥有通用 Harness artifact、生命周期、claim ceiling、coverage matrix 和 trace 规范。
+- `ui-product-harness` 独立公开，拥有 interface-headless、render wiring、browser-visible 和 production-near UI proof 方法。
 - `headless-product-harness` 独立公开，拥有 headless proof command、smoke evidence、fixture/replay 和 evidence envelope。
 - `goal-diffusion` 独立公开，拥有 Goal Pack 目标计划、滚动执行和跨会话延续。
 - CLI / npm package 暂保留 `goal-diffusion` 命名。
-- Goal Pack 产物是 `charter.yaml`、`state.yaml`、`receipts.jsonl`、`implementation-plan.md`。
+- Goal Pack 核心产物是 `charter.yaml`、`state.yaml`、`receipts.jsonl`、`implementation-plan.md`；涉及 UI/IA/interaction trace 时可带 optional companion `interface-capabilities.yaml`；涉及 harness proof trace 时可带 optional companion `product-harness.yaml`。
 - `charter.yaml` 表示目标授权和 agent 对人类意图的可执行压缩。
 - `implementation-plan.md` 只在 `plan_required` 高风险 slice 中存在。
 - 默认证据模式面向强 agent，不要求每一步机器级证明。

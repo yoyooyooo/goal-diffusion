@@ -79,12 +79,20 @@ docs/goal-diffusion/
     state.yaml
     receipts.jsonl
     implementation-plan.md  # only when plan_required
+    interface-capabilities.yaml  # optional UI/interface trace companion
+    product-harness.yaml  # optional harness proof companion
     notes/
 ```
 
 Read [references/artifact-routing.md](references/artifact-routing.md) before
 placing artifacts. Read [references/bootstrap.md](references/bootstrap.md)
 before initializing a project.
+
+For UI, IA, interaction, frontend state, harness, or browser-visible work, a
+Goal Pack may reference optional companions such as `interface-capabilities.yaml`
+and `product-harness.yaml`. Keep those trace contracts outside `charter.yaml`
+and reference them by IDs. Receipts may record verified evidence, but Goal
+Diffusion still owns only the Goal Pack lifecycle and receipt chain.
 
 ## Boundary
 

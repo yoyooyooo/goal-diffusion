@@ -7,7 +7,7 @@
 - AI Coding Project OS 服务谁。
 - 适用场景和非目标。
 - 面向高智能 agent 的默认姿态。
-- 用户为什么需要统一入口、目标计划、文档治理、证据 harness 和滚动实施。
+- 用户为什么需要统一入口、目标计划、文档治理、界面能力规划、Product Harness System、UI harness、证据 harness 和滚动实施。
 
 ## Must Not Own
 
@@ -33,6 +33,9 @@ strong-agent optimistic workflow
 | `ai-coding-project-os` | 默认用户入口；薄路由，不拥有持久 artifact |
 | `goal-diffusion` | 目标计划和滚动执行；Goal Pack 是规划与延续载体 |
 | `docs-governance` | 文档层、SSoT、standards、ADR、roadmap 的治理 |
+| `interface-capability-planning` | UI/IA 交互能力、状态/数据归属和 testability contract 的规划 |
+| `product-harness-system` | 通用 harness artifact、生命周期、claim ceiling、coverage matrix 和 trace 规范 |
+| `ui-product-harness` | 界面能力的 interface-headless、render wiring、browser-visible 和 production-near proof |
 | `headless-product-harness` | proof command、smoke check、fixture/replay、evidence envelope |
 
 Goal Diffusion 的上限是长期目标执行，但不限于长期目标。只要用户明确要生成目标计划、Goal Pack 或使用 Goal Diffusion，就由它承载规划；一轮内可完成的小改动直接 inline 实施。

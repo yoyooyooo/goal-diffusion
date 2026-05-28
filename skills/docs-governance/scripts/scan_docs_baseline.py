@@ -78,6 +78,11 @@ GOAL_DIFFUSION_DOCS = [
     "docs/goal-diffusion/README.md",
 ]
 
+LAYER_README_OPTIONAL_SECTIONS = {
+    "boundary": ("## Boundary", "## Conflict", "## Priority", "## 冲突", "## 边界"),
+    "promotion": ("## Promotion", "## Demotion", "## Promotion / Demotion", "## 提升", "## 生命周期"),
+}
+
 
 def _has_root_manifest(root: Path) -> bool:
     return any((root / name).exists() for name in PROJECT_MANIFESTS)
@@ -180,14 +185,73 @@ def _presence(root: Path, paths: list[str]) -> tuple[list[dict], list[str]]:
     return status, missing
 
 
+def _docs_layer_readmes(root: Path) -> list[Path]:
+    docs_root = root / "docs"
+    if not docs_root.exists() or not docs_root.is_dir():
+        return []
+    readmes: list[Path] = []
+    for child in docs_root.iterdir():
+        if child.name.startswith(".") or not child.is_dir():
+            continue
+        readme = child / "README.md"
+        if readme.is_file():
+            readmes.append(readme)
+    return sorted(readmes)
+
+
+def _has_any(text: str, needles: tuple[str, ...]) -> bool:
+    return any(needle.lower() in text.lower() for needle in needles)
+
+
+def _scan_layer_readme_contract(root: Path) -> tuple[list[dict], list[dict]]:
+    status: list[dict] = []
+    findings: list[dict] = []
+    for readme in _docs_layer_readmes(root):
+        rel = readme.relative_to(root).as_posix()
+        text = readme.read_text(encoding="utf-8", errors="ignore")
+        has_owns = "## Owns" in text
+        has_must_not_own = "## Must Not Own" in text
+        has_entry = "## Read Next" in text or "## Homes" in text or "## 下一步阅读" in text or "## 使用方式" in text
+        status.append(
+            {
+                "path": rel,
+                "owns": has_owns,
+                "mustNotOwn": has_must_not_own,
+                "entry": has_entry,
+            }
+        )
+        missing = []
+        if not has_owns:
+            missing.append("Owns")
+        if not has_must_not_own:
+            missing.append("Must Not Own")
+        if not has_entry:
+            missing.append("Read Next / entry points")
+        if missing:
+            findings.append(
+                {
+                    "id": f"DOCS_LAYER_README::{rel}",
+                    "severity": "warn",
+                    "ruleId": "DOCS_LAYER_README_CONTRACT_MISSING",
+                    "path": str(readme),
+                    "summary": f"docs layer README is missing contract sections: {', '.join(missing)}",
+                    "evidence": [rel],
+                    "fixHint": "add Owns, Must Not Own, and Read Next or entry-point sections",
+                }
+            )
+    return status, findings
+
+
 def scan(repo: Path) -> dict:
     root = repo.resolve()
     policy = _resolve_policy(root)
     required_status, required_missing = _presence(root, REQUIRED_DOCS)
     product_status, product_missing = _presence(root, PRODUCT_DOCS)
     gd_status, gd_missing = _presence(root, GOAL_DIFFUSION_DOCS)
+    layer_readme_status, layer_readme_findings = _scan_layer_readme_contract(root)
 
     findings: list[dict] = []
+    findings.extend(layer_readme_findings)
     if policy.get("enforceRequired"):
         for rel in required_missing:
             findings.append(
@@ -265,6 +329,7 @@ def scan(repo: Path) -> dict:
         "required": required_status,
         "productShape": product_status,
         "goalDiffusion": gd_status,
+        "layerReadmes": layer_readme_status,
         "findings": findings,
     }
 

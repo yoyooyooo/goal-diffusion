@@ -41,14 +41,15 @@ bun run check
 
 - SSoT 是 `~/Documents/code/personal/personal-skills`。
 - 本仓 `skills/` 是 AI Coding Project OS 公开 skill suite 的镜像，由 `$skill-manager` / `$skillshare` 分发。
-- 本仓公开 suite 只保留平铺 skill：`ai-coding-project-os`、`docs-governance`、`headless-product-harness`、`goal-diffusion`、`goal-plans`、`finding-harnessed-path`、`diffusion-implementation`、`write-implementation-plans`。
+- 本仓公开 suite 只保留平铺 skill：`ai-coding-project-os`、`docs-governance`、`interface-capability-planning`、`product-harness-system`、`ui-product-harness`、`headless-product-harness`、`goal-diffusion`、`goal-plans`、`finding-harnessed-path`、`diffusion-implementation`、`write-implementation-plans`。
 - 旧 `ai-coding-project-governance` 不保留兼容 alias。
-- 改 suite 收口策略时，先改 SSoT，再 sync 到本仓和运行时 targets。
+- 改 suite 收口策略时，默认先改 SSoT，再 sync 到本仓和运行时 targets；若明确作为 OS repo mirror draft 先落本仓，必须在 roadmap / handoff 里标记“未 promote 回 SSoT，未分发到 targets”，不能对外声称 source 已同步。
 
 ## 文档标准
 
 - 新增文档必须放入正确 `docs/*` 层。
 - 高密度目录必须有 README。
+- 每个 durable docs layer README 至少包含 `Owns`、`Must Not Own`、入口或 `Read Next`；权威密集层还必须包含 `Boundary` 或冲突规则，以及 promotion / demotion 路径。
 - 不创建 `docs/specs/**`；实施规格放 root `specs/**`。
 - 不保留两个 current home。
 - 叙述性正文使用中文；字段名、命令、路径和 schema 示例可保留英文。

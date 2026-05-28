@@ -14,6 +14,7 @@ validation methods, evidence strength, and stop conditions each project needs.
 
 The default user entry is `$ai-coding-project-os`. It is a thin router: it owns
 no durable artifacts and routes work to Goal Diffusion, Docs Governance,
+Interface Capability Planning, Product Harness System, UI Product Harness,
 Headless Product Harness, or inline execution.
 
 It does not try to lock a strong agent inside a giant task table. It gives the
@@ -27,6 +28,9 @@ receipt-backed execution, and a stricter path only when risk calls for it.
 | `ai-coding-project-os` | Default user entry; routes and coordinates, owns no durable artifact |
 | `goal-diffusion` | Goal planning, Goal Packs, rolling execution, cross-session continuation |
 | `docs-governance` | Docs layers, SSoT, standards, ADRs, roadmaps, cleanup, audit |
+| `interface-capability-planning` | UI/IA interaction capability contracts, state/data ownership, harness handoff |
+| `product-harness-system` | Shared harness artifact model, lifecycle, claim ceilings, coverage matrix, trace |
+| `ui-product-harness` | Interface-headless, render wiring, browser-visible, and production-near UI proof |
 | `headless-product-harness` | Proof commands, smoke checks, fixture/replay, evidence envelope |
 | `goal-plans` | Goal Diffusion phase skill: create or repair `charter.yaml` |
 | `finding-harnessed-path` | Goal Diffusion phase skill: find current edge |
@@ -91,6 +95,8 @@ path and keep calibrating with evidence.
 | `state.yaml` | Runtime state, active task, current edge, and next decision |
 | `receipts.jsonl` | Append-only receipts |
 | `implementation-plan.md` | Plan for `plan_required` high-risk slices only |
+| `interface-capabilities.yaml` | Optional UI/IA/interaction trace companion for Goal Packs that need it |
+| `product-harness.yaml` | Optional harness proof companion for Goal Packs that need it |
 
 ## How It Works
 
@@ -304,6 +310,9 @@ intent. Advanced users may name a concrete method or phase skill directly.
 | --- | --- | --- |
 | `ai-coding-project-os` | Default entry | Decide inline work vs. method routing |
 | `docs-governance` | Docs layer, authority, cleanup, audit | Govern docs structure and lifecycle |
+| `interface-capability-planning` | UI/IA, interaction capability, frontend handoff | Plan interface capability contracts and trace artifacts |
+| `product-harness-system` | Harness architecture, artifact placement, claim ceilings, coverage matrix, headless/UI proof alignment | Define the shared Product Harness System |
+| `ui-product-harness` | Frontend state/data/realtime/router testing, UI dogfood, browser-visible proof | Design interface-headless, render-wiring, browser, and production-near UI harnesses |
 | `headless-product-harness` | Command surfaces, smoke proof, evidence envelope | Design verifiable headless product paths |
 | `goal-diffusion` | Goal plan, Goal Pack, long-running work | Goal Pack method router |
 | `goal-plans` | No Goal Pack, or unclear charter | Create or repair `charter.yaml` |
@@ -421,6 +430,8 @@ docs/goal-diffusion/
     state.yaml
     receipts.jsonl
     implementation-plan.md  # only when plan_required
+    interface-capabilities.yaml  # optional UI/interface trace companion
+    product-harness.yaml  # optional harness proof companion
     notes/
 ```
 
@@ -430,6 +441,11 @@ task. `receipts.jsonl` is append-only evidence.
 `notes/` stores long-form context only when needed.
 `implementation-plan.md` exists only when a selected `plan_required` task needs
 a reviewed execution plan before work starts.
+`interface-capabilities.yaml` exists only when UI/IA, interaction state, or
+frontend state/data ownership needs durable trace links inside the Goal Pack.
+`product-harness.yaml` exists only when harness scenarios, fixtures, route or
+component refs, evidence refs, claim ceilings, lifecycle, or coverage matrix
+need durable trace links.
 
 ## Repository Layout
 
@@ -437,6 +453,9 @@ a reviewed execution plan before work starts.
 packages/cli/                    TypeScript CLI, built with Bun
 skills/ai-coding-project-os/     OS entry skill
 skills/docs-governance/          Docs governance skill
+skills/interface-capability-planning/ Interface capability planning skill
+skills/product-harness-system/   Shared product harness system skill
+skills/ui-product-harness/       UI product harness skill
 skills/headless-product-harness/ Headless proof / evidence skill
 skills/goal-diffusion/           Goal Pack method entry skill
 skills/goal-plans/               Goal Charter authoring skill

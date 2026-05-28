@@ -19,6 +19,9 @@
 ```text
 skills/ai-coding-project-os/          薄入口：用户意图路由和方法编排
 skills/docs-governance/               文档治理：docs 层、权威、cleanup、audit
+skills/interface-capability-planning/ 界面能力规划：IA、交互合同、状态/数据归属、testability
+skills/product-harness-system/        Harness 总纲：artifact、claim ceiling、coverage、lifecycle、trace
+skills/ui-product-harness/            UI 验证治理：interface-headless、render wiring、browser-visible proof
 skills/headless-product-harness/      验证治理：headless proof 与 evidence envelope
 skills/goal-diffusion/                目标治理：Goal Pack 方法入口
 skills/goal-plans/                    Goal Charter authoring
@@ -35,6 +38,9 @@ README*.md                            对外入口
 ```text
 目标计划 / 长期执行 -> docs/goal-diffusion/goals/<goal-id>/
 文档权威 / standards / ADR / roadmap -> docs/*
+界面能力 trace -> docs/interface-capabilities/** 或 Goal Pack interface-capabilities.yaml
+通用 harness trace / coverage -> docs/product-harness/** 或 Goal Pack product-harness.yaml
+UI harness 方法与证据 envelope -> owning project test surface + optional Goal Pack receipts
 proof command / smoke evidence / fixture/replay 规则 -> owning project command surface + docs/standards/**
 CLI 状态读取 / receipt / advance -> packages/cli/**
 ```

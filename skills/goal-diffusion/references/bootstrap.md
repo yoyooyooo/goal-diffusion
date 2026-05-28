@@ -56,6 +56,8 @@ docs/goal-diffusion/goals/<goal-id>/
   state.yaml
   receipts.jsonl
   implementation-plan.md  # only when plan_required
+  interface-capabilities.yaml  # optional UI/interface trace companion
+  product-harness.yaml  # optional harness proof companion
   notes/
 ```
 
@@ -78,6 +80,8 @@ Diffusion operating loop.
 | sources | `docs/goal-diffusion/sources/` |
 | goal packs | `docs/goal-diffusion/goals/<goal-id>/` |
 | implementation plans | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
+| interface capability companions | `docs/goal-diffusion/goals/<goal-id>/interface-capabilities.yaml` |
+| product harness companions | `docs/goal-diffusion/goals/<goal-id>/product-harness.yaml` |
 
 ## Active Goal Packs
 
@@ -93,6 +97,8 @@ charter.yaml                  objective, authority, completion, claim boundary, 
 state.yaml                    current edge, active task, blockers, next decision
 receipts.jsonl                append-only task and audit receipts
 implementation-plan.md        optional pre-reviewed plan for one plan_required slice
+interface-capabilities.yaml    optional UI/IA/interaction trace companion
+product-harness.yaml           optional harness proof companion
 notes/                        long material only
 ```
 

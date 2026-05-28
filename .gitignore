@@ -7,3 +7,4 @@ dist/
 coverage/
 .memdex
 skills/.skillshare-manifest.json
+__pycache__

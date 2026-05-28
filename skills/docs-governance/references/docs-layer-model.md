@@ -36,7 +36,8 @@ Standard vocabulary:
 Core: docs/product, docs/ssot, docs/standards, docs/adr,
       docs/architecture, docs/roadmap
 Idea flow: docs/goal-diffusion, docs/proposals, docs/research, docs/reports
-Product/interface: docs/features, docs/design
+Product/interface: docs/features, docs/design, docs/interface-capabilities,
+                   docs/product-harness
 Contracts/ops: docs/protocols, docs/api, docs/runbook, docs/security,
                docs/data, docs/evals, docs/releases
 ```
@@ -130,9 +131,17 @@ Choose one documented home or map the relationship in `docs/README.md`.
 |---|---|---|
 | `docs/features/**` | Requirements, user stories, capability tracking, acceptance scope | Current architecture authority or task execution status |
 | `docs/design/**` | UX, UI, visual system, interaction model, asset index | Product facts, engineering gates, or roadmap status |
+| `docs/interface-capabilities/**` | Project-level InterfaceCapability and InterfaceSurface contracts: user task, entrypoint, interaction contract, state/data ownership, coverage intent | Harness scenarios, fixtures, routes, test steps, evidence results, product facts, or Goal Pack runtime state |
+| `docs/product-harness/**` | Project-level HarnessScenario, HarnessFixture refs, HarnessRoute/Component refs, HarnessEvidence refs, claim ceilings, negative claims, coverage matrix, lifecycle | InterfaceCapability semantics, product truth, final design, executable tests, raw receipts, or Goal Pack runtime state |
 
 `docs/features/**` and `docs/design/**` are useful for product-heavy projects.
 Library, infrastructure, or research projects may omit them.
+
+`docs/interface-capabilities/**` and `docs/product-harness/**` are optional
+trace layers for projects that need durable agent-readable UI capability and
+proof contracts. Goal Pack companion artifacts may start as candidate working
+drafts, but final audit should give a retention verdict: `promote`,
+`keep-in-goal`, `split`, `retire`, or `block`.
 
 In this model, `docs/design/**` means interface design: UX, UI, interaction
 model, information architecture, visual system, and design assets. It does not
@@ -191,6 +200,7 @@ docs/ssot/**
   -> code + tests + generated evidence
   -> docs/adr/**
   -> docs/protocols/** when the question is wire compatibility
+  -> docs/interface-capabilities/** / docs/product-harness/**
   -> docs/roadmap/**
   -> docs/goal-diffusion/** / docs/proposals/**
   -> research / external notes
@@ -202,18 +212,26 @@ Method-internal lifecycle facts keep their owning method authority. For example,
 Goal Diffusion progress facts are not promoted into roadmap authority merely
 because a roadmap summarizes or links them.
 
-## Index Requirements
+## Layer README Contract
 
-Every high-density layer should have a `README.md` with:
+Every durable docs layer should have a `README.md`. At minimum it must name:
 
-- what this layer owns;
-- what it must not own;
-- current entry points;
+- `Owns`;
+- `Must Not Own`;
+- current entry points or `Read Next`.
+
+Authority-heavy layers should also name:
+
+- `Boundary` or conflict behavior;
 - promotion / demotion path;
-- conflict behavior.
+- source / evidence retention policy when relevant.
 
 If a top-level folder lacks a README and contains durable planning content, add
 one before adding more files.
+
+This contract keeps `docs/README.md` as the router and each layer README as the
+local authority. Do not rely on the global layer table alone when placing a
+durable artifact.
 
 ## Host Language Policy
 

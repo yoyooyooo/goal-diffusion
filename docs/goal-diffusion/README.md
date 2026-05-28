@@ -4,6 +4,19 @@
 
 项目级 docs 治理规则不放在这里；先读 `../README.md`。
 
+## Owns
+
+- Goal Pack、inbox、sources、receipts、notes 和 relation metadata。
+- Goal Pack companion artifacts：`interface-capabilities.yaml`、`product-harness.yaml`。
+- Goal Diffusion 方法内的运行状态、active task、final audit 和完成证据链。
+
+## Must Not Own
+
+- 项目级产品事实、SSoT、standards、ADR 或 roadmap 权威。
+- 长期 InterfaceCapability 权威；promote 后归 `docs/interface-capabilities/**`。
+- 长期 Product Harness 权威；promote 后归 `docs/product-harness/**`。
+- docs layer governance 规则。
+
 ## Homes
 
 | 角色 | 路径 |
@@ -12,6 +25,8 @@
 | sources | `docs/goal-diffusion/sources/` |
 | goal packs | `docs/goal-diffusion/goals/<goal-id>/` |
 | implementation plans | `docs/goal-diffusion/goals/<goal-id>/implementation-plan.md` |
+| interface capability companions | `docs/goal-diffusion/goals/<goal-id>/interface-capabilities.yaml` |
+| product harness companions | `docs/goal-diffusion/goals/<goal-id>/product-harness.yaml` |
 
 Goal Pack 结构：
 
@@ -21,6 +36,8 @@ goals/<goal-id>/
   state.yaml
   receipts.jsonl
   implementation-plan.md  # 仅 plan_required 时存在
+  interface-capabilities.yaml  # UI/IA/interaction trace，可选
+  product-harness.yaml  # harness proof trace，可选
   notes/
 ```
 

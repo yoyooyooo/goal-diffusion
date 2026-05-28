@@ -20,6 +20,9 @@
 | --- | --- |
 | `ai-coding-project-os` | 用户默认入口，轻量路由和编排 |
 | `docs-governance` | 文档分层、权威放置、cleanup、audit |
+| `interface-capability-planning` | UI/IA、交互能力、前端状态/数据归属和 trace artifact |
+| `product-harness-system` | 通用 harness artifact、claim ceiling、coverage matrix、生命周期和 trace |
+| `ui-product-harness` | interface-headless、render wiring、browser-visible、production-near UI proof |
 | `headless-product-harness` | headless proof command 与证据 envelope |
 | `goal-diffusion` | Goal Pack 方法总入口 |
 | `goal-plans` | `charter.yaml` 生成/修复 |
@@ -48,6 +51,8 @@ implementation-plan.md
 | `docs/adr/**` | 已采纳取舍及后果 | 当前任务状态或完整标准 |
 | `docs/architecture/**` | 系统结构、模块关系、运行时视图 | 覆盖 SSoT 或隐藏任务 |
 | `docs/roadmap/**` | 顺序、状态、证据链接、迁移波次 | 逐步实施任务清单 |
+| `docs/interface-capabilities/**` | 项目级 InterfaceCapability / InterfaceSurface trace artifact，当项目选择集中管理 UI 能力追溯时使用 | 业务事实、测试代码、Goal Pack 运行状态 |
+| `docs/product-harness/**` | 项目级 HarnessScenario / HarnessFixture refs / HarnessRoute refs / evidence refs / claim ceiling / coverage matrix | 用户能力语义、产品事实、测试代码、Goal Pack 运行状态 |
 | `docs/goal-diffusion/**` | Goal Pack、inbox、sources、receipts、Goal Relations | 项目级 docs 治理或产品权威 |
 
 ## 冲突顺序
@@ -60,6 +65,8 @@ docs/ssot/**
   -> code + tests + generated evidence
   -> docs/adr/**
   -> docs/architecture/**
+  -> docs/interface-capabilities/**
+  -> docs/product-harness/**
   -> docs/roadmap/**
   -> docs/goal-diffusion/**
   -> README / research / external notes
@@ -74,6 +81,8 @@ docs/ssot/**
 - 已采纳取舍 -> `docs/adr/**`
 - 结构视图 -> `docs/architecture/**`
 - 顺序/状态/证据链接 -> `docs/roadmap/**`
+- 项目级界面能力 trace -> `docs/interface-capabilities/**`
+- 项目级 harness 证明合同、coverage matrix 和 evidence refs -> `docs/product-harness/**`
 - Goal Pack 生命周期 -> `docs/goal-diffusion/**`
 - 实施任务和本地证据 -> root `specs/**`，不要放 `docs/specs/**`
 
