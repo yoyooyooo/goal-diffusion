@@ -41,6 +41,7 @@ gap 显式留下
 | `goal/` | `proof-step-implementation` | 执行、验证、添加 evidence、apply progress |
 | `goal/` | `write-work-plans` | 为高风险 work item 写 `plans/<work_id>.md` |
 | `governance/` | `docs-governance` | docs layer、SSoT、standards、ADR、roadmap、cleanup、audit |
+| `architecture/` | `frontend-architecture` | TypeScript 前端架构、依赖方向、命名语义、React/Effect/Query/Store 分层和 harness-ready 边界 |
 | `capability/` | `interface-capability-planning` | UI/IA、InterfaceCapability、surface、state/data ownership、harness handoff |
 | `harness/` | `product-harness-system` | harness artifact model、`claim_ceiling`、Harness Coverage Matrix、trace lifecycle |
 | `harness/` | `ui-product-harness` | interface-headless、render wiring、browser-visible、production-near UI proof |
@@ -219,8 +220,8 @@ Docs governance：
 检查 docs layer、authority placement、README route、obsolete planning docs 和 audit。
 ```
 
-本仓文档层规则见 `docs/standards/docs-governance.md`；skill SSoT / runtime
-分发规则见 `docs/standards/skill-source-distribution.md`。
+本仓文档层规则见 `docs/standards/docs-governance.md`；公开 skill 源码布局和触发名规则见
+`docs/standards/skill-source-layout.md`。
 
 ## CLI 快速查看
 

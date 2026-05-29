@@ -10,15 +10,15 @@ proof_step:
     - "Implement thread-member goal discovery filters without changing relations list/check/graph semantics."
     - "Implement thread-member work item discovery filters with explicit work item and parent-goal filter names."
     - "Update root docs, package docs, and the goal-proof skill to state that relations is broad discovery, not execution ordering."
-    - "Validate the command surface against this repository and use /Users/yoyo/Documents/code/personal/fermi.worktrees/planning as a read-only external target."
+    - "Validate the command surface against this repository and use <external-goals-root> as a read-only external target."
   checks:
     - "bun run check"
     - "goal-proof check docs/goal-proof/goals/2026-05-23-relations-thread-discovery-cli"
     - "goal-proof relations goals docs/goal-proof/goals --thread goal-relations --completion todo --json"
     - "goal-proof relations work items docs/goal-proof/goals --thread goal-relations --completion todo --json"
     - "goal-proof relations check docs/goal-proof/goals --thread goal-relations --json"
-    - "goal-proof relations goals /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json"
-    - "goal-proof relations work items /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json"
+    - "goal-proof relations goals <external-goals-root> --completion todo --json"
+    - "goal-proof relations work items <external-goals-root> --completion todo --json"
   failure_inspection:
     - packages/cli/src/goal-proof.ts
     - packages/cli/src/render-goal-relations.ts
@@ -103,8 +103,8 @@ last_check:
     - "bun packages/cli/src/goal-proof.ts relations goals docs/goal-proof/goals --thread goal-relations --completion todo --json [pass]"
     - "bun packages/cli/src/goal-proof.ts relations work items docs/goal-proof/goals --thread goal-relations --completion todo --json [pass]"
     - "bun packages/cli/src/goal-proof.ts relations check docs/goal-proof/goals --thread goal-relations --json [pass]"
-    - "bun packages/cli/src/goal-proof.ts relations goals /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json [pass]"
-    - "bun packages/cli/src/goal-proof.ts relations work items /Users/yoyo/Documents/code/personal/fermi.worktrees/planning --completion todo --json [pass]"
+    - "bun packages/cli/src/goal-proof.ts relations goals <external-goals-root> --completion todo --json [pass]"
+    - "bun packages/cli/src/goal-proof.ts relations work items <external-goals-root> --completion todo --json [pass]"
     - "node packages/cli/dist/cli.js relations goals docs/goal-proof/goals --thread goal-relations --completion todo --json [pass]"
     - "node packages/cli/dist/cli.js relations work items docs/goal-proof/goals --thread goal-relations --completion todo --json [pass]"
 

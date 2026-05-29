@@ -91,6 +91,14 @@ Stop only when no honest falsifiable path exists, or when continuing would
 require changing product truth, claim_ceiling, public API/schema/protocol
 posture, security policy, private-data handling, or destructive behavior.
 
+## Rolling Handoff
+
+During rolling Goal execution, headless proof can unlock UI or
+production-near gates, but it does not own those claims. Emit the product-fact
+tokens, `not_claimed`, and `not_proven` needed by the next Goal Proof step, then
+hand browser/render claims to `ui-product-harness` and shared cell promotion to
+`product-harness-system`.
+
 ## Command Rules
 
 - Command names prove capabilities, not progress labels.

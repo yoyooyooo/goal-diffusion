@@ -44,6 +44,7 @@ completion claims.
 | `goal/` | `proof-step-implementation` | Execute, verify, add evidence, apply progress |
 | `goal/` | `write-work-plans` | Write `plans/<work_id>.md` for high-risk work items |
 | `governance/` | `docs-governance` | Docs layers, SSoT, standards, ADRs, roadmaps, cleanup, audit |
+| `architecture/` | `frontend-architecture` | TypeScript frontend architecture, dependency direction, naming semantics, React/Effect/Query/Store split, and harness-ready boundaries |
 | `capability/` | `interface-capability-planning` | UI/IA capability contracts, surfaces, state/data ownership, harness handoff |
 | `harness/` | `product-harness-system` | Harness artifact model, `claim_ceiling`, Harness Coverage Matrix, trace lifecycle |
 | `harness/` | `ui-product-harness` | Interface-headless, render wiring, browser-visible, production-near UI proof |
@@ -236,8 +237,8 @@ and audit.
 ```
 
 This repository's docs layer rules live in `docs/standards/docs-governance.md`;
-skill SSoT / runtime distribution rules live in
-`docs/standards/skill-source-distribution.md`.
+public skill source layout and trigger-name rules live in
+`docs/standards/skill-source-layout.md`.
 
 ## CLI Quick Inspect
 

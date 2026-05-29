@@ -45,8 +45,8 @@ Accepted
 - 后续新增方法或 skill 时，优先按 decision surface 放入 `skills/router`、
   `skills/goal`、`skills/governance`、`skills/capability` 或 `skills/harness`。
 - 旧 skill 名和旧目录名不得作为兼容 alias 分发。
-- repo 外壳、SSoT、runtime targets 和 skill-manager scene profile 必须按
-  [Skill Source And Distribution](../standards/skill-source-distribution.md) 收敛。
+- repo 外壳、公开 skill source layout 和旧名退役必须按
+  [Skill Source Layout](../standards/skill-source-layout.md) 收敛。
 
 ## Evidence
 

@@ -72,6 +72,27 @@ the command contract and evidence envelope. If the command itself is the
 missing product work, make command creation the proof-step target and still specify
 the tokens or observations it must emit.
 
+## Rolling Proof Step
+
+In rolling Goal execution, a proof step is the next gate, not the whole goal.
+After a gate succeeds, use the new evidence to choose the next smallest
+falsifiable gate without changing protected goal fields.
+
+When the next movement crosses a proof level, make the level boundary explicit
+inside existing fields:
+
+```text
+target_delta: current target_slice + proof_level + claim_ceiling
+proof_path: positive_tokens + promotion_gate + not_claimed
+checks: commands or observations that prove this level only
+failure_inspection: first files, traces, commands, or authorities to inspect
+```
+
+Use the lowest honest level that moves the goal. Do not jump to browser,
+production-near, or real-runtime proof when interface-headless, fixture, replay,
+or adapter proof is the current claim. Do not stay at a lower level when the
+current claim requires visible or runtime behavior.
+
 ## Quick Workflow
 
 1. Read `goal.yaml`.

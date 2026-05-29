@@ -103,6 +103,14 @@ when a durable evidence add is needed. Include `interface_capability`, `scenario
 `positive_tokens`, `not_claimed`, `not_proven`, `status`, and
 `gaps`.
 
+## Rolling Handoff
+
+During rolling Goal execution, this skill proves one UI level at a time and
+hands status back to Goal Proof. A successful `interface_headless` proof may
+make `render_wiring` eligible; a successful `render_wiring` proof may make
+`browser_visible` eligible; `production_near` requires paired product/runtime
+proof. Do not skip the evidence handoff between levels.
+
 ## Tool Guidance
 
 Match the tool to the level: unit tests for interface headless, component tests

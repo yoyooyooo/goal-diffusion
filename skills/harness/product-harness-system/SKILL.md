@@ -101,6 +101,28 @@ This skill does not own:
 - Use `docs-governance` for docs-layer authority and retained-evidence
   placement.
 
+## Coverage Cell Promotion
+
+Harness Coverage Matrix cells may move during rolling Goal execution, but a
+cell status change must carry a small promotion packet:
+
+```text
+cell_id
+from_status
+to_status
+evidence_refs
+positive_tokens
+not_claimed
+not_proven
+promotion_gate
+next_gap
+```
+
+`planned` and `candidate` mean a route exists; they do not prove coverage.
+Only promote a cell when command/test/browser evidence proves the cell's own
+claim ceiling. If evidence proves only a lower level, keep the stronger cell as
+`gap` or `planned`.
+
 ## Stop / Ask
 
 Ask only when continuing would change product truth, public protocol/API/schema

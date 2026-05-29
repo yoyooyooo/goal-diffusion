@@ -30,7 +30,7 @@ authority_refs:
   - "README.md"
   - "README.zh-CN.md"
   - "skills/goal/goal-proof-system/SKILL.md"
-  - "/Users/yoyo/Documents/code/personal/fermi.worktrees/planning"
+  - "<external-goals-root>"
 
 engineering_guidance:
   architecture_notes:

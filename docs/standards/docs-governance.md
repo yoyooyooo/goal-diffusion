@@ -15,7 +15,7 @@
 - AI Coding OS 的产品定位；归 `docs/product/**`。
 - 当前术语和方法论事实；归 `docs/ssot/**`。
 - 单个 Goal Pack 的运行状态、evidence record 或 completion review；归 `docs/goal-proof/**`。
-- skill SSoT / runtime 分发状态；归 [Skill Source And Distribution](skill-source-distribution.md)。
+- skill source layout、触发名和旧入口退役；归 [Skill Source Layout](skill-source-layout.md)。
 
 ## Layer Contract
 
@@ -123,7 +123,7 @@ Promote 后，Goal Pack companion 只保留 source / promoted_to / evidence link
   retired vocabulary registry 和负向测试。
 - historical scan：包含所有路径，只确认旧词只在允许区出现。
 
-旧入口允许区由 [Skill Source And Distribution](skill-source-distribution.md) 定义。
+旧入口允许区由 [Skill Source Layout](skill-source-layout.md) 定义。
 
 ## Required Verification
 
@@ -141,11 +141,11 @@ git diff --check
 goal-proof check docs/goal-proof/goals/<goal-id>
 ```
 
-涉及 skill source / distribution 时，再执行
-[Skill Source And Distribution](skill-source-distribution.md) 的 claim-level 验证。
+涉及 skill source layout 或旧入口退役时，再执行
+[Skill Source Layout](skill-source-layout.md) 的 claim-level 验证。
 
 ## Read Next
 
 - 文档路由：`../README.md`
 - 当前事实：`../ssot/README.md`
-- Skill source / distribution：`skill-source-distribution.md`
+- Skill source layout：`skill-source-layout.md`

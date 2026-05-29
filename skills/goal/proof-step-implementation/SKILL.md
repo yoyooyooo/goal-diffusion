@@ -80,6 +80,24 @@ For related Goal Packs, keep work in the active Goal Pack. Do not reopen a done
 predecessor for normal follow-up. Record successor evidence in the current
 evidence chain and reference predecessor evidence records through `relations`.
 
+## Gate Transition
+
+In rolling execution, do not stop only because the current gate passed. After
+evidence is recorded and checks pass, decide the next state:
+
+```text
+same proof_step still has useful safe work -> continue
+current gate proved -> sharpen next proof_step and continue
+required evidence satisfied -> completion review
+no honest next gate -> blocked
+protected field or claim boundary must change -> needs_human
+```
+
+Before crossing to a stronger proof level, confirm the previous evidence names
+`positive_tokens`, preserves `not_claimed`, and satisfies the relevant
+`promotion_gate`. A lower-level proof can support the next level, but it must
+not be reported as the next level's claim.
+
 ## Evidence Record
 
 Append one JSON object per completed, blocked, or reviewed work item to

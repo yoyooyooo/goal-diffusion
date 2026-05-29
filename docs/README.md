@@ -10,7 +10,7 @@
 4. 读 [docs/ssot/README.md](ssot/README.md)、[docs/standards/README.md](standards/README.md) 和
    [Docs Governance](standards/docs-governance.md)，确认当前事实、可执行规则和文档放置边界。
 5. 需要查看长期目标状态时，读 [docs/goal-proof/README.md](goal-proof/README.md)。
-6. 需要判断命名或分发边界时，读 [docs/adr/2026-05-28-ai-coding-os-naming-and-boundary.md](adr/2026-05-28-ai-coding-os-naming-and-boundary.md) 和 [docs/standards/skill-source-distribution.md](standards/skill-source-distribution.md)。
+6. 需要判断命名、公开 skill source layout 或旧入口退役边界时，读 [docs/adr/2026-05-28-ai-coding-os-naming-and-boundary.md](adr/2026-05-28-ai-coding-os-naming-and-boundary.md) 和 [docs/standards/skill-source-layout.md](standards/skill-source-layout.md)。
 
 ## 当前状态
 
@@ -36,8 +36,8 @@ plans/<work_id>.md
 ```
 
 后续 schema、docs layer 或 skill 口径变更仍应同步更新 skills、templates、checker、README、测试和 dogfood Goal Pack。
-涉及 skill source、mirror、runtime 分发或旧入口退役时，按
-[Skill Source And Distribution](standards/skill-source-distribution.md) 执行。
+涉及 skill source layout、公开触发名或旧入口退役时，按
+[Skill Source Layout](standards/skill-source-layout.md) 执行。
 涉及 docs layer 准入、promotion / demotion、旧材料清理或审计门时，按
 [Docs Governance](standards/docs-governance.md) 执行。
 
@@ -98,4 +98,4 @@ docs/ssot/**
 - 当前事实：[docs/ssot/README.md](ssot/README.md)
 - 可执行规则：[docs/standards/README.md](standards/README.md)
 - 文档治理：[docs/standards/docs-governance.md](standards/docs-governance.md)
-- Skill source / distribution：[docs/standards/skill-source-distribution.md](standards/skill-source-distribution.md)
+- Skill source layout：[docs/standards/skill-source-layout.md](standards/skill-source-layout.md)

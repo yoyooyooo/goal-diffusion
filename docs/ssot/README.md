@@ -71,5 +71,5 @@ docs/ssot/**
 
 - 执行规则：`../standards/README.md`
 - 文档治理：`../standards/docs-governance.md`
-- Skill source / distribution：`../standards/skill-source-distribution.md`
+- Skill source layout：`../standards/skill-source-layout.md`
 - 文档路由：`../README.md`

@@ -3,9 +3,10 @@ name: goal-proof
 description: >-
   Runs Goal Proof System as the Goal Pack operating method for long-running AI
   coding: goal.yaml, progress.yaml, evidence.jsonl, proof steps, work items,
-  and completion review. Use when work is broad, ambiguous, evidence-sensitive,
-  likely to span multiple evidence records or sessions, involves Goal Pack or
-  method migration, or when the user asks for a Goal Plan / Goal Pack.
+  rolling execution, and completion review. Use when work is broad, ambiguous,
+  evidence-sensitive, likely to span multiple evidence records or sessions,
+  involves Goal Pack or method migration, or when the user asks for a Goal Plan
+  / Goal Pack.
 ---
 
 # Goal Proof System
@@ -103,6 +104,28 @@ failure_inspection
 
 If any item is only a slogan or future command name, sharpen the proof step
 before editing production code.
+
+## Rolling Execution
+
+For broad goals, the current `proof_step` is a rolling gate, not the whole work
+ceiling. Completing one proof step does not require stopping when the goal
+contract remains valid and another honest falsifiable step is visible.
+
+After each evidence record:
+
+```text
+apply progress
+-> check the Goal Pack
+-> preserve not_claimed and claim_limit
+-> if next step is clear, update proof_step and continue
+-> if completion evidence is satisfied, write completion review
+-> otherwise block or ask only for protected human decisions
+```
+
+Do not merge multiple proof levels into one evidence record. Use separate
+records when moving through levels such as `interface_headless`,
+`render_wiring`, `browser_visible`, `headless_product`, `production_near`, or a
+project-specific equivalent.
 
 ## Goal Pack Shape
 

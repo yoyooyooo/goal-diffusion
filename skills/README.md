@@ -9,6 +9,7 @@
 | `router/` | 用户意图入口和方法编排 | `ai-coding-os` |
 | `goal/` | Goal Pack、长期目标流转、evidence-backed execution | `goal-proof`, `goal-contracts`, `finding-proof-step`, `proof-step-implementation`, `write-work-plans` |
 | `governance/` | docs layer、authority placement、cleanup、audit | `docs-governance` |
+| `architecture/` | 可复用工程架构 doctrine、依赖方向、命名语义和边界审计 | `frontend-architecture` |
 | `capability/` | interface capability、surface、state/data ownership、trace planning | `interface-capability-planning` |
 | `harness/` | harness contract、headless proof、UI harness proof | `product-harness-system`, `headless-product-harness`, `ui-product-harness` |
 
@@ -28,4 +29,3 @@
 - 不按目录名触发 skill；始终按 `name:` 触发。
 - 新 skill 先判断 decision surface，再放入对应 group。
 - 如果一个 skill 同时像两个 group，优先收敛它的 ownership，不新增混合 group。
-- `skillshare` 支持递归发现；copy target 可能把嵌套路径编码成扁平目录名，这是分发细节，不改变本仓源码布局。

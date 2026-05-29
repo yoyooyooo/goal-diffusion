@@ -2,8 +2,9 @@
 name: ai-coding-os
 description: >-
   Thin user-facing router for AI coding workspace work. Use as the default entry
-  when the user asks to govern, plan, execute, audit, converge, or continue work
-  in a software workspace and has not explicitly selected a more specific skill.
+  when the user asks to govern, plan, execute, audit, converge, roll through, or
+  continue work in a software workspace and has not explicitly selected a more
+  specific skill.
 ---
 
 # AI Coding OS Router
@@ -24,7 +25,8 @@ claim / not_claimed summary.
 Handoff: durable plan -> goal flow; docs placement -> governance;
 interface trace -> interface capability workflow; harness model ->
 harness system workflow; browser-visible proof -> UI harness workflow; command
-proof -> headless harness workflow.
+proof -> headless harness workflow; reusable frontend architecture doctrine ->
+frontend architecture workflow.
 Stop: continuing needs product truth, authority, security, compliance,
 private-data, public API/schema/protocol, destructive, or claim_limit choice.
 ```
@@ -39,6 +41,8 @@ interface-capability-planning owns UI/IA interaction capability contracts
 product-harness-system    owns shared harness artifact model and lifecycle
 ui-product-harness        owns frontend/UI harness design and evidence
 headless-product-harness  owns proof command and evidence-envelope design
+frontend-architecture     owns frontend dependency direction, naming, package
+                           boundaries, and React/Effect/Query/Store doctrine
 ```
 
 Do not create OS-owned durable state. If something must be persisted, route it
@@ -57,6 +61,9 @@ to the owning method:
   interface-headless proof, or UI evidence envelopes -> `$ui-product-harness`;
 - command surface, smoke proof, fixture/replay, or evidence envelope ->
   `$headless-product-harness`;
+- reusable frontend architecture, feature-first layout, source-only shared /
+  package boundaries, naming suffixes, React/Effect/Query/Zustand split, or
+  frontend architecture audit -> `$frontend-architecture`;
 - small work that can be completed and verified in the current turn -> inline.
 
 ## Routing Rules
@@ -86,6 +93,10 @@ Otherwise route by intent:
 - asks for xtask / just / pnpm command surfaces, smoke checks, headless proof,
   fixture replay, boundary checks, evidence envelope, or not_claimed ->
   `$headless-product-harness`;
+- asks for reusable frontend architecture standards, feature-first directory
+  rules, naming semantics, React/Effect/Query/Zustand boundaries,
+  `packages/client`, `packages/ui`, source-only shared rules, or frontend
+  architecture audit -> `$frontend-architecture`;
 - asks for high-risk execution planning inside a Goal Pack -> route through
   `$goal-proof` to `write-work-plans`;
 - asks for a small concrete change with one clear verification path -> stay
@@ -124,6 +135,8 @@ A gap is not automatically blocked. First classify the missing piece by owner:
   `$ui-product-harness`;
 - missing command wrapper, fixture, replay, boundary check, proof path, or
   evidence envelope -> `$headless-product-harness`;
+- missing reusable frontend architecture rule, naming decision, source-only
+  package boundary, or React/Effect/Query/Store split -> `$frontend-architecture`;
 - small local defect with one clear proof path -> inline.
 
 Continue when an honest minimum path can be named inside current authority and
@@ -143,6 +156,36 @@ read host instructions
 -> report only proven claims and explicit not_claimed
 ```
 
+## Rolling Goal Execution
+
+Do not rely on the user to name rolling execution. User phrases such as "one
+pass", "end-to-end", "roll through", or "do the whole plan" are strong signals,
+not required triggers.
+
+Automatically route to rolling Goal execution when repo reality, Goal Pack
+state, completion evidence, and proof path indicate a long-running
+multi-evidence task that can keep moving safely.
+
+```text
+route to goal-proof
+-> run current proof_step
+-> append evidence and apply progress
+-> if the goal contract is still valid and the next step is falsifiable:
+     sharpen next proof_step and continue
+-> otherwise review, block, or ask for a human decision
+```
+
+Rolling execution uses a small stable vocabulary: `target_slice`,
+`proof_level`, `claim_ceiling`, `positive_tokens`, `not_claimed`,
+`promotion_gate`, `next_action`, and `failure_inspection`. These may appear in
+Goal Pack prose, companion traces, or evidence records; do not invent parallel
+schema when existing fields can carry the meaning.
+
+Do not compress multiple proof levels into one evidence record. Continuing is
+allowed only while the next step is honest, falsifiable, inside the current
+claim boundary, and does not require product-truth, public API/schema/protocol,
+security, private-data, destructive, or `claim_limit` decisions.
+
 ## Non-Ownership Rules
 
 Do not own or rewrite:
@@ -156,6 +199,7 @@ Do not own or rewrite:
 - UI harness command/evidence details that belong to `$ui-product-harness`;
 - docs layer lifecycle rules that belong to `$docs-governance`;
 - command/evidence schema details that belong to `$headless-product-harness`;
+- frontend architecture doctrine that belongs to `$frontend-architecture`;
 - product truth, public API/schema/protocol posture, security policy, or
   private/raw-data handling decisions.
 
